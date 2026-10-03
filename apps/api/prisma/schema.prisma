@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// HullOps data model. Docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider     = "prisma-client"
@@ -15,16 +12,12 @@ datasource db {
   provider = "postgresql"
 }
 
-// HullOps – Datenmodell (Woche 1)
-// WICHTIG: Den "generator"- und "datasource"-Block aus `prisma init`
-// behalten und nur die Enums + Models unten einfügen.
-
 enum Role {
   PROJECT_LEAD
   WORKER
 }
 
-// Die zwei Fachbereiche
+// The two service areas
 enum ServiceType {
   CLEANING
   PROTECTION
@@ -37,14 +30,14 @@ enum OrderStatus {
 }
 
 model User {
-  id            String            @id @default(cuid())
-  email         String            @unique
-  passwordHash  String
-  name          String
-  role          Role              @default(WORKER)
-  serviceTypes  ServiceType[]     // Fachbereiche, in denen die Person arbeiten kann
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+  id           String        @id @default(cuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  role         Role          @default(WORKER)
+  serviceTypes ServiceType[] // service areas this person can work in
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   createdOrders Order[]           @relation("OrderCreatedBy")
   assignments   OrderAssignment[]
@@ -54,38 +47,39 @@ model User {
 model Vessel {
   id         String   @id @default(cuid())
   name       String
-  imoNumber  String?  @unique // internationale Schiffsnummer
-  vesselType String?          // z. B. Yacht, Containerschiff
+  imoNumber  String?  @unique // International Maritime Organization ship number
+  vesselType String? // e.g. yacht, container ship
   lengthM    Float?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  orders     Order[]
+  orders Order[]
 }
 
 model Order {
-  id          String            @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   description String?
-  status      OrderStatus       @default(PLANNED)
-  serviceType ServiceType       // Reinigung oder Schutz
-  shipyard    String            // z. B. Blohm+Voss
-  berth       String?           // Liegeplatz / Dock
-  areaSqm     Float?            // zu reinigende Fläche
+  status      OrderStatus @default(PLANNED)
+  serviceType ServiceType // cleaning or protection
+  shipyard    String // e.g. Blohm+Voss
+  berth       String? // berth / dock
+  areaSqm     Float? // area to clean, in m²
   startDate   DateTime
-  dueDate     DateTime          // "verspätet" = dueDate < jetzt && status != DONE (berechnet, nicht gespeichert)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  dueDate     DateTime // "overdue" = dueDate < now && status != DONE (computed, never stored)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   vesselId    String
-  vessel      Vessel            @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  vessel      Vessel @relation(fields: [vesselId], references: [id], onDelete: Restrict)
   createdById String
-  createdBy   User              @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  createdBy   User   @relation("OrderCreatedBy", fields: [createdById], references: [id])
 
   assignments   OrderAssignment[]
   statusUpdates StatusUpdate[]
 
-  // Fachspezifische Details (1:1, nur eins davon ist gesetzt – passend zu serviceType)
+  // Service-specific details (1:1). Exactly one is set, matching serviceType;
+  // the database doesn't enforce this, so application code must.
   cleaningDetails   CleaningDetails?
   protectionDetails ProtectionDetails?
 
@@ -95,77 +89,77 @@ model Order {
   @@index([vesselId])
 }
 
-// Details für Reinigungsaufträge
+// Details for cleaning orders
 model CleaningDetails {
-  orderId String  @id
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  method  String  // z. B. Hochdruck, Strahlen, manuell
-  surface String  // z. B. Rumpf, Deck, Innenraum
+  orderId String @id
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method  String // e.g. high-pressure, blasting, manual
+  surface String // e.g. hull, deck, interior
 }
 
-// Art des Schutzes – kann auch parallel zur Reinigung laufen
+// Kind of protection. Protection can run at the same time as cleaning.
 enum ProtectionKind {
-  ENCLOSURE // Einhausung, z. B. Holzkisten um Maschinen
-  COVERING  // Abdeckung, z. B. Folie, Planen
-  FLOOR     // Flurschutz – Schutz vom Deck/Boden
-  COATING   // Beschichtung
+  ENCLOSURE // e.g. wooden boxes around machines
+  COVERING // e.g. foil, tarpaulins
+  FLOOR // floor protection: protects the deck or floor
+  COATING // coating
 }
 
-// Verwendete Schutzmaterialien
+// Protection materials
 enum ProtectionMaterial {
   OSB_STANDARD
-  OSB_FIRE_RESISTANT // feuerfest
+  OSB_FIRE_RESISTANT // fire-resistant
   PROPLEX_3MM
   PROPLEX_HD
-  GLASS_FIBER_FABRIC // "Mahlglas", Glasfasergewebe – Schutz gegen Feuer und Schweißfunken
+  GLASS_FIBER_FABRIC // "Mahlglas": glass fiber fabric, protects against fire and welding sparks
 }
 
-// Details für Schutzaufträge
+// Details for protection orders
 model ProtectionDetails {
-  orderId           String         @id
-  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId           String               @id
+  order             Order                @relation(fields: [orderId], references: [id], onDelete: Cascade)
   kind              ProtectionKind
-  protectedItem     String?        // was geschützt wird, z. B. Hauptmaschine, Generator
-  materials         ProtectionMaterial[] // z. B. OSB-Kiste + Proplex am Boden
-  // nur bei Beschichtung relevant:
+  protectedItem     String? // what is protected, e.g. main engine, generator
+  materials         ProtectionMaterial[] // e.g. OSB box + Proplex on the floor
+  // only relevant for coatings:
   coatingProduct    String?
   layers            Int?
-  targetThicknessUm Int?           // Soll-Schichtdicke in µm
+  targetThicknessUm Int? // target coating thickness in µm
 }
 
-// Team pro Auftrag (Many-to-Many User <-> Order)
+// The team on an order (many-to-many User <-> Order)
 model OrderAssignment {
   orderId    String
   userId     String
   assignedAt DateTime @default(now())
 
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([orderId, userId])
 }
 
-// Verlauf: jede Statusänderung / Notiz vom Team (Fotos kommen in Woche 6)
+// History: every status change or note from the team, with optional photos
 model StatusUpdate {
-  id        String       @id @default(cuid())
+  id        String      @id @default(cuid())
   status    OrderStatus
   note      String?
-  createdAt DateTime     @default(now())
+  createdAt DateTime    @default(now())
 
-  orderId   String
-  order     Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User         @relation(fields: [authorId], references: [id])
-  photos    Photo[]
+  orderId  String
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User    @relation(fields: [authorId], references: [id])
+  photos   Photo[]
 
   @@index([orderId, createdAt])
 }
 
 model Photo {
-  id             String       @id @default(cuid())
-  storageKey     String       // Pfad im Storage (S3 o. ä.)
-  mimeType       String
-  createdAt      DateTime     @default(now())
+  id         String   @id @default(cuid())
+  storageKey String // object key in storage (e.g. S3)
+  mimeType   String
+  createdAt  DateTime @default(now())
 
   statusUpdateId String
   statusUpdate   StatusUpdate @relation(fields: [statusUpdateId], references: [id], onDelete: Cascade)

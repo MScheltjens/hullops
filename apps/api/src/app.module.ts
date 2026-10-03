@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { formatGraphqlError } from './graphql/format-graphql-error';
 import { PrismaModule } from './prisma/prisma.module';
 import { VesselsModule } from './vessels/vessels.module';
 
@@ -19,6 +20,7 @@ import { VesselsModule } from './vessels/vessels.module';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       graphiql: true,
+      formatError: (formatted) => formatGraphqlError(formatted),
     }),
     PrismaModule,
     VesselsModule,

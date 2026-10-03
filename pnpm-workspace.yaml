@@ -1,6 +1,7 @@
 packages:
   - "apps/*"
 allowBuilds:
+  '@apollo/protobufjs': false
   '@parcel/watcher': false
   '@prisma/engines': false
   esbuild: false

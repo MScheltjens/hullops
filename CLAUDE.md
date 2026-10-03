@@ -53,7 +53,7 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 ## Prisma 7 notes
 
 - The config file is `apps/api/prisma7.config.ts`, not the default name. It loads `DATABASE_URL` from `apps/api/.env`, so the `datasource` block in the schema has no `url`.
-- The generator is `prisma-client` with output to `apps/api/generated/prisma` (gitignored). Import the client from there, not from `@prisma/client`. Regenerate after cloning or after any schema change.
+- The generator is `prisma-client` with output to `apps/api/src/generated/prisma` (gitignored; inside `src` so the Nest build, which compiles only `src`, includes it). Import the client from there, not from `@prisma/client`. Regenerate after cloning or after any schema change.
 - Prisma 7 needs a driver adapter (e.g. `@prisma/adapter-pg`) to connect at runtime.
 - Prisma agent skills are vendored in `apps/api/.claude/skills/`.
 

@@ -52,6 +52,17 @@ Then open:
 - http://localhost:4000/graphql: GraphiQL, to explore and try the API
 - http://localhost:3000: the web app
 
+## Editor setup
+
+The repo includes settings for VS Code and Cursor in [`.vscode/`](.vscode). When you open the project, the editor suggests the recommended extensions:
+
+- **Language support:** Prisma, GraphQL, Tailwind CSS
+- **Linting and formatting:** ESLint for the web app, Oxc (oxlint) for the API, and Prettier, which formats on save
+- **Jest:** reruns the API's unit tests for the files you save and shows ✓ and ✗ next to each test
+- **Tooling:** Docker containers, GitHub Actions, `.env` highlighting
+
+[`graphql.config.yml`](graphql.config.yml) points the GraphQL extension at the API's generated schema, so queries get autocomplete and validation.
+
 ## Repository layout
 
 ```
@@ -60,6 +71,7 @@ hullops/
 │   ├── api/            NestJS GraphQL API and the Prisma schema; see apps/api/README.md
 │   └── web/            Next.js frontend; see apps/web/README.md
 ├── .github/workflows/  CI
+├── .vscode/            editor settings and recommended extensions
 └── docker-compose.yml  local Postgres
 ```
 

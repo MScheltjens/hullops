@@ -1,0 +1,34 @@
+{
+  // Format with Prettier on save; the API's style comes from apps/api/.prettierrc.
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+
+  // ESLint only applies to the web app; the API uses oxlint (Oxc extension).
+  "eslint.workingDirectories": [{ "directory": "apps/web" }],
+
+  // Jest: run the API's unit tests through its package script, which passes
+  // the flags ESM Jest needs. Tests rerun for the files you save.
+  "jest.virtualFolders": [
+    {
+      "name": "api",
+      "rootPath": "apps/api",
+      "jestCommandLine": "pnpm test --"
+    }
+  ],
+  "jest.runMode": "on-save",
+
+  // Generated code: keep it out of search results and the file watcher.
+  "search.exclude": {
+    "**/src/generated/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true
+  },
+  "files.watcherExclude": {
+    "**/src/generated/**": true,
+    "**/dist/**": true,
+    "**/.next/**": true
+  }
+}

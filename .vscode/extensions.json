@@ -1,0 +1,16 @@
+{
+  // Suggested when the repo is opened in VS Code or Cursor.
+  "recommendations": [
+    "prisma.prisma",
+    "graphql.vscode-graphql",
+    "graphql.vscode-graphql-syntax",
+    "dbaeumer.vscode-eslint",
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "orta.vscode-jest",
+    "ms-azuretools.vscode-containers",
+    "github.vscode-github-actions",
+    "mikestead.dotenv"
+  ]
+}

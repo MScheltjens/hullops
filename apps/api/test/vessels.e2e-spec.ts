@@ -7,8 +7,8 @@ import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
 
 /**
- * Runs the real app against the database in DATABASE_URL (in CI, a throwaway
- * test database). Every vessel this suite creates is deleted afterwards.
+ * Runs the real app against the test database (see test-database.ts).
+ * Every vessel this suite creates is deleted afterwards.
  */
 describe('Vessels GraphQL API (e2e)', () => {
   let app: INestApplication<App>;

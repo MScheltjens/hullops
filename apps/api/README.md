@@ -21,7 +21,10 @@ Rerun `prisma generate` after cloning and after every schema change. The generat
 |---|---|---|
 | `DATABASE_URL` | yes | Postgres connection string |
 | `PORT` | no | HTTP port, defaults to `4000` |
-| `NODE_ENV` | no | `production` hides the details of unexpected errors (see [Errors](#errors)) |
+| `CORS_ORIGINS` | no | Comma-separated origins allowed to call the API from a browser, defaults to `http://localhost:3000` (the web app) |
+| `NODE_ENV` | no | `development` (default), `test` or `production`. In production, GraphiQL and schema introspection are turned off and unexpected errors are reduced to "Internal server error" (see [Errors](#errors)). |
+
+The variables are checked at startup ([`src/config/env.ts`](src/config/env.ts)). If one is missing or malformed, the API stops with a message that names it.
 
 ## Scripts
 
@@ -32,7 +35,7 @@ Rerun `prisma generate` after cloning and after every schema change. The generat
 | `pnpm lint` | oxlint with type-aware rules |
 | `pnpm test` | Unit tests |
 | `pnpm test -- src/vessels` | Unit tests in one folder (or pass a file) |
-| `pnpm test:e2e` | End-to-end tests against the database in `DATABASE_URL` |
+| `pnpm test:e2e` | End-to-end tests against the test database (see [Testing](#testing)) |
 | `pnpm exec prisma migrate dev --name <name>` | Create and apply a migration after changing the schema |
 | `pnpm exec prisma studio` | Browse the database in the browser |
 
@@ -48,12 +51,14 @@ apps/api/
 ├── prisma7.config.ts          Prisma config (loads DATABASE_URL from .env)
 ├── src/
 │   ├── main.ts                entry point
-│   ├── app.setup.ts           app-wide setup (validation), shared with e2e tests
+│   ├── app.setup.ts           app-wide setup (CORS, validation), shared with e2e tests
+│   ├── config/                environment variable validation
 │   ├── app.module.ts          root module: config, GraphQL, feature modules
 │   ├── schema.gql             generated GraphQL schema, committed so API changes show up in review
 │   ├── generated/prisma/      generated Prisma client (gitignored)
 │   ├── prisma/                PrismaService: the single database client
 │   ├── graphql/               GraphQL error formatting
+│   ├── health/                GET /health
 │   └── vessels/               vessels feature
 └── test/                      end-to-end tests
 ```
@@ -79,9 +84,13 @@ Defined in [`prisma/schema.prisma`](prisma/schema.prisma):
 - **StatusUpdate** is an order's history log, with optional **Photos** stored by object-storage key.
 - "Overdue" (`dueDate < now && status != DONE`) is computed when needed, never stored.
 
+## Health check
+
+`GET /health` returns `{"status":"ok","database":"up"}` with status 200, or 503 when the database is unreachable. It's plain REST because load balancers and uptime monitors expect a simple URL and status code.
+
 ## GraphQL API
 
-The schema is code-first: it's generated from the decorated TypeScript classes into [`src/schema.gql`](src/schema.gql) when the app starts. Open http://localhost:4000/graphql to explore it in GraphiQL.
+The schema is code-first: it's generated from the decorated TypeScript classes into [`src/schema.gql`](src/schema.gql) when the app starts. Open http://localhost:4000/graphql to explore it in GraphiQL (not available in production).
 
 ### Vessels
 
@@ -135,7 +144,10 @@ The mapping lives in [`src/graphql/format-graphql-error.ts`](src/graphql/format-
 ## Testing
 
 - **Unit tests** (`src/**/*.spec.ts`) mock Prisma and need no database.
-- **End-to-end tests** (`test/*.e2e-spec.ts`) start the whole app and send real GraphQL requests to the database in `DATABASE_URL`. They delete the data they create. CI runs them against a throwaway database.
+- **End-to-end tests** (`test/*.e2e-spec.ts`) start the whole app and send real HTTP and GraphQL requests to a separate **test database**, so they never touch your development data:
+  - The test database has the name from `DATABASE_URL` plus `_test`. With the default `.env`, that's `hullops_test` on the same server. If the name already ends in `_test`, as in CI, it's used as is.
+  - Before the tests run, [`test/global-setup.ts`](test/global-setup.ts) creates that database if it's missing and applies all migrations. `pnpm test:e2e` needs no manual setup, only a running Postgres.
+  - The suites still delete the data they create, so runs don't affect each other.
 
 ## Notes on the setup
 

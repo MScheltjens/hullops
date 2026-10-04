@@ -44,7 +44,7 @@ function isHttpExceptionBody(value: unknown): value is HttpExceptionBody {
  */
 export function formatGraphqlError(
   formatted: GraphQLFormattedError,
-  isProduction = process.env.NODE_ENV === 'production',
+  isProduction: boolean,
 ): GraphQLFormattedError {
   const { originalError, ...extensions } = formatted.extensions ?? {};
 

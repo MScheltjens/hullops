@@ -44,7 +44,7 @@ The app is in **English** (default) and **German**, via [next-intl](https://next
 
 - **The language comes from the user,** not the URL: it's the user's `locale` setting in the API, which they change with the EN/DE switch in the header. Before login, the browser's preferred language is used. See [`src/i18n/request.ts`](src/i18n/request.ts).
 - **Translations** are in [`messages/en.json`](messages/en.json) and [`messages/de.json`](messages/de.json). Shipyard terms belong here, not in the API.
-- **Keys are type-checked:** a typo in `t("orders.titel")` is a compile error, and [`messages.check.ts`](src/i18n/messages.check.ts) fails the build if German is missing a key that English has.
+- **Keys are type-checked:** a key that doesn't exist, such as a misspelled `t("orders.titel")` instead of `t("orders.title")`, is a compile error, and [`messages.check.ts`](src/i18n/messages.check.ts) fails the build if German is missing a key that English has.
 - **Dates** are formatted per language in the `Europe/Berlin` time zone.
 
 ## Structure

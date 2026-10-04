@@ -4,7 +4,7 @@
 
 HullOps is a planning tool for subcontractors who work on shipyards. Project leads plan cleaning and protection jobs on vessels, put a team on each job, and follow its progress until it's done.
 
-> **Status:** early development. The API has a database layer, a GraphQL setup and vessel management. Orders, users and the web frontend are next (see [Roadmap](#roadmap)).
+> **Status:** in development. The API covers vessels, orders, teams and login with roles. The web app has login and an order overview in English and German (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -26,7 +26,7 @@ Each job is an **order** for one vessel. An order moves from `PLANNED` to `IN_PR
 | Part | Technology |
 |---|---|
 | API ([`apps/api`](apps/api)) | NestJS, GraphQL (Apollo, code-first), Prisma 7, PostgreSQL 16 |
-| Web ([`apps/web`](apps/web)) | Next.js 16 (App Router), React 19, Tailwind CSS v4 |
+| Web ([`apps/web`](apps/web)) | Next.js 16 (App Router, Server Actions), React 19, Tailwind CSS v4, next-intl (English/German) |
 | Tooling | pnpm workspaces, TypeScript, Jest, oxlint / ESLint, GitHub Actions |
 
 ## Getting started
@@ -50,7 +50,7 @@ pnpm dev                                  # API on :4000, web on :3000
 Then open:
 
 - http://localhost:4000/graphql: GraphiQL, to explore and try the API
-- http://localhost:3000: the web app
+- http://localhost:3000: the web app. Log in with a demo user from the seed, e.g. `lena.hoffmann@hullops.example` (password `hullops-dev`).
 
 ## Editor setup
 
@@ -98,5 +98,6 @@ Every push to `main` and every pull request runs [the CI workflow](.github/workf
 - [x] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
 - [x] Seed data for demos
 - [x] Authentication and roles (project lead / worker)
-- [ ] Web frontend: order overview, planning, order details
+- [x] Web: login, order overview, English and German
+- [ ] Web: create and update orders, order details, vessels
 - [ ] Status updates with photo uploads

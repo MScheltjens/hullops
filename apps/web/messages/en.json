@@ -1,0 +1,58 @@
+{
+  "common": {
+    "appName": "HullOps",
+    "tagline": "Planning for cleaning and protection work on shipyards"
+  },
+  "login": {
+    "title": "Log in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Log in",
+    "submitting": "Logging in…",
+    "invalid": "Invalid email or password.",
+    "unavailable": "The server can't be reached right now. Please try again later."
+  },
+  "nav": {
+    "orders": "Orders",
+    "logout": "Log out",
+    "language": "Language",
+    "roles": {
+      "PROJECT_LEAD": "Project lead",
+      "WORKER": "Worker"
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Most urgent first",
+    "filters": {
+      "status": "Status",
+      "serviceType": "Service",
+      "overdue": "Due date",
+      "all": "All",
+      "onlyOverdue": "Overdue",
+      "onlyOnTime": "On time",
+      "apply": "Apply",
+      "reset": "Reset"
+    },
+    "columns": {
+      "order": "Order",
+      "vessel": "Vessel",
+      "service": "Service",
+      "status": "Status",
+      "due": "Due",
+      "team": "Team"
+    },
+    "overdue": "Overdue",
+    "noTeam": "No team yet",
+    "empty": "No orders match these filters.",
+    "status": {
+      "PLANNED": "Planned",
+      "IN_PROGRESS": "In progress",
+      "DONE": "Done"
+    },
+    "serviceType": {
+      "CLEANING": "Cleaning",
+      "PROTECTION": "Protection"
+    }
+  }
+}

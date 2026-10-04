@@ -34,7 +34,7 @@ pnpm 12 monorepo (`apps/*`), Node 24.
 pnpm install
 docker compose up -d db                 # Postgres 16 (user/pass/db: hullops)
 pnpm -r lint                            # api: oxlint --type-aware; web: eslint
-pnpm --filter api typecheck             # tsc over src, tests and prisma/ (Jest and nest build skip test types)
+pnpm -r typecheck                       # api: tsc incl. tests; web: route types + tsc incl. translation completeness
 pnpm -r test
 pnpm -r build
 pnpm --filter api start:dev             # API on :4000 (or $PORT)
@@ -65,6 +65,12 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - A global `AuthGuard` requires a JWT (`Authorization: Bearer …`) on every endpoint. Mark open endpoints with `@Public()`, restrict roles with `@Roles('PROJECT_LEAD')`, and get the user with `@CurrentUser()` (all in `auth-context.ts`).
 - `PrismaService` omits `User.passwordHash` by default; only the login query asks for it with `omit: { passwordHash: false }`. Never add it to a GraphQL type.
 - e2e tests log in through `test/auth-helpers.ts` (`createUserAndLogin`, `graphql(app, token)`).
+
+## Web (`apps/web/`)
+
+- Pages are Server Components that call the API on the server via `src/lib/dal.ts` (`requireUser()`, `apiAsUser()`); the token stays in an httpOnly cookie and never reaches the browser.
+- `src/proxy.ts` is Next.js 16's middleware: an optimistic cookie check only. Real auth is in the DAL.
+- i18n with next-intl, no locale in the URL: the language comes from `User.locale` (or Accept-Language before login). Add every UI string to both `messages/en.json` and `messages/de.json`; `pnpm typecheck` fails if German misses a key. Client Components only get the namespaces passed in `src/app/layout.tsx`.
 
 ## Data model (`apps/api/prisma/schema.prisma`)
 

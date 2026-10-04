@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderInput } from './order.inputs';
 import {
@@ -22,30 +23,40 @@ const db = {
     update: jest.fn(),
   },
   vessel: { findUnique: jest.fn() },
-  user: { findUnique: jest.fn(), findMany: jest.fn() },
+  user: { findMany: jest.fn() },
   statusUpdate: { create: jest.fn() },
   orderAssignment: { upsert: jest.fn(), deleteMany: jest.fn() },
   $transaction: jest.fn(),
 };
 
-const lead = {
+// The logged-in user, as the resolver passes it to the service.
+const makeUser = (
+  fields: Pick<AuthUser, 'id' | 'name' | 'role' | 'serviceTypes'>,
+): AuthUser => ({
+  ...fields,
+  email: `${fields.id}@hullops.example`,
+  locale: 'EN',
+  createdAt: new Date(0),
+  updatedAt: new Date(0),
+});
+const lead = makeUser({
   id: 'lead-1',
   name: 'Lena Hoffmann',
   role: 'PROJECT_LEAD',
   serviceTypes: ['CLEANING', 'PROTECTION'],
-};
-const cleaner = {
+});
+const cleaner = makeUser({
   id: 'worker-1',
   name: 'Mehmet Yilmaz',
   role: 'WORKER',
   serviceTypes: ['CLEANING'],
-};
-const protector = {
+});
+const protector = makeUser({
   id: 'worker-2',
   name: 'Anna Schulz',
   role: 'WORKER',
   serviceTypes: ['PROTECTION'],
-};
+});
 
 const cleaningInput = (
   overrides: Partial<CreateOrderInput> = {},
@@ -56,7 +67,6 @@ const cleaningInput = (
   startDate: new Date('2026-10-05'),
   dueDate: new Date('2026-10-08'),
   vesselId: 'vessel-1',
-  createdById: lead.id,
   cleaning: { method: 'High-pressure water', surface: 'Hull' },
   teamIds: [],
   ...overrides,
@@ -96,7 +106,6 @@ describe('OrdersService', () => {
   describe('create', () => {
     beforeEach(() => {
       db.vessel.findUnique.mockResolvedValue({ id: 'vessel-1' });
-      db.user.findUnique.mockResolvedValue(lead);
       db.user.findMany.mockResolvedValue([]);
       db.order.create.mockResolvedValue({ id: 'order-1' });
     });
@@ -104,7 +113,7 @@ describe('OrdersService', () => {
     it('creates a planned order with its details, team and first history entry', async () => {
       db.user.findMany.mockResolvedValue([cleaner]);
 
-      await service.create(cleaningInput({ teamIds: [cleaner.id] }));
+      await service.create(cleaningInput({ teamIds: [cleaner.id] }), lead);
 
       const { data } = db.order.create.mock.calls[0][0];
       expect(data).toMatchObject({
@@ -125,7 +134,7 @@ describe('OrdersService', () => {
     it('rejects input that breaks an order rule before touching the database', async () => {
       const input = cleaningInput({ cleaning: undefined });
 
-      await expect(service.create(input)).rejects.toBeInstanceOf(
+      await expect(service.create(input, lead)).rejects.toBeInstanceOf(
         BadRequestException,
       );
       expect(db.$transaction).not.toHaveBeenCalled();
@@ -133,29 +142,28 @@ describe('OrdersService', () => {
 
     it('rejects an unknown vessel', async () => {
       db.vessel.findUnique.mockResolvedValue(null);
-      await expect(service.create(cleaningInput())).rejects.toBeInstanceOf(
-        NotFoundException,
-      );
+      await expect(
+        service.create(cleaningInput(), lead),
+      ).rejects.toBeInstanceOf(NotFoundException);
     });
 
     it('only lets project leads create orders', async () => {
-      db.user.findUnique.mockResolvedValue(cleaner);
       await expect(
-        service.create(cleaningInput({ createdById: cleaner.id })),
+        service.create(cleaningInput(), cleaner),
       ).rejects.toBeInstanceOf(ForbiddenException);
       expect(db.order.create).not.toHaveBeenCalled();
     });
 
     it('rejects an unknown team member', async () => {
       await expect(
-        service.create(cleaningInput({ teamIds: ['nobody'] })),
+        service.create(cleaningInput({ teamIds: ['nobody'] }), lead),
       ).rejects.toThrow('User(s) not found: nobody');
     });
 
     it('rejects a team member from another service area', async () => {
       db.user.findMany.mockResolvedValue([protector]);
       const error = await service
-        .create(cleaningInput({ teamIds: [protector.id] }))
+        .create(cleaningInput({ teamIds: [protector.id] }), lead)
         .catch((e: unknown) => e);
 
       expect(error).toBeInstanceOf(BadRequestException);
@@ -174,14 +182,15 @@ describe('OrdersService', () => {
 
     it('moves the order one step forward and records it in the history', async () => {
       db.order.findUnique.mockResolvedValue(order('PLANNED'));
-      db.user.findUnique.mockResolvedValue(cleaner);
 
-      await service.addStatusUpdate({
-        orderId: 'order-1',
-        status: 'IN_PROGRESS',
-        note: 'Started on the port side',
-        authorId: cleaner.id,
-      });
+      await service.addStatusUpdate(
+        {
+          orderId: 'order-1',
+          status: 'IN_PROGRESS',
+          note: 'Started on the port side',
+        },
+        cleaner,
+      );
 
       expect(db.statusUpdate.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -196,78 +205,85 @@ describe('OrdersService', () => {
 
     it('rejects a step that skips or goes back', async () => {
       db.order.findUnique.mockResolvedValue(order('PLANNED'));
-      db.user.findUnique.mockResolvedValue(cleaner);
 
       await expect(
-        service.addStatusUpdate({
-          orderId: 'order-1',
-          status: 'DONE',
-          authorId: cleaner.id,
-        }),
+        service.addStatusUpdate(
+          {
+            orderId: 'order-1',
+            status: 'DONE',
+          },
+          cleaner,
+        ),
       ).rejects.toThrow('Cannot change status from PLANNED to DONE');
       expect(db.statusUpdate.create).not.toHaveBeenCalled();
     });
 
     it('accepts a note without a status change', async () => {
       db.order.findUnique.mockResolvedValue(order('IN_PROGRESS'));
-      db.user.findUnique.mockResolvedValue(cleaner);
 
-      await service.addStatusUpdate({
-        orderId: 'order-1',
-        status: 'IN_PROGRESS',
-        note: 'Half the hull done',
-        authorId: cleaner.id,
-      });
+      await service.addStatusUpdate(
+        {
+          orderId: 'order-1',
+          status: 'IN_PROGRESS',
+          note: 'Half the hull done',
+        },
+        cleaner,
+      );
       expect(db.statusUpdate.create).toHaveBeenCalled();
     });
 
     it('rejects an update that changes nothing and has no note', async () => {
       db.order.findUnique.mockResolvedValue(order('IN_PROGRESS'));
-      db.user.findUnique.mockResolvedValue(cleaner);
 
       await expect(
-        service.addStatusUpdate({
-          orderId: 'order-1',
-          status: 'IN_PROGRESS',
-          note: '   ',
-          authorId: cleaner.id,
-        }),
+        service.addStatusUpdate(
+          {
+            orderId: 'order-1',
+            status: 'IN_PROGRESS',
+            note: '   ',
+          },
+          cleaner,
+        ),
       ).rejects.toThrow('An update that keeps the status needs a note');
     });
 
     it('refuses workers who are not on the team', async () => {
       db.order.findUnique.mockResolvedValue(order('PLANNED', []));
-      db.user.findUnique.mockResolvedValue(cleaner);
 
       await expect(
-        service.addStatusUpdate({
-          orderId: 'order-1',
-          status: 'IN_PROGRESS',
-          authorId: cleaner.id,
-        }),
+        service.addStatusUpdate(
+          {
+            orderId: 'order-1',
+            status: 'IN_PROGRESS',
+          },
+          cleaner,
+        ),
       ).rejects.toBeInstanceOf(ForbiddenException);
     });
 
     it('allows project leads who are not on the team', async () => {
       db.order.findUnique.mockResolvedValue(order('PLANNED', []));
-      db.user.findUnique.mockResolvedValue(lead);
 
-      await service.addStatusUpdate({
-        orderId: 'order-1',
-        status: 'IN_PROGRESS',
-        authorId: lead.id,
-      });
+      await service.addStatusUpdate(
+        {
+          orderId: 'order-1',
+          status: 'IN_PROGRESS',
+        },
+        lead,
+      );
       expect(db.order.update).toHaveBeenCalled();
     });
 
     it('rejects an unknown order', async () => {
       db.order.findUnique.mockResolvedValue(null);
       await expect(
-        service.addStatusUpdate({
-          orderId: 'nope',
-          status: 'IN_PROGRESS',
-          authorId: lead.id,
-        }),
+        service.addStatusUpdate(
+          {
+            orderId: 'nope',
+            status: 'IN_PROGRESS',
+          },
+          lead,
+        ),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });

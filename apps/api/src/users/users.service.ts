@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Role, ServiceType } from '../generated/prisma/client';
+import type { Locale, Role, ServiceType } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -17,5 +17,9 @@ export class UsersService {
       },
       orderBy: { name: 'asc' },
     });
+  }
+
+  setLocale(userId: string, locale: Locale) {
+    return this.prisma.user.update({ where: { id: userId }, data: { locale } });
   }
 }

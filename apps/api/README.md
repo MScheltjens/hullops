@@ -23,6 +23,8 @@ Rerun `prisma generate` after cloning and after every schema change. The generat
 | `DATABASE_URL` | yes | Postgres connection string |
 | `PORT` | no | HTTP port, defaults to `4000` |
 | `CORS_ORIGINS` | no | Comma-separated origins allowed to call the API from a browser, defaults to `http://localhost:3000` (the web app) |
+| `JWT_SECRET` | yes | Signs login tokens. At least 32 random characters; anyone who knows it can log in as any user. Generate one with `node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"` |
+| `JWT_EXPIRES_IN_HOURS` | no | How long a login lasts, defaults to `8` |
 | `NODE_ENV` | no | `development` (default), `test` or `production`. In production, GraphiQL and schema introspection are turned off and unexpected errors are reduced to "Internal server error" (see [Errors](#errors)). |
 
 The variables are checked at startup ([`src/config/env.ts`](src/config/env.ts)). If one is missing or malformed, the API stops with a message that names it.
@@ -115,6 +117,41 @@ Defined in [`prisma/schema.prisma`](prisma/schema.prisma):
 
 `GET /health` returns `{"status":"ok","database":"up"}` with status 200, or 503 when the database is unreachable. It's plain REST because load balancers and uptime monitors expect a simple URL and status code.
 
+## Authentication
+
+Every endpoint requires login, except the `login` mutation and `GET /health`.
+
+1. Log in. The demo users from the seed all have the password `hullops-dev`:
+
+   ```graphql
+   mutation {
+     login(input: { email: "lena.hoffmann@hullops.example", password: "hullops-dev" }) {
+       accessToken
+       expiresAt
+       user { name role locale }
+     }
+   }
+   ```
+
+2. Send the token with every request, as an HTTP header: `Authorization: Bearer <accessToken>`. In GraphiQL, add it under **Headers** as `{"Authorization": "Bearer …"}`.
+
+3. `me` returns the logged-in user, and `setMyLocale(locale: DE)` sets their language (`EN` or `DE`) for text the server sends them.
+
+What each role may do:
+
+| | Worker | Project lead |
+|---|---|---|
+| Read vessels, orders, users | ✓ | ✓ |
+| Add status updates and notes | Only on orders whose team they're on | ✓ |
+| Create orders, add or remove team members, add vessels | | ✓ |
+
+How it works (see [`src/auth/`](src/auth)):
+
+- **Secure by default.** A global guard ([`auth.guard.ts`](src/auth/auth.guard.ts)) runs before every endpoint. Endpoints are opened with `@Public()` and restricted further with `@Roles('PROJECT_LEAD')`. A new endpoint is protected without anyone having to remember it.
+- **Tokens** are JWTs signed with `JWT_SECRET` (HS256 only). They contain just the user id. The user is loaded from the database on every request, so a deleted user or a changed role takes effect immediately.
+- **Passwords** are hashed with scrypt ([`password.ts`](src/auth/password.ts)). The database client never loads `passwordHash` unless a query asks for it explicitly, and only the login does. The field doesn't exist in the GraphQL schema.
+- **No hints for attackers.** A wrong password and an unknown email get the same error, `Invalid email or password`, and take the same time.
+
 ## GraphQL API
 
 The schema is code-first: it's generated from the decorated TypeScript classes into [`src/schema.gql`](src/schema.gql) when the app starts. Open http://localhost:4000/graphql to explore it in GraphiQL (not available in production).
@@ -150,7 +187,6 @@ mutation {
     startDate: "2026-10-05T07:00:00Z"
     dueDate: "2026-10-08T16:00:00Z"
     vesselId: "…"
-    createdById: "…"          # temporary, until login exists
     cleaning: { method: "High-pressure water", surface: "Hull" }
     teamIds: ["…"]
   }) { id status }
@@ -167,7 +203,7 @@ query {
 }
 
 mutation {
-  addStatusUpdate(input: { orderId: "…", status: IN_PROGRESS, note: "Started", authorId: "…" }) { status }
+  addStatusUpdate(input: { orderId: "…", status: IN_PROGRESS, note: "Started" }) { status }
   assignTeamMember(orderId: "…", userId: "…") { team { name } }
 }
 ```
@@ -181,7 +217,7 @@ The rules, all enforced by the API (see [`src/orders/order-rules.ts`](src/orders
 - **Overdue** (`dueDate` passed and not `DONE`) is computed on every read, never stored. The `orders(overdue: …)` filter applies the same rule in the database.
 - **Team changes:** adding someone who is already on the team, or removing someone who isn't, changes nothing.
 
-`createdById` and `authorId` are temporary inputs. Once login exists, they'll come from the logged-in user.
+The creator of an order and the author of a status update are the logged-in user.
 
 Each order response loads its vessel, creator, details, team and history in one database query. That avoids an extra query per order and per field (the "N+1" problem) without adding a batching layer.
 
@@ -193,7 +229,9 @@ Every error has a machine-readable `extensions.code`:
 |---|---|
 | `BAD_REQUEST` | Input failed validation. The message is "Validation failed", and `extensions.validationErrors` lists each failed rule. |
 | `CONFLICT` | The request would create a duplicate, e.g. an IMO number that already exists |
-| `NOT_FOUND`, `UNAUTHENTICATED`, `FORBIDDEN` | The matching HTTP exceptions |
+| `UNAUTHENTICATED` | Not logged in, or the token is invalid or expired |
+| `FORBIDDEN` | Logged in, but the role or team doesn't allow this |
+| `NOT_FOUND` | The thing referred to doesn't exist |
 | `GRAPHQL_VALIDATION_FAILED` | The query itself is invalid, e.g. it asks for an unknown field |
 | `INTERNAL_SERVER_ERROR` | Anything unexpected. With `NODE_ENV=production`, the message is reduced to "Internal server error". |
 

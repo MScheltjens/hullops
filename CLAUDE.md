@@ -60,6 +60,12 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - Prisma 7 needs a driver adapter (e.g. `@prisma/adapter-pg`) to connect at runtime.
 - Prisma agent skills are vendored in `apps/api/.claude/skills/`.
 
+## Auth (`apps/api/src/auth/`)
+
+- A global `AuthGuard` requires a JWT (`Authorization: Bearer …`) on every endpoint. Mark open endpoints with `@Public()`, restrict roles with `@Roles('PROJECT_LEAD')`, and get the user with `@CurrentUser()` (all in `auth-context.ts`).
+- `PrismaService` omits `User.passwordHash` by default; only the login query asks for it with `omit: { passwordHash: false }`. Never add it to a GraphQL type.
+- e2e tests log in through `test/auth-helpers.ts` (`createUserAndLogin`, `graphql(app, token)`).
+
 ## Data model (`apps/api/prisma/schema.prisma`)
 
 - `Order` is the central entity. It belongs to a `Vessel` and a creating `User`, and has a `serviceType` and a `status` (`PLANNED` → `IN_PROGRESS` → `DONE`).

@@ -130,14 +130,6 @@ export class CreateOrderInput {
   @IsNotEmpty()
   vesselId: string;
 
-  // Temporary: replaced by the logged-in user once authentication exists.
-  @Field(() => ID, {
-    description: 'Temporary until login exists: the project lead creating it',
-  })
-  @IsString()
-  @IsNotEmpty()
-  createdById: string;
-
   // Nested inputs need @ValidateNested and @Type, or their own rules are
   // skipped: @Type tells the validator which class to check them against.
   @Field(() => CleaningDetailsInput, {
@@ -184,12 +176,6 @@ export class AddStatusUpdateInput {
   @IsString()
   @MaxLength(2000)
   note?: string;
-
-  // Temporary: replaced by the logged-in user once authentication exists.
-  @Field(() => ID, { description: 'Temporary until login exists' })
-  @IsString()
-  @IsNotEmpty()
-  authorId: string;
 }
 
 /** Filters and paging for the `orders` query. */

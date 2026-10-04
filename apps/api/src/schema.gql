@@ -3,13 +3,20 @@
 # ------------------------------------------------------
 
 input AddStatusUpdateInput {
-  """Temporary until login exists"""
-  authorId: ID!
   note: String
   orderId: ID!
 
   """The new status: the current one (to add a note) or the next step"""
   status: OrderStatus!
+}
+
+type AuthPayload {
+  """Send as "Authorization: Bearer <accessToken>" with every request"""
+  accessToken: String!
+
+  """After this moment, log in again"""
+  expiresAt: DateTime!
+  user: User!
 }
 
 type CleaningDetails {
@@ -31,9 +38,6 @@ input CreateOrderInput {
 
   """Required for cleaning orders"""
   cleaning: CleaningDetailsInput
-
-  """Temporary until login exists: the project lead creating it"""
-  createdById: ID!
   description: String
   dueDate: DateTime!
 
@@ -62,13 +66,28 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+"""Language for text the server sends a user"""
+enum Locale {
+  DE
+  EN
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
 type Mutation {
   """Add a note, or move the order one step forward"""
   addStatusUpdate(input: AddStatusUpdateInput!): Order!
   assignTeamMember(orderId: ID!, userId: ID!): Order!
   createOrder(input: CreateOrderInput!): Order!
   createVessel(input: CreateVesselInput!): Vessel!
+  login(input: LoginInput!): AuthPayload!
   removeTeamMember(orderId: ID!, userId: ID!): Order!
+
+  """Language for text the server sends you, such as emails"""
+  setMyLocale(locale: Locale!): User!
 }
 
 type Order {
@@ -162,6 +181,8 @@ enum ProtectionMaterial {
 }
 
 type Query {
+  """The logged-in user"""
+  me: User!
   order(id: ID!): Order
 
   """Sorted by due date, most urgent first"""
@@ -206,6 +227,7 @@ type StatusUpdate {
 type User {
   email: String!
   id: ID!
+  locale: Locale!
   name: String!
   role: Role!
 

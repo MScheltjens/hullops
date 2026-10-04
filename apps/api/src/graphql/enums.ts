@@ -1,5 +1,6 @@
 import { registerEnumType } from '@nestjs/graphql';
 import {
+  Locale,
   OrderStatus,
   ProtectionKind,
   ProtectionMaterial,
@@ -15,6 +16,10 @@ import {
  * that uses one of these enums.
  */
 registerEnumType(Role, { name: 'Role' });
+registerEnumType(Locale, {
+  name: 'Locale',
+  description: 'Language for text the server sends a user',
+});
 registerEnumType(ServiceType, {
   name: 'ServiceType',
   description: 'Cleaning or protection. Both can run on a vessel at once.',
@@ -34,4 +39,11 @@ registerEnumType(ProtectionMaterial, {
   },
 });
 
-export { OrderStatus, ProtectionKind, ProtectionMaterial, Role, ServiceType };
+export {
+  Locale,
+  OrderStatus,
+  ProtectionKind,
+  ProtectionMaterial,
+  Role,
+  ServiceType,
+};

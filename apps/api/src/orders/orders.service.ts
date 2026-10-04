@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, type ServiceType } from '../generated/prisma/client';
+import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   AddStatusUpdateInput,
@@ -80,7 +81,11 @@ export class OrdersService {
     });
   }
 
-  async create(input: CreateOrderInput): Promise<OrderWithRelations> {
+  /** `creator` is the logged-in user. */
+  async create(
+    input: CreateOrderInput,
+    creator: AuthUser,
+  ): Promise<OrderWithRelations> {
     const errors = validateOrderInput(input);
     if (errors.length > 0) {
       // An array message is reported as "Validation failed" with the list in
@@ -98,12 +103,8 @@ export class OrdersService {
         throw new NotFoundException(`Vessel ${input.vesselId} not found`);
       }
 
-      const creator = await tx.user.findUnique({
-        where: { id: input.createdById },
-      });
-      if (!creator) {
-        throw new NotFoundException(`User ${input.createdById} not found`);
-      }
+      // The resolver already restricts this to project leads; checking here
+      // too keeps the rule intact if the service is called from elsewhere.
       if (creator.role !== 'PROJECT_LEAD') {
         throw new ForbiddenException('Only project leads can create orders');
       }
@@ -165,8 +166,10 @@ export class OrdersService {
    * Adds an entry to the order's history: either a note (same status) or a
    * step forward in the status flow, optionally with a note.
    */
+  /** `author` is the logged-in user. */
   async addStatusUpdate(
     input: AddStatusUpdateInput,
+    author: AuthUser,
   ): Promise<OrderWithRelations> {
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
@@ -177,12 +180,6 @@ export class OrdersService {
         throw new NotFoundException(`Order ${input.orderId} not found`);
       }
 
-      const author = await tx.user.findUnique({
-        where: { id: input.authorId },
-      });
-      if (!author) {
-        throw new NotFoundException(`User ${input.authorId} not found`);
-      }
       const isOnTeam = order.assignments.some((a) => a.userId === author.id);
       if (!isOnTeam && author.role !== 'PROJECT_LEAD') {
         throw new ForbiddenException(

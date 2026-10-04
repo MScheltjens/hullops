@@ -26,6 +26,8 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://hullops:hullops@localhost:5432/hullops_test
+      # Only signs tokens inside this throwaway CI run; not a real secret.
+      JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else
 
     steps:
       - uses: actions/checkout@v4

@@ -35,8 +35,8 @@ docker compose up -d db                 # Postgres 16 (user/pass/db: hullops)
 pnpm -r lint                            # api: oxlint --type-aware; web: eslint
 pnpm -r test
 pnpm -r build
-pnpm --filter api start:dev             # API on :3000 (or $PORT)
-pnpm --filter web dev                   # also :3000 by default, so set PORT for one of them
+pnpm --filter api start:dev             # API on :4000 (or $PORT)
+pnpm --filter web dev                   # web on :3000
 
 # API tests use ESM Jest, so always run them through the package scripts
 pnpm --filter api test -- src/app.controller.spec.ts   # single file

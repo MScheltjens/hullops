@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HullOps Web
 
-## Getting Started
+The frontend of [HullOps](../../README.md), built with Next.js 16 (App Router), React 19 and Tailwind CSS v4.
 
-First, run the development server:
+> **Status:** not started yet. This is still the `create-next-app` starter page. Development begins once the API's order endpoints exist (see the [roadmap](../../README.md#roadmap)).
+
+## Planned features
+
+- **Order overview:** all orders, filterable by vessel, service type and status, with overdue orders highlighted
+- **Planning:** create orders with cleaning or protection details and assign the team
+- **Order details:** status history with photos, for project leads and workers
+- **Vessels:** list and add vessels
+
+The app will talk to the [HullOps API](../api/README.md) over GraphQL.
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm dev     # http://localhost:3000
+pnpm build   # production build
+pnpm start   # serve the production build
+pnpm lint    # ESLint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The API runs on port 4000 by default, so both apps can run together. From the repository root, `pnpm dev` starts both.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Next.js 16
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This version has breaking changes compared with older Next.js releases. Before writing Next.js code, read [`AGENTS.md`](AGENTS.md) and the docs bundled in `node_modules/next/dist/docs/`.
 
-## Learn More
+## Structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+apps/web/
+├── src/app/       App Router: layouts, pages and route handlers
+│   ├── layout.tsx root layout
+│   ├── page.tsx   home page
+│   └── globals.css Tailwind entry point
+└── public/        static files
+```

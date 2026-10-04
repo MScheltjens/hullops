@@ -29,7 +29,7 @@ registerEnumType(ProtectionMaterial, {
   valuesMap: {
     GLASS_FIBER_FABRIC: {
       description:
-        '"Mahlglas": glass fiber fabric, protects against fire and welding sparks',
+        'Glass fiber fabric, protects against fire and welding sparks',
     },
   },
 });

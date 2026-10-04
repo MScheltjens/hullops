@@ -111,7 +111,7 @@ enum ProtectionMaterial {
   OSB_FIRE_RESISTANT // fire-resistant
   PROPLEX_3MM
   PROPLEX_HD
-  GLASS_FIBER_FABRIC // "Mahlglas": glass fiber fabric, protects against fire and welding sparks
+  GLASS_FIBER_FABRIC // protects against fire and welding sparks
 }
 
 // Details for protection orders

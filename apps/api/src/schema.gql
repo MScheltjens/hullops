@@ -153,9 +153,7 @@ enum ProtectionKind {
 }
 
 enum ProtectionMaterial {
-  """
-  "Mahlglas": glass fiber fabric, protects against fire and welding sparks
-  """
+  """Glass fiber fabric, protects against fire and welding sparks"""
   GLASS_FIBER_FABRIC
   OSB_FIRE_RESISTANT
   OSB_STANDARD

@@ -41,6 +41,7 @@ cp apps/api/.env.example apps/api/.env    # point the API at that database
 cd apps/api
 pnpm exec prisma migrate deploy           # create the tables
 pnpm exec prisma generate                 # generate the typed database client
+pnpm exec prisma db seed                  # optional: demo users, vessels and orders
 cd ../..
 
 pnpm dev                                  # API on :4000, web on :3000
@@ -83,7 +84,7 @@ Every push to `main` and every pull request runs [the CI workflow](.github/workf
 - [x] Monorepo, CI, data model
 - [x] Prisma + GraphQL setup, vessel management
 - [ ] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
-- [ ] Seed data for demos
+- [x] Seed data for demos
 - [ ] Authentication and roles (project lead / worker)
 - [ ] Web frontend: order overview, planning, order details
 - [ ] Status updates with photo uploads

@@ -10,6 +10,7 @@ From the repository root, start the database first: `docker compose up -d db`. T
 cp .env.example .env              # DATABASE_URL for the local Postgres container
 pnpm exec prisma migrate deploy   # apply migrations
 pnpm exec prisma generate         # generate the client into src/generated/prisma
+pnpm exec prisma db seed          # optional: demo data (see below)
 pnpm start:dev                    # http://localhost:4000/graphql
 ```
 
@@ -37,6 +38,7 @@ The variables are checked at startup ([`src/config/env.ts`](src/config/env.ts)).
 | `pnpm test -- src/vessels` | Unit tests in one folder (or pass a file) |
 | `pnpm test:e2e` | End-to-end tests against the test database (see [Testing](#testing)) |
 | `pnpm exec prisma migrate dev --name <name>` | Create and apply a migration after changing the schema |
+| `pnpm exec prisma db seed` | Add or refresh the demo data |
 | `pnpm exec prisma studio` | Browse the database in the browser |
 
 Always run tests through these scripts. Jest runs in ESM mode and needs the flags they pass.
@@ -73,6 +75,29 @@ Each feature follows the same layout:
 | `*.resolver.ts` | GraphQL queries and mutations; thin, delegates to the service |
 | `*.module.ts` | Registers the resolver and service |
 | `*.spec.ts` | Unit tests, next to the code they test |
+
+## Demo data
+
+`pnpm exec prisma db seed` fills the database with fictional demo data from [`prisma/seed-data.ts`](prisma/seed-data.ts):
+
+- **7 users:** 2 project leads and 5 workers with different service areas. All of them log in with the password `hullops-dev`.
+
+  | Email | Role | Service areas |
+  |---|---|---|
+  | `lena.hoffmann@hullops.example` | Project lead | Cleaning, protection |
+  | `jonas.becker@hullops.example` | Project lead | Protection |
+  | `mehmet.yilmaz@hullops.example` | Worker | Cleaning |
+  | `piotr.nowak@hullops.example` | Worker | Cleaning, protection |
+  | `anna.schulz@hullops.example` | Worker | Protection |
+  | `tom.dejong@hullops.example` | Worker | Protection |
+  | `sofia.rossi@hullops.example` | Worker | Cleaning |
+
+- **4 vessels:** a container ship, a cruise ship, a yacht, and a tug without an IMO number.
+- **8 orders,** covering every status and both service types, with teams and status history. Two are overdue, one has no team yet, and on one vessel cleaning and protection run at the same time.
+
+Dates are relative to the day you seed, so the data always looks current. Running the seed again refreshes only the demo records: users are matched by email, vessels and orders by their `seed-…` ids, and anything you created yourself stays untouched. The seed refuses to run with `NODE_ENV=production`.
+
+A unit test ([`prisma/seed-data.spec.ts`](prisma/seed-data.spec.ts)) checks that the demo data follows the domain rules. For example, team members must work in the order's service area, and the status history must move forward.
 
 ## Data model
 

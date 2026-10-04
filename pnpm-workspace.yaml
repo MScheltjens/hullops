@@ -1,6 +1,8 @@
 packages:
   - "apps/*"
 allowBuilds:
+  '@swc/core': false
+  sharp: false
   '@apollo/protobufjs': false
   '@parcel/watcher': false
   '@prisma/engines': false

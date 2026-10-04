@@ -1,0 +1,224 @@
+import type { Metadata } from "next";
+import { getFormatter, getTranslations } from "next-intl/server";
+import Link from "next/link";
+import { apiAsUser } from "@/lib/dal";
+
+const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const;
+const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
+type Status = (typeof STATUSES)[number];
+type ServiceType = (typeof SERVICE_TYPES)[number];
+
+interface OrderRow {
+  id: string;
+  title: string;
+  status: Status;
+  serviceType: ServiceType;
+  overdue: boolean;
+  dueDate: string;
+  shipyard: string;
+  berth: string | null;
+  vessel: { name: string };
+  team: { id: string; name: string }[];
+}
+
+const ORDERS = `
+  query ($status: OrderStatus, $serviceType: ServiceType, $overdue: Boolean) {
+    orders(status: $status, serviceType: $serviceType, overdue: $overdue, take: 100) {
+      id title status serviceType overdue dueDate shipyard berth
+      vessel { name }
+      team { id name }
+    }
+  }`;
+
+/** Keeps a search param only if it's one of the allowed values. */
+function pick<T extends string>(
+  value: string | string[] | undefined,
+  allowed: readonly T[],
+): T | undefined {
+  return typeof value === "string" && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : undefined;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("orders");
+  return { title: t("title") };
+}
+
+export default async function OrdersPage({
+  searchParams,
+}: PageProps<"/orders">) {
+  // Filters live in the URL (?status=PLANNED&overdue=true), so a filtered
+  // view can be bookmarked or shared, and the page needs no client state.
+  const params = await searchParams;
+  const status = pick(params.status, STATUSES);
+  const serviceType = pick(params.serviceType, SERVICE_TYPES);
+  const overdue = pick(params.overdue, ["true", "false"] as const);
+
+  const { orders } = await apiAsUser<{ orders: OrderRow[] }>(ORDERS, {
+    status,
+    serviceType,
+    overdue: overdue === undefined ? undefined : overdue === "true",
+  });
+
+  const t = await getTranslations("orders");
+  const format = await getFormatter();
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {t("subtitle")}
+        </p>
+      </div>
+
+      {/* A plain GET form: submitting it just changes the URL's filters. */}
+      <form className="flex flex-wrap items-end gap-3 text-sm">
+        <Filter label={t("filters.status")} name="status" value={status}>
+          <option value="">{t("filters.all")}</option>
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {t(`status.${s}`)}
+            </option>
+          ))}
+        </Filter>
+        <Filter
+          label={t("filters.serviceType")}
+          name="serviceType"
+          value={serviceType}
+        >
+          <option value="">{t("filters.all")}</option>
+          {SERVICE_TYPES.map((s) => (
+            <option key={s} value={s}>
+              {t(`serviceType.${s}`)}
+            </option>
+          ))}
+        </Filter>
+        <Filter label={t("filters.overdue")} name="overdue" value={overdue}>
+          <option value="">{t("filters.all")}</option>
+          <option value="true">{t("filters.onlyOverdue")}</option>
+          <option value="false">{t("filters.onlyOnTime")}</option>
+        </Filter>
+        <button
+          type="submit"
+          className="rounded-md bg-sky-700 px-3 py-2 font-medium text-white hover:bg-sky-800"
+        >
+          {t("filters.apply")}
+        </button>
+        <Link
+          href="/orders"
+          className="px-1 py-2 text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+        >
+          {t("filters.reset")}
+        </Link>
+      </form>
+
+      {orders.length === 0 ? (
+        <p className="rounded-md border border-dashed border-zinc-300 px-4 py-10 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
+          {t("empty")}
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+              <tr>
+                <th className="px-4 py-3 font-medium">{t("columns.order")}</th>
+                <th className="px-4 py-3 font-medium">{t("columns.vessel")}</th>
+                <th className="px-4 py-3 font-medium">{t("columns.service")}</th>
+                <th className="px-4 py-3 font-medium">{t("columns.status")}</th>
+                <th className="px-4 py-3 font-medium">{t("columns.due")}</th>
+                <th className="px-4 py-3 font-medium">{t("columns.team")}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
+              {orders.map((order) => (
+                <tr key={order.id} className="align-top">
+                  <td className="px-4 py-3">
+                    <div className="font-medium">{order.title}</div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {[order.shipyard, order.berth].filter(Boolean).join(" · ")}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">{order.vessel.name}</td>
+                  <td className="px-4 py-3">
+                    {t(`serviceType.${order.serviceType}`)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={order.status}>
+                      {t(`status.${order.status}`)}
+                    </StatusBadge>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {format.dateTime(new Date(order.dueDate), {
+                      dateStyle: "medium",
+                    })}
+                    {order.overdue && (
+                      <span className="ml-2 rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-950 dark:text-red-300">
+                        {t("overdue")}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">
+                    {order.team.length > 0 ? (
+                      order.team.map((member) => member.name).join(", ")
+                    ) : (
+                      <span className="text-zinc-400 italic">{t("noTeam")}</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Filter({
+  label,
+  name,
+  value,
+  children,
+}: {
+  label: string;
+  name: string;
+  value: string | undefined;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="flex flex-col gap-1 font-medium">
+      {label}
+      <select
+        name={name}
+        defaultValue={value ?? ""}
+        className="rounded-md border border-zinc-300 bg-white px-2 py-2 font-normal dark:border-zinc-700 dark:bg-zinc-900"
+      >
+        {children}
+      </select>
+    </label>
+  );
+}
+
+const STATUS_STYLES: Record<Status, string> = {
+  PLANNED: "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200",
+  IN_PROGRESS: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
+  DONE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+};
+
+function StatusBadge({
+  status,
+  children,
+}: {
+  status: Status;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={`rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap ${STATUS_STYLES[status]}`}
+    >
+      {children}
+    </span>
+  );
+}

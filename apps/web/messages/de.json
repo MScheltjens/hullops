@@ -1,0 +1,58 @@
+{
+  "common": {
+    "appName": "HullOps",
+    "tagline": "Planung von Reinigungs- und Schutzarbeiten auf Werften"
+  },
+  "login": {
+    "title": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "submitting": "Anmeldung läuft…",
+    "invalid": "E-Mail oder Passwort ist falsch.",
+    "unavailable": "Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut."
+  },
+  "nav": {
+    "orders": "Aufträge",
+    "logout": "Abmelden",
+    "language": "Sprache",
+    "roles": {
+      "PROJECT_LEAD": "Projektleitung",
+      "WORKER": "Fachkraft"
+    }
+  },
+  "orders": {
+    "title": "Aufträge",
+    "subtitle": "Dringendste zuerst",
+    "filters": {
+      "status": "Status",
+      "serviceType": "Leistung",
+      "overdue": "Fälligkeit",
+      "all": "Alle",
+      "onlyOverdue": "Überfällig",
+      "onlyOnTime": "Im Zeitplan",
+      "apply": "Anwenden",
+      "reset": "Zurücksetzen"
+    },
+    "columns": {
+      "order": "Auftrag",
+      "vessel": "Schiff",
+      "service": "Leistung",
+      "status": "Status",
+      "due": "Fällig",
+      "team": "Team"
+    },
+    "overdue": "Überfällig",
+    "noTeam": "Noch kein Team",
+    "empty": "Keine Aufträge für diese Filter.",
+    "status": {
+      "PLANNED": "Geplant",
+      "IN_PROGRESS": "In Bearbeitung",
+      "DONE": "Erledigt"
+    },
+    "serviceType": {
+      "CLEANING": "Reinigung",
+      "PROTECTION": "Schutz"
+    }
+  }
+}

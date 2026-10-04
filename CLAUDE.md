@@ -46,6 +46,7 @@ pnpm --filter api test:e2e               # uses <db>_test (e.g. hullops_test), c
 # Prisma (from apps/api)
 pnpm exec prisma migrate dev --name <name>
 pnpm exec prisma generate
+pnpm exec prisma db seed                # demo data (prisma/seed-data.ts); password for all seed users: hullops-dev
 ```
 
 CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma migrate deploy` → lint → test → build against a Postgres service.

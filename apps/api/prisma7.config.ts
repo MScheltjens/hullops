@@ -7,6 +7,8 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    // `prisma db seed`; tsx resolves the generated client's ".js" imports to .ts.
+    seed: "tsx prisma/seed.ts",
   },
   datasource: {
     url: process.env["DATABASE_URL"],

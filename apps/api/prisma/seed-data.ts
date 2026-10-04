@@ -1,4 +1,5 @@
 import type {
+  Locale,
   OrderStatus,
   ProtectionKind,
   ProtectionMaterial,
@@ -21,6 +22,7 @@ export interface SeedUser {
   name: string;
   role: Role;
   serviceTypes: ServiceType[];
+  locale: Locale;
 }
 
 export interface SeedVessel {
@@ -110,42 +112,49 @@ export function buildSeedData(now: Date): SeedData {
       name: 'Lena Hoffmann',
       role: 'PROJECT_LEAD',
       serviceTypes: ['CLEANING', 'PROTECTION'],
+      locale: 'DE',
     },
     {
       email: JONAS,
       name: 'Jonas Becker',
       role: 'PROJECT_LEAD',
       serviceTypes: ['PROTECTION'],
+      locale: 'DE',
     },
     {
       email: MEHMET,
       name: 'Mehmet Yilmaz',
       role: 'WORKER',
       serviceTypes: ['CLEANING'],
+      locale: 'DE',
     },
     {
       email: PIOTR,
       name: 'Piotr Nowak',
       role: 'WORKER',
       serviceTypes: ['CLEANING', 'PROTECTION'],
+      locale: 'EN',
     },
     {
       email: ANNA,
       name: 'Anna Schulz',
       role: 'WORKER',
       serviceTypes: ['PROTECTION'],
+      locale: 'DE',
     },
     {
       email: TOM,
       name: 'Tom de Jong',
       role: 'WORKER',
       serviceTypes: ['PROTECTION'],
+      locale: 'EN',
     },
     {
       email: SOFIA,
       name: 'Sofia Rossi',
       role: 'WORKER',
       serviceTypes: ['CLEANING'],
+      locale: 'EN',
     },
   ];
 

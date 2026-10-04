@@ -1,25 +1,22 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
+import { createUserAndLogin, graphql } from './auth-helpers';
 
 /**
  * Runs the real app against the test database (see test-database.ts).
- * Every vessel this suite creates is deleted afterwards.
+ * Logs in as a project lead, who may add vessels. Every vessel and user
+ * this suite creates is deleted afterwards.
  */
 describe('Vessels GraphQL API (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   const createdIds: string[] = [];
-
-  const gql = (query: string, variables?: Record<string, unknown>) =>
-    request(app.getHttpServer())
-      .post('/graphql')
-      .send({ query, variables })
-      .expect(200);
+  const leadId = `e2e-${Date.now().toString(36)}-vessel-lead`;
+  let gql: ReturnType<typeof graphql>;
 
   const createVessel = `
     mutation ($input: CreateVesselInput!) {
@@ -44,10 +41,19 @@ describe('Vessels GraphQL API (e2e)', () => {
     configureApp(app);
     await app.init();
     prisma = app.get(PrismaService);
+    gql = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: leadId,
+        role: 'PROJECT_LEAD',
+        serviceTypes: ['CLEANING'],
+      }),
+    );
   });
 
   afterAll(async () => {
     await prisma.vessel.deleteMany({ where: { id: { in: createdIds } } });
+    await prisma.user.deleteMany({ where: { id: leadId } });
     await app.close();
   });
 

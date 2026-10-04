@@ -4,6 +4,7 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { Public } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 
 /**
@@ -11,6 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
  * checks. It's plain REST rather than GraphQL because those tools expect a
  * simple URL and an HTTP status: 200 when healthy, 503 when not.
  */
+// Public: monitors check it without logging in.
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);

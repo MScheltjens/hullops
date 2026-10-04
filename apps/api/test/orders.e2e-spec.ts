@@ -1,15 +1,15 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
+import { createUserAndLogin, graphql } from './auth-helpers';
 
 /**
  * Runs the real app against the test database (see test-database.ts).
- * The suite creates its own users and vessel and deletes everything it
- * created afterwards.
+ * The suite creates its own users (logged in through the real login) and
+ * vessel, and deletes everything it created afterwards.
  */
 describe('Orders GraphQL API (e2e)', () => {
   let app: INestApplication<App>;
@@ -24,11 +24,11 @@ describe('Orders GraphQL API (e2e)', () => {
     vessel: `e2e-${run}-vessel`,
   };
 
-  const gql = (query: string, variables?: Record<string, unknown>) =>
-    request(app.getHttpServer())
-      .post('/graphql')
-      .send({ query, variables })
-      .expect(200);
+  // One GraphQL client per user, each sending that user's token.
+  type Gql = ReturnType<typeof graphql>;
+  let asLead: Gql;
+  let asCleaner: Gql;
+  let asProtector: Gql;
 
   const ORDER_FIELDS = `
     id title status serviceType overdue dueDate
@@ -40,14 +40,14 @@ describe('Orders GraphQL API (e2e)', () => {
     protectionDetails { kind materials coatingProduct layers }
   `;
 
-  const createOrder = (input: Record<string, unknown>) =>
-    gql(
+  const createOrder = (input: Record<string, unknown>, as = asLead) =>
+    as(
       `mutation ($input: CreateOrderInput!) { createOrder(input: $input) { ${ORDER_FIELDS} } }`,
       { input },
     );
 
-  const addStatusUpdate = (input: Record<string, unknown>) =>
-    gql(
+  const addStatusUpdate = (input: Record<string, unknown>, as = asCleaner) =>
+    as(
       `mutation ($input: AddStatusUpdateInput!) { addStatusUpdate(input: $input) { ${ORDER_FIELDS} } }`,
       { input },
     );
@@ -62,7 +62,6 @@ describe('Orders GraphQL API (e2e)', () => {
     startDate: daysFromNow(-1),
     dueDate: daysFromNow(3),
     vesselId: ids.vessel,
-    createdById: ids.lead,
     cleaning: { method: 'High-pressure water', surface: 'Hull' },
     teamIds: [ids.cleaner],
     ...overrides,
@@ -77,20 +76,30 @@ describe('Orders GraphQL API (e2e)', () => {
     await app.init();
     prisma = app.get(PrismaService);
 
-    const user = (id: string, role: string, serviceTypes: string[]) =>
-      prisma.user.create({
-        data: {
-          id,
-          email: `${id}@hullops.example`,
-          name: id,
-          passwordHash: 'not-used-in-these-tests',
-          role: role as 'PROJECT_LEAD' | 'WORKER',
-          serviceTypes: serviceTypes as ('CLEANING' | 'PROTECTION')[],
-        },
-      });
-    await user(ids.lead, 'PROJECT_LEAD', ['CLEANING', 'PROTECTION']);
-    await user(ids.cleaner, 'WORKER', ['CLEANING']);
-    await user(ids.protector, 'WORKER', ['PROTECTION']);
+    asLead = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: ids.lead,
+        role: 'PROJECT_LEAD',
+        serviceTypes: ['CLEANING', 'PROTECTION'],
+      }),
+    );
+    asCleaner = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: ids.cleaner,
+        role: 'WORKER',
+        serviceTypes: ['CLEANING'],
+      }),
+    );
+    asProtector = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: ids.protector,
+        role: 'WORKER',
+        serviceTypes: ['PROTECTION'],
+      }),
+    );
     await prisma.vessel.create({
       data: { id: ids.vessel, name: 'E2E Vessel' },
     });
@@ -132,7 +141,6 @@ describe('Orders GraphQL API (e2e)', () => {
       startDate: daysFromNow(0),
       dueDate: daysFromNow(5),
       vesselId: ids.vessel,
-      createdById: ids.lead,
       protection: {
         kind: 'COATING',
         coatingProduct: 'Antifouling',
@@ -186,10 +194,28 @@ describe('Orders GraphQL API (e2e)', () => {
   });
 
   it('only lets project leads create orders', async () => {
-    const response = await createOrder(
-      cleaningOrder({ createdById: ids.cleaner }),
-    );
+    const response = await createOrder(cleaningOrder(), asCleaner);
     expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+  });
+
+  it('only lets the team and project leads update an order', async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+
+    // The protector isn't on this cleaning order's team.
+    const outsider = await addStatusUpdate(
+      { orderId, status: 'IN_PROGRESS' },
+      asProtector,
+    );
+    expect(outsider.body.errors[0].extensions.code).toBe('FORBIDDEN');
+
+    const byLead = await addStatusUpdate(
+      { orderId, status: 'IN_PROGRESS', note: 'Started by the lead' },
+      asLead,
+    );
+    expect(byLead.body.data.addStatusUpdate.history.at(-1).author).toEqual({
+      id: ids.lead,
+    });
   });
 
   it('walks an order through PLANNED → IN_PROGRESS → DONE', async () => {
@@ -199,7 +225,6 @@ describe('Orders GraphQL API (e2e)', () => {
     const skip = await addStatusUpdate({
       orderId,
       status: 'DONE',
-      authorId: ids.cleaner,
     });
     expect(skip.body.errors[0].message).toBe(
       'Cannot change status from PLANNED to DONE',
@@ -208,19 +233,16 @@ describe('Orders GraphQL API (e2e)', () => {
     await addStatusUpdate({
       orderId,
       status: 'IN_PROGRESS',
-      authorId: ids.cleaner,
     });
     await addStatusUpdate({
       orderId,
       status: 'IN_PROGRESS',
       note: 'Port side done',
-      authorId: ids.cleaner,
     });
     const done = await addStatusUpdate({
       orderId,
       status: 'DONE',
       note: 'Finished',
-      authorId: ids.cleaner,
     });
 
     const order = done.body.data.addStatusUpdate;
@@ -244,7 +266,7 @@ describe('Orders GraphQL API (e2e)', () => {
     const lateId = late.body.data.createOrder.id;
     expect(late.body.data.createOrder.overdue).toBe(true);
 
-    const overdue = await gql(
+    const overdue = await asCleaner(
       'query ($vesselId: ID) { orders(vesselId: $vesselId, overdue: true) { id overdue } }',
       { vesselId: ids.vessel },
     );
@@ -254,8 +276,8 @@ describe('Orders GraphQL API (e2e)', () => {
   it('adds and removes team members', async () => {
     const created = await createOrder(cleaningOrder({ teamIds: [] }));
     const orderId = created.body.data.createOrder.id;
-    const teamMutation = (name: string) =>
-      gql(
+    const teamMutation = (name: string, as = asLead) =>
+      as(
         `mutation ($orderId: ID!, $userId: ID!) { ${name}(orderId: $orderId, userId: $userId) { team { id } } }`,
         { orderId, userId: ids.cleaner },
       );
@@ -270,10 +292,16 @@ describe('Orders GraphQL API (e2e)', () => {
 
     const removed = await teamMutation('removeTeamMember');
     expect(removed.body.data.removeTeamMember.team).toEqual([]);
+
+    // Workers can't change teams.
+    const byWorker = await teamMutation('assignTeamMember', asCleaner);
+    expect(byWorker.body.errors[0].extensions.code).toBe('FORBIDDEN');
   });
 
   it('lists users by service area', async () => {
-    const response = await gql('{ users(serviceType: PROTECTION) { id } }');
+    const response = await asCleaner(
+      '{ users(serviceType: PROTECTION) { id } }',
+    );
     const userIds = response.body.data.users.map((u: { id: string }) => u.id);
     expect(userIds).toEqual(expect.arrayContaining([ids.lead, ids.protector]));
     expect(userIds).not.toContain(ids.cleaner);

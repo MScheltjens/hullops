@@ -7,6 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
 import { User } from '../users/user.model';
 import {
   AddStatusUpdateInput,
@@ -34,18 +35,27 @@ export class OrdersResolver {
     return this.ordersService.findOne(id);
   }
 
+  @Roles('PROJECT_LEAD')
   @Mutation(() => Order)
-  createOrder(@Args('input') input: CreateOrderInput) {
-    return this.ordersService.create(input);
+  createOrder(
+    @Args('input') input: CreateOrderInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.ordersService.create(input, user);
   }
 
   @Mutation(() => Order, {
     description: 'Add a note, or move the order one step forward',
   })
-  addStatusUpdate(@Args('input') input: AddStatusUpdateInput) {
-    return this.ordersService.addStatusUpdate(input);
+  addStatusUpdate(
+    @Args('input') input: AddStatusUpdateInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    // Who may update is checked in the service: it depends on the order's team.
+    return this.ordersService.addStatusUpdate(input, user);
   }
 
+  @Roles('PROJECT_LEAD')
   @Mutation(() => Order)
   assignTeamMember(
     @Args('orderId', { type: () => ID }) orderId: string,
@@ -54,6 +64,7 @@ export class OrdersResolver {
     return this.ordersService.assignTeamMember(orderId, userId);
   }
 
+  @Roles('PROJECT_LEAD')
   @Mutation(() => Order)
   removeTeamMember(
     @Args('orderId', { type: () => ID }) orderId: string,

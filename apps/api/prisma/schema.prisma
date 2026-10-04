@@ -17,6 +17,13 @@ enum Role {
   WORKER
 }
 
+// Language for text the server sends a user (e.g. emails). The web app
+// translates everything else itself.
+enum Locale {
+  EN
+  DE
+}
+
 // The two service areas
 enum ServiceType {
   CLEANING
@@ -36,6 +43,7 @@ model User {
   name         String
   role         Role          @default(WORKER)
   serviceTypes ServiceType[] // service areas this person can work in
+  locale       Locale        @default(EN)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

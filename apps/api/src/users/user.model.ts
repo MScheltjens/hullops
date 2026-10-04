@@ -1,5 +1,5 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Role, ServiceType } from '../graphql/enums';
+import { Locale, Role, ServiceType } from '../graphql/enums';
 
 /**
  * A user as the API shows it. Only decorated fields reach GraphQL, so the
@@ -23,4 +23,7 @@ export class User {
     description: 'Service areas this person can work in',
   })
   serviceTypes: ServiceType[];
+
+  @Field(() => Locale)
+  locale: Locale;
 }

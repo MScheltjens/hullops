@@ -3,6 +3,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
+import { AuthModule } from './auth/auth.module';
 import { Env, validateEnv } from './config/env';
 import { formatGraphqlError } from './graphql/format-graphql-error';
 import { HealthModule } from './health/health.module';
@@ -29,6 +30,8 @@ import { VesselsModule } from './vessels/vessels.module';
           // in code review.
           autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
           sortSchema: true,
+          // Makes the HTTP request available to guards and @CurrentUser().
+          context: ({ req }: { req: unknown }) => ({ req }),
           // In production, don't let anyone browse or download the schema.
           graphiql: !isProduction,
           introspection: !isProduction,
@@ -38,6 +41,7 @@ import { VesselsModule } from './vessels/vessels.module';
       },
     }),
     PrismaModule,
+    AuthModule,
     HealthModule,
     VesselsModule,
     UsersModule,

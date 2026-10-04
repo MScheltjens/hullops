@@ -1,4 +1,5 @@
 import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Roles } from '../auth/auth-context';
 import { CreateVesselInput } from './create-vessel.input';
 import { Vessel } from './vessel.model';
 import { VesselsService } from './vessels.service';
@@ -18,6 +19,7 @@ export class VesselsResolver {
     return this.vesselsService.findOne(id);
   }
 
+  @Roles('PROJECT_LEAD')
   @Mutation(() => Vessel)
   createVessel(@Args('input') input: CreateVesselInput) {
     return this.vesselsService.create(input);

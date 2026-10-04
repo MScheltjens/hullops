@@ -33,6 +33,7 @@ pnpm 12 monorepo (`apps/*`), Node 24.
 pnpm install
 docker compose up -d db                 # Postgres 16 (user/pass/db: hullops)
 pnpm -r lint                            # api: oxlint --type-aware; web: eslint
+pnpm --filter api typecheck             # tsc over src, tests and prisma/ (Jest and nest build skip test types)
 pnpm -r test
 pnpm -r build
 pnpm --filter api start:dev             # API on :4000 (or $PORT)

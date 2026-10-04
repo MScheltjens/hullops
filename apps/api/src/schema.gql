@@ -2,6 +2,53 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddStatusUpdateInput {
+  """Temporary until login exists"""
+  authorId: ID!
+  note: String
+  orderId: ID!
+
+  """The new status: the current one (to add a note) or the next step"""
+  status: OrderStatus!
+}
+
+type CleaningDetails {
+  """e.g. high-pressure water, abrasive blasting, manual"""
+  method: String!
+
+  """e.g. hull, deck, interior"""
+  surface: String!
+}
+
+input CleaningDetailsInput {
+  method: String!
+  surface: String!
+}
+
+input CreateOrderInput {
+  areaSqm: Float
+  berth: String
+
+  """Required for cleaning orders"""
+  cleaning: CleaningDetailsInput
+
+  """Temporary until login exists: the project lead creating it"""
+  createdById: ID!
+  description: String
+  dueDate: DateTime!
+
+  """Required for protection orders"""
+  protection: ProtectionDetailsInput
+  serviceType: ServiceType!
+  shipyard: String!
+  startDate: DateTime!
+
+  """Initial team"""
+  teamIds: [ID!]! = []
+  title: String!
+  vesselId: ID!
+}
+
 input CreateVesselInput {
   """7 digits, without the "IMO" prefix"""
   imoNumber: String
@@ -16,12 +63,156 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
+  """Add a note, or move the order one step forward"""
+  addStatusUpdate(input: AddStatusUpdateInput!): Order!
+  assignTeamMember(orderId: ID!, userId: ID!): Order!
+  createOrder(input: CreateOrderInput!): Order!
   createVessel(input: CreateVesselInput!): Vessel!
+  removeTeamMember(orderId: ID!, userId: ID!): Order!
+}
+
+type Order {
+  """Area in m²"""
+  areaSqm: Float
+
+  """Berth or dock"""
+  berth: String
+
+  """Set on cleaning orders"""
+  cleaningDetails: CleaningDetails
+  createdAt: DateTime!
+  createdBy: User!
+  description: String
+  dueDate: DateTime!
+
+  """Oldest first"""
+  history: [StatusUpdate!]!
+  id: ID!
+
+  """Due date has passed and the order is not done"""
+  overdue: Boolean!
+
+  """Set on protection orders"""
+  protectionDetails: ProtectionDetails
+  serviceType: ServiceType!
+
+  """e.g. Blohm+Voss"""
+  shipyard: String!
+  startDate: DateTime!
+  status: OrderStatus!
+
+  """People working on the order"""
+  team: [User!]!
+  title: String!
+  updatedAt: DateTime!
+  vessel: Vessel!
+}
+
+"""Moves PLANNED → IN_PROGRESS → DONE, one step at a time."""
+enum OrderStatus {
+  DONE
+  IN_PROGRESS
+  PLANNED
+}
+
+type ProtectionDetails {
+  """Coatings only"""
+  coatingProduct: String
+  kind: ProtectionKind!
+
+  """Coatings only"""
+  layers: Int
+  materials: [ProtectionMaterial!]!
+
+  """What is protected, e.g. main engine"""
+  protectedItem: String
+
+  """Coatings only: target thickness in µm"""
+  targetThicknessUm: Int
+}
+
+input ProtectionDetailsInput {
+  """Coatings only"""
+  coatingProduct: String
+  kind: ProtectionKind!
+
+  """Coatings only"""
+  layers: Int
+  materials: [ProtectionMaterial!]! = []
+  protectedItem: String
+
+  """Coatings only: target thickness in µm"""
+  targetThicknessUm: Int
+}
+
+enum ProtectionKind {
+  COATING
+  COVERING
+  ENCLOSURE
+  FLOOR
+}
+
+enum ProtectionMaterial {
+  """
+  "Mahlglas": glass fiber fabric, protects against fire and welding sparks
+  """
+  GLASS_FIBER_FABRIC
+  OSB_FIRE_RESISTANT
+  OSB_STANDARD
+  PROPLEX_3MM
+  PROPLEX_HD
 }
 
 type Query {
+  order(id: ID!): Order
+
+  """Sorted by due date, most urgent first"""
+  orders(
+    """true: only overdue orders; false: only orders on time"""
+    overdue: Boolean
+    serviceType: ServiceType
+    skip: Int! = 0
+    status: OrderStatus
+
+    """At most 100"""
+    take: Int! = 50
+    vesselId: ID
+  ): [Order!]!
+  users(role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
   vessels: [Vessel!]!
+}
+
+enum Role {
+  PROJECT_LEAD
+  WORKER
+}
+
+"""Cleaning or protection. Both can run on a vessel at once."""
+enum ServiceType {
+  CLEANING
+  PROTECTION
+}
+
+"""An entry in an order’s history"""
+type StatusUpdate {
+  author: User!
+  createdAt: DateTime!
+  id: ID!
+  note: String
+
+  """The order’s status after this update"""
+  status: OrderStatus!
+}
+
+type User {
+  email: String!
+  id: ID!
+  name: String!
+  role: Role!
+
+  """Service areas this person can work in"""
+  serviceTypes: [ServiceType!]!
 }
 
 type Vessel {

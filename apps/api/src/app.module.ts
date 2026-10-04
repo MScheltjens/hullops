@@ -6,7 +6,9 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { Env, validateEnv } from './config/env';
 import { formatGraphqlError } from './graphql/format-graphql-error';
 import { HealthModule } from './health/health.module';
+import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { UsersModule } from './users/users.module';
 import { VesselsModule } from './vessels/vessels.module';
 
 @Module({
@@ -38,6 +40,8 @@ import { VesselsModule } from './vessels/vessels.module';
     PrismaModule,
     HealthModule,
     VesselsModule,
+    UsersModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

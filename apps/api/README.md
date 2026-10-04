@@ -61,6 +61,8 @@ apps/api/
 │   ├── prisma/                PrismaService: the single database client
 │   ├── graphql/               GraphQL error formatting
 │   ├── health/                GET /health
+│   ├── orders/                orders feature; business rules in order-rules.ts
+│   ├── users/                 users query
 │   └── vessels/               vessels feature
 └── test/                      end-to-end tests
 ```
@@ -136,6 +138,52 @@ query {
 ```
 
 IMO numbers are validated including their check digit, and must be unique.
+
+### Orders
+
+```graphql
+mutation {
+  createOrder(input: {
+    title: "Hull cleaning before repainting"
+    serviceType: CLEANING
+    shipyard: "Blohm+Voss"
+    startDate: "2026-10-05T07:00:00Z"
+    dueDate: "2026-10-08T16:00:00Z"
+    vesselId: "…"
+    createdById: "…"          # temporary, until login exists
+    cleaning: { method: "High-pressure water", surface: "Hull" }
+    teamIds: ["…"]
+  }) { id status }
+}
+
+query {
+  orders(overdue: true, serviceType: PROTECTION, take: 20) {
+    title status overdue dueDate
+    vessel { name }
+    team { name }
+    protectionDetails { kind materials }
+  }
+  order(id: "…") { title history { status note author { name } createdAt } }
+}
+
+mutation {
+  addStatusUpdate(input: { orderId: "…", status: IN_PROGRESS, note: "Started", authorId: "…" }) { status }
+  assignTeamMember(orderId: "…", userId: "…") { team { name } }
+}
+```
+
+The rules, all enforced by the API (see [`src/orders/order-rules.ts`](src/orders/order-rules.ts)):
+
+- **Details match the service type.** A cleaning order needs `cleaning` details and a protection order needs `protection` details, never both. Coating fields (`coatingProduct`, `layers`, `targetThicknessUm`) only apply to coatings.
+- **Dates:** `startDate` must not be after `dueDate`.
+- **Status flow:** `PLANNED` → `IN_PROGRESS` → `DONE`, one step at a time, never back. An update that keeps the status is a note, and needs note text.
+- **Who may do what:** only project leads create orders. Status updates come from the order's team or a project lead. Team members must work in the order's service area.
+- **Overdue** (`dueDate` passed and not `DONE`) is computed on every read, never stored. The `orders(overdue: …)` filter applies the same rule in the database.
+- **Team changes:** adding someone who is already on the team, or removing someone who isn't, changes nothing.
+
+`createdById` and `authorId` are temporary inputs. Once login exists, they'll come from the logged-in user.
+
+Each order response loads its vessel, creator, details, team and history in one database query. That avoids an extra query per order and per field (the "N+1" problem) without adding a batching layer.
 
 ### Errors
 

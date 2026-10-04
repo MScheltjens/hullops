@@ -40,6 +40,8 @@ jobs:
       - run: pnpm --filter api exec prisma generate
       - run: pnpm --filter api exec prisma migrate deploy
       - run: pnpm -r lint
+      # Type-checks tests too; Jest and nest build skip that
+      - run: pnpm --filter api typecheck
       - run: pnpm -r test
       # Runs the API against the Postgres service above
       - run: pnpm --filter api test:e2e

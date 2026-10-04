@@ -83,7 +83,7 @@ Every push to `main` and every pull request runs [the CI workflow](.github/workf
 
 - [x] Monorepo, CI, data model
 - [x] Prisma + GraphQL setup, vessel management
-- [ ] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
+- [x] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
 - [x] Seed data for demos
 - [ ] Authentication and roles (project lead / worker)
 - [ ] Web frontend: order overview, planning, order details

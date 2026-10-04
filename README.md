@@ -17,7 +17,7 @@ Subcontractors on a shipyard do two kinds of work, which can run at the same tim
   - **Floor protection**: protects the deck or floor.
   - **Coating**: has a target layer thickness.
 
-Protection uses materials such as OSB (standard or fire-resistant), Proplex (3 mm or HD), and glass fiber fabric ("Mahlglas"), which protects against fire and welding sparks.
+Protection uses materials such as OSB (standard or fire-resistant), Proplex (3 mm or HD), and glass fiber fabric, which protects against fire and welding sparks.
 
 Each job is an **order** for one vessel. An order moves from `PLANNED` to `IN_PROGRESS` to `DONE`, has a team of workers, and keeps a history of status updates with photos. An order is **overdue** when its due date has passed and it isn't done yet.
 

@@ -9,7 +9,8 @@ HullOps is a planning tool for subcontractors working on shipyards. It's a portf
 **Domain:**
 - Two service types: **cleaning** and **protection**. Protection can run at the same time as cleaning.
 - Protection kinds: **enclosure** (e.g. wooden boxes around machines), **covering**, **floor protection**, **coating**.
-- Materials: OSB standard, OSB fire-resistant, Proplex 3mm, Proplex HD, glass fiber fabric ("Mahlglas", used against fire and welding sparks).
+- Materials: OSB standard, OSB fire-resistant, Proplex 3mm, Proplex HD, glass fiber fabric (used against fire and welding sparks).
+- Languages: the app will be in English (default) and German; it is mainly used in Germany. Keep the API language-neutral: enum values are codes, and user-facing labels (e.g. German shipyard terms like "Schweißschutzdecke") belong in the frontend translations, not in the backend.
 
 ## Stack
 

@@ -70,7 +70,7 @@ Run these from the repository root:
 pnpm dev                     # run API and web in parallel
 pnpm -r lint                 # lint all apps
 pnpm -r test                 # unit tests
-pnpm --filter api test:e2e   # API end-to-end tests (needs the database)
+pnpm --filter api test:e2e   # API end-to-end tests (use their own hullops_test database)
 pnpm -r build                # production builds
 ```
 

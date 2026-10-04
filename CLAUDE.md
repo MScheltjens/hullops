@@ -41,7 +41,7 @@ pnpm --filter web dev                   # web on :3000
 # API tests use ESM Jest, so always run them through the package scripts
 pnpm --filter api test -- src/app.controller.spec.ts   # single file
 pnpm --filter api test -- -t "should return"           # by test name
-pnpm --filter api test:e2e
+pnpm --filter api test:e2e               # uses <db>_test (e.g. hullops_test), created and migrated automatically
 
 # Prisma (from apps/api)
 pnpm exec prisma migrate dev --name <name>

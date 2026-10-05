@@ -39,7 +39,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           namespaces they use are sent to the browser; Server Components
           read every message on the server.
         */}
-        <NextIntlClientProvider messages={{ login: messages.login }}>
+        <NextIntlClientProvider
+          messages={{ login: messages.login, orderForm: messages.orderForm }}
+        >
           {children}
         </NextIntlClientProvider>
       </body>

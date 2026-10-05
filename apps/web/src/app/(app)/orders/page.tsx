@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { apiAsUser } from "@/lib/dal";
+import { apiAsUser, requireUser } from "@/lib/dal";
 
 const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const;
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
@@ -50,6 +50,7 @@ export default async function OrdersPage({
 }: PageProps<"/orders">) {
   // Filters live in the URL (?status=PLANNED&overdue=true), so a filtered
   // view can be bookmarked or shared, and the page needs no client state.
+  const user = await requireUser();
   const params = await searchParams;
   const status = pick(params.status, STATUSES);
   const serviceType = pick(params.serviceType, SERVICE_TYPES);
@@ -66,11 +67,24 @@ export default async function OrdersPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {t("subtitle")}
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("title")}
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {t("subtitle")}
+          </p>
+        </div>
+        {/* Hidden for workers; the API and the form page enforce the rule. */}
+        {user.role === "PROJECT_LEAD" && (
+          <Link
+            href="/orders/new"
+            className="rounded-md bg-sky-700 px-3 py-2 text-sm font-medium text-white hover:bg-sky-800"
+          >
+            {t("newOrder")}
+          </Link>
+        )}
       </div>
 
       {/* A plain GET form: submitting it just changes the URL's filters. */}

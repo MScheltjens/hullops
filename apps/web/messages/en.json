@@ -53,6 +53,60 @@
     "serviceType": {
       "CLEANING": "Cleaning",
       "PROTECTION": "Protection"
+    },
+    "newOrder": "New order"
+  },
+  "orderForm": {
+    "pageTitle": "New order",
+    "title": "Title",
+    "description": "Description",
+    "vessel": "Vessel",
+    "chooseVessel": "Choose a vessel…",
+    "noVessels": "There are no vessels yet, so no order can be created.",
+    "shipyard": "Shipyard",
+    "berth": "Berth",
+    "startDate": "Start date",
+    "dueDate": "Due date",
+    "areaSqm": "Area (m²)",
+    "serviceType": "Service",
+    "serviceTypes": {
+      "CLEANING": "Cleaning",
+      "PROTECTION": "Protection"
+    },
+    "cleaningDetails": "Cleaning details",
+    "method": "Method",
+    "methodHint": "e.g. high-pressure, blasting, manual",
+    "surface": "Surface",
+    "surfaceHint": "e.g. hull, deck, interior",
+    "protectionDetails": "Protection details",
+    "kind": "Kind of protection",
+    "kinds": {
+      "ENCLOSURE": "Enclosure",
+      "COVERING": "Covering",
+      "FLOOR": "Floor protection",
+      "COATING": "Coating"
+    },
+    "protectedItem": "Protected item",
+    "protectedItemHint": "e.g. main engine, generator",
+    "materials": "Materials",
+    "materialNames": {
+      "OSB_STANDARD": "OSB standard",
+      "OSB_FIRE_RESISTANT": "OSB fire-resistant",
+      "PROPLEX_3MM": "Proplex 3 mm",
+      "PROPLEX_HD": "Proplex HD",
+      "GLASS_FIBER_FABRIC": "Glass fiber fabric (fire and welding spark protection)"
+    },
+    "coatingProduct": "Coating product",
+    "layers": "Layers",
+    "targetThicknessUm": "Target thickness (µm)",
+    "submit": "Create order",
+    "submitting": "Creating…",
+    "cancel": "Cancel",
+    "errors": {
+      "forbidden": "Only project leads can create orders.",
+      "incomplete": "Please fill in all required fields.",
+    "invalid": "The order could not be created:",
+      "unavailable": "The server can't be reached right now. Please try again later."
     }
   }
 }

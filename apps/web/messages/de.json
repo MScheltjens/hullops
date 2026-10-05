@@ -53,6 +53,60 @@
     "serviceType": {
       "CLEANING": "Reinigung",
       "PROTECTION": "Schutz"
+    },
+    "newOrder": "Neuer Auftrag"
+  },
+  "orderForm": {
+    "pageTitle": "Neuer Auftrag",
+    "title": "Titel",
+    "description": "Beschreibung",
+    "vessel": "Schiff",
+    "chooseVessel": "Schiff auswählen…",
+    "noVessels": "Es gibt noch keine Schiffe, daher kann kein Auftrag angelegt werden.",
+    "shipyard": "Werft",
+    "berth": "Liegeplatz",
+    "startDate": "Startdatum",
+    "dueDate": "Fälligkeitsdatum",
+    "areaSqm": "Fläche (m²)",
+    "serviceType": "Leistung",
+    "serviceTypes": {
+      "CLEANING": "Reinigung",
+      "PROTECTION": "Schutz"
+    },
+    "cleaningDetails": "Details zur Reinigung",
+    "method": "Verfahren",
+    "methodHint": "z. B. Hochdruck, Strahlen, manuell",
+    "surface": "Oberfläche",
+    "surfaceHint": "z. B. Rumpf, Deck, Innenraum",
+    "protectionDetails": "Details zum Schutz",
+    "kind": "Art des Schutzes",
+    "kinds": {
+      "ENCLOSURE": "Einhausung",
+      "COVERING": "Abdeckung",
+      "FLOOR": "Bodenschutz",
+      "COATING": "Beschichtung"
+    },
+    "protectedItem": "Zu schützendes Objekt",
+    "protectedItemHint": "z. B. Hauptmaschine, Generator",
+    "materials": "Materialien",
+    "materialNames": {
+      "OSB_STANDARD": "OSB Standard",
+      "OSB_FIRE_RESISTANT": "OSB schwer entflammbar",
+      "PROPLEX_3MM": "Proplex 3 mm",
+      "PROPLEX_HD": "Proplex HD",
+      "GLASS_FIBER_FABRIC": "Glasfasergewebe (Schweißschutzdecke)"
+    },
+    "coatingProduct": "Beschichtungsprodukt",
+    "layers": "Schichten",
+    "targetThicknessUm": "Soll-Schichtdicke (µm)",
+    "submit": "Auftrag anlegen",
+    "submitting": "Wird angelegt…",
+    "cancel": "Abbrechen",
+    "errors": {
+      "forbidden": "Nur Projektleiter können Aufträge anlegen.",
+      "incomplete": "Bitte füllen Sie alle Pflichtfelder aus.",
+    "invalid": "Der Auftrag konnte nicht angelegt werden:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
     }
   }
 }

@@ -26,9 +26,12 @@ import { VesselsModule } from './vessels/vessels.module';
           config.get('NODE_ENV', { infer: true }) === 'production';
         return {
           // Code-first: the schema is generated from the decorated TypeScript
-          // classes and written to src/schema.gql, so schema changes show up
-          // in code review.
-          autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+          // classes. In development it's also written to src/schema.gql, so
+          // schema changes show up in code review. In production (a built
+          // image has no src/ folder) it stays in memory.
+          autoSchemaFile: isProduction
+            ? true
+            : join(process.cwd(), 'src/schema.gql'),
           sortSchema: true,
           // Makes the HTTP request available to guards and @CurrentUser().
           context: ({ req }: { req: unknown }) => ({ req }),

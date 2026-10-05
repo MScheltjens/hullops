@@ -91,6 +91,10 @@ pnpm -r build                # production builds
 
 Every push to `main` and every pull request runs [the CI workflow](.github/workflows/ci.yml) against a throwaway Postgres container. It installs dependencies, generates the Prisma client, applies migrations, then runs lint, unit tests, API end-to-end tests and builds.
 
+## Deployment
+
+The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfile](apps/api/Dockerfile)) next to a managed PostgreSQL. Steps, environment variables and caveats are in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Roadmap
 
 - [x] Monorepo, CI, data model

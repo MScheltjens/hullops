@@ -101,7 +101,7 @@ export default async function OrderDetailPage({
       <div className="flex flex-col gap-2">
         <Link
           href="/orders"
-          className="text-sm text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+          className="flex min-h-11 items-center text-sm text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
         >
           ← {t("back")}
         </Link>

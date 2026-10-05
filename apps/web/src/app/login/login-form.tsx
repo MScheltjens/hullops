@@ -23,7 +23,7 @@ export function LoginForm() {
           autoComplete="username"
           required
           defaultValue={state.email}
-          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </label>
       <label className="flex flex-col gap-1 text-sm font-medium">
@@ -33,7 +33,7 @@ export function LoginForm() {
           type="password"
           autoComplete="current-password"
           required
-          className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
       </label>
 
@@ -49,7 +49,7 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-sky-700 px-4 py-2 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
+        className="min-h-11 rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
       >
         {pending ? t("submitting") : t("submit")}
       </button>

@@ -5,7 +5,7 @@ import { useActionState } from "react";
 import { addComment, type AddCommentState } from "./actions";
 
 const inputClass =
-  "rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
 export function CommentForm({ orderId }: { orderId: string }) {
   const t = useTranslations("comments");
@@ -52,7 +52,7 @@ export function CommentForm({ orderId }: { orderId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="self-start rounded-md bg-sky-700 px-4 py-2 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
+        className="self-start min-h-11 rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
       >
         {pending ? t("submitting") : t("submit")}
       </button>

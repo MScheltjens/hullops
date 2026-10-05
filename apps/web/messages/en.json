@@ -54,7 +54,8 @@
       "CLEANING": "Cleaning",
       "PROTECTION": "Protection"
     },
-    "newOrder": "New order"
+    "newOrder": "New order",
+    "comments": "{count, plural, one {# comment} other {# comments}}"
   },
   "orderForm": {
     "pageTitle": "New order",
@@ -105,7 +106,28 @@
     "errors": {
       "forbidden": "Only project leads can create orders.",
       "incomplete": "Please fill in all required fields.",
-    "invalid": "The order could not be created:",
+      "invalid": "The order could not be created:",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    }
+  },
+  "orderDetail": {
+    "back": "All orders",
+    "details": "Details",
+    "createdBy": "Created by",
+    "comments": "Comments",
+    "noComments": "No comments yet.",
+    "from": "from",
+    "history": "History"
+  },
+  "comments": {
+    "text": "Comment",
+    "source": "Source",
+    "sourceHint": "Optional: who it came from, e.g. Lürssen, J. Meyer, by mail",
+    "submit": "Add comment",
+    "submitting": "Adding…",
+    "errors": {
+      "forbidden": "Only project leads can add comments.",
+      "invalid": "A comment can't be empty or longer than 4000 characters.",
       "unavailable": "The server can't be reached right now. Please try again later."
     }
   }

@@ -1,6 +1,7 @@
 import {
   Args,
   ID,
+  Int,
   Mutation,
   Parent,
   Query,
@@ -10,11 +11,12 @@ import {
 import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
 import { User } from '../users/user.model';
 import {
+  AddOrderCommentInput,
   AddStatusUpdateInput,
   CreateOrderInput,
   OrdersArgs,
 } from './order.inputs';
-import { Order, StatusUpdate } from './order.model';
+import { Order, OrderComment, StatusUpdate } from './order.model';
 import { isOverdue } from './order-rules';
 import { OrdersService, type OrderWithRelations } from './orders.service';
 
@@ -56,6 +58,17 @@ export class OrdersResolver {
   }
 
   @Roles('PROJECT_LEAD')
+  @Mutation(() => Order, {
+    description: 'Add information from the shipyard that has no field of its own',
+  })
+  addOrderComment(
+    @Args('input') input: AddOrderCommentInput,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.ordersService.addComment(input, user);
+  }
+
+  @Roles('PROJECT_LEAD')
   @Mutation(() => Order)
   assignTeamMember(
     @Args('orderId', { type: () => ID }) orderId: string,
@@ -84,6 +97,18 @@ export class OrdersResolver {
   @ResolveField(() => [StatusUpdate], { description: 'Oldest first' })
   history(@Parent() order: OrderWithRelations) {
     return order.statusUpdates;
+  }
+
+  @ResolveField(() => [OrderComment], { description: 'Oldest first' })
+  comments(@Parent() order: OrderWithRelations) {
+    return order.comments;
+  }
+
+  @ResolveField(() => Int, {
+    description: 'Number of comments, so lists can show it without loading them',
+  })
+  commentCount(@Parent() order: OrderWithRelations) {
+    return order.comments.length;
   }
 
   @ResolveField(() => Boolean, {

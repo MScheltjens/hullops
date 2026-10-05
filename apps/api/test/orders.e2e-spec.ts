@@ -36,6 +36,7 @@ describe('Orders GraphQL API (e2e)', () => {
     createdBy { id }
     team { id }
     history { status note author { id } }
+    comments { text source author { id } }
     cleaningDetails { method surface }
     protectionDetails { kind materials coatingProduct layers }
   `;
@@ -271,6 +272,52 @@ describe('Orders GraphQL API (e2e)', () => {
       { vesselId: ids.vessel },
     );
     expect(overdue.body.data.orders).toEqual([{ id: lateId, overdue: true }]);
+  });
+
+  it('lets project leads add comments that the team can read', async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+    const addComment = (input: Record<string, unknown>, as = asLead) =>
+      as(
+        `mutation ($input: AddOrderCommentInput!) { addOrderComment(input: $input) { comments { text source author { id } } } }`,
+        { input },
+      );
+
+    await addComment({ orderId, text: 'Crane booked until 10:00' });
+    const second = await addComment({
+      orderId,
+      text: 'Access via gate 3',
+      source: 'Lürssen, by mail',
+    });
+    // Oldest first.
+    expect(second.body.data.addOrderComment.comments).toEqual([
+      {
+        text: 'Crane booked until 10:00',
+        source: null,
+        author: { id: ids.lead },
+      },
+      {
+        text: 'Access via gate 3',
+        source: 'Lürssen, by mail',
+        author: { id: ids.lead },
+      },
+    ]);
+
+    // A worker on the team can read them…
+    const read = await asCleaner(
+      'query ($id: ID!) { order(id: $id) { commentCount comments { text } } }',
+      { id: orderId },
+    );
+    expect(read.body.data.order.comments).toHaveLength(2);
+    expect(read.body.data.order.commentCount).toBe(2);
+
+    // …but not write them, and blank or unknown input is rejected.
+    const byWorker = await addComment({ orderId, text: 'Hi' }, asCleaner);
+    expect(byWorker.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    const blank = await addComment({ orderId, text: '   ' });
+    expect(blank.body.errors[0].extensions.code).toBe('BAD_REQUEST');
+    const unknown = await addComment({ orderId: 'nope', text: 'Hi' });
+    expect(unknown.body.errors[0].extensions.code).toBe('NOT_FOUND');
   });
 
   it('adds and removes team members', async () => {

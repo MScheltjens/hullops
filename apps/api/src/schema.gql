@@ -2,6 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AddOrderCommentInput {
+  orderId: ID!
+
+  """
+  Where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  """
+  source: String
+  text: String!
+}
+
 input AddStatusUpdateInput {
   note: String
   orderId: ID!
@@ -78,6 +88,9 @@ input LoginInput {
 }
 
 type Mutation {
+  """Add information from the shipyard that has no field of its own"""
+  addOrderComment(input: AddOrderCommentInput!): Order!
+
   """Add a note, or move the order one step forward"""
   addStatusUpdate(input: AddStatusUpdateInput!): Order!
   assignTeamMember(orderId: ID!, userId: ID!): Order!
@@ -99,6 +112,12 @@ type Order {
 
   """Set on cleaning orders"""
   cleaningDetails: CleaningDetails
+
+  """Number of comments, so lists can show it without loading them"""
+  commentCount: Int!
+
+  """Oldest first"""
+  comments: [OrderComment!]!
   createdAt: DateTime!
   createdBy: User!
   description: String
@@ -125,6 +144,19 @@ type Order {
   title: String!
   updatedAt: DateTime!
   vessel: Vessel!
+}
+
+"""Free-text information on an order, passed on by the project lead"""
+type OrderComment {
+  author: User!
+  createdAt: DateTime!
+  id: ID!
+
+  """
+  Where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  """
+  source: String
+  text: String!
 }
 
 """Moves PLANNED → IN_PROGRESS → DONE, one step at a time."""

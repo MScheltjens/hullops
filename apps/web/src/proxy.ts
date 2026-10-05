@@ -18,6 +18,10 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the login page, Next.js internals and static files.
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico).*)"],
+  // Everything except the login page, Next.js internals, static files and
+  // the PWA manifest and icons: the browser fetches those without a session,
+  // and a redirect to /login would break installing the app.
+  matcher: [
+    "/((?!login|_next/static|_next/image|favicon.ico|manifest.webmanifest|apple-icon.png|icons/).*)",
+  ],
 };

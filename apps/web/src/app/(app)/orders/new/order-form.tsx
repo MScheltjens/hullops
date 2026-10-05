@@ -17,7 +17,7 @@ export interface VesselOption {
 }
 
 const inputClass =
-  "rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
+  "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
 export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
   const t = useTranslations("orderForm");
@@ -199,8 +199,13 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
               {t("materials")}
             </legend>
             {PROTECTION_MATERIALS.map((material) => (
-              <label key={material} className="flex items-center gap-2 text-sm">
+              // A whole row is tappable, and the box is bigger than the default.
+              <label
+                key={material}
+                className="flex min-h-11 items-center gap-3 text-sm"
+              >
                 <input
+                  className="size-5"
                   type="checkbox"
                   name="materials"
                   value={material}
@@ -268,13 +273,13 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-sky-700 px-4 py-2 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
+          className="min-h-11 rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60"
         >
           {pending ? t("submitting") : t("submit")}
         </button>
         <Link
           href="/orders"
-          className="text-sm text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
+          className="flex min-h-11 items-center text-sm text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white"
         >
           {t("cancel")}
         </Link>

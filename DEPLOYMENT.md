@@ -51,11 +51,19 @@ and then starts the API. Point the host's health check at `GET /health`
 
 ### Demo data (optional)
 
-For a public demo, load the sample data once, from a shell in the container:
+For a public demo, load the sample data once. The seed script refuses to run
+with `NODE_ENV=production` (which the container has), so run it from your own
+machine against the database's **public** connection string (on Railway: the
+Postgres service, variable `DATABASE_PUBLIC_URL`; the internal address only
+works inside Railway):
 
 ```bash
-pnpm exec prisma db seed
+cd apps/api
+DATABASE_URL="<public connection string>" pnpm exec prisma db seed
 ```
+
+It is safe to run again: it only replaces its own `seed-…` records. Don't
+commit the connection string, and don't paste it into chats or issues.
 
 Every seeded user has the password `hullops-dev`, which is public in this
 repository. Only seed a database that holds no real data, and never reuse

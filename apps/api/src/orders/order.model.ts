@@ -64,8 +64,32 @@ export class StatusUpdate {
   createdAt: Date;
 }
 
+@ObjectType({
+  description:
+    'Free-text information on an order, passed on by the project lead',
+})
+export class OrderComment {
+  @Field(() => ID)
+  id: string;
+
+  @Field()
+  text: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Where it came from, e.g. "Lürssen, J. Meyer, by mail"',
+  })
+  source: string | null;
+
+  @Field(() => User)
+  author: User;
+
+  @Field()
+  createdAt: Date;
+}
+
 /**
- * A cleaning or protection job on a vessel. `team`, `history` and `overdue`
+ * A cleaning or protection job on a vessel. `team`, `history`, `comments` and `overdue`
  * are resolved in OrdersResolver: they're derived from the database record
  * rather than stored on it.
  */

@@ -8,6 +8,7 @@ import { Prisma, type ServiceType } from '../generated/prisma/client';
 import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  AddOrderCommentInput,
   AddStatusUpdateInput,
   CreateOrderInput,
   OrdersArgs,
@@ -33,6 +34,7 @@ export const ORDER_INCLUDE = {
   // Team sorted by name: members added together share the same assignedAt.
   assignments: { include: { user: true }, orderBy: { user: { name: 'asc' } } },
   statusUpdates: { include: { author: true }, orderBy: { createdAt: 'asc' } },
+  comments: { include: { author: true }, orderBy: { createdAt: 'asc' } },
 } satisfies Prisma.OrderInclude;
 
 export type OrderWithRelations = Prisma.OrderGetPayload<{
@@ -210,6 +212,44 @@ export class OrdersService {
       return tx.order.update({
         where: { id: order.id },
         data: { status: input.status },
+        include: ORDER_INCLUDE,
+      });
+    });
+  }
+
+  /**
+   * Adds a comment: information the project lead passes on, which the app
+   * has no field for. Anyone can read it; the resolver limits writing to
+   * project leads, and it's checked here too like in `create`.
+   */
+  async addComment(
+    input: AddOrderCommentInput,
+    author: AuthUser,
+  ): Promise<OrderWithRelations> {
+    if (author.role !== 'PROJECT_LEAD') {
+      throw new ForbiddenException('Only project leads can add comments');
+    }
+    // @IsNotEmpty accepts "   ", so check for a blank text here.
+    const text = input.text.trim();
+    if (!text) {
+      throw new BadRequestException('A comment cannot be empty');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({ where: { id: input.orderId } });
+      if (!order) {
+        throw new NotFoundException(`Order ${input.orderId} not found`);
+      }
+      await tx.orderComment.create({
+        data: {
+          text,
+          source: input.source?.trim() || null,
+          order: { connect: { id: order.id } },
+          author: { connect: { id: author.id } },
+        },
+      });
+      return tx.order.findUniqueOrThrow({
+        where: { id: order.id },
         include: ORDER_INCLUDE,
       });
     });

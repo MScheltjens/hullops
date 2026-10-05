@@ -25,6 +25,7 @@ const db = {
   vessel: { findUnique: jest.fn() },
   user: { findMany: jest.fn() },
   statusUpdate: { create: jest.fn() },
+  orderComment: { create: jest.fn() },
   orderAssignment: { upsert: jest.fn(), deleteMany: jest.fn() },
   $transaction: jest.fn(),
 };
@@ -284,6 +285,64 @@ describe('OrdersService', () => {
           },
           lead,
         ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+  });
+
+  describe('addComment', () => {
+    it('stores a trimmed comment with its source and author', async () => {
+      db.order.findUnique.mockResolvedValue({ id: 'order-1' });
+
+      await service.addComment(
+        {
+          orderId: 'order-1',
+          text: '  Crane is booked until 10:00 ',
+          source: ' Lürssen, by mail ',
+        },
+        lead,
+      );
+
+      expect(db.orderComment.create).toHaveBeenCalledWith({
+        data: {
+          text: 'Crane is booked until 10:00',
+          source: 'Lürssen, by mail',
+          order: { connect: { id: 'order-1' } },
+          author: { connect: { id: lead.id } },
+        },
+      });
+    });
+
+    it('stores a blank source as none', async () => {
+      db.order.findUnique.mockResolvedValue({ id: 'order-1' });
+
+      await service.addComment(
+        { orderId: 'order-1', text: 'Hello', source: '   ' },
+        lead,
+      );
+
+      expect(db.orderComment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ source: null }),
+      });
+    });
+
+    it('only lets project leads add comments', async () => {
+      await expect(
+        service.addComment({ orderId: 'order-1', text: 'Hello' }, cleaner),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(db.orderComment.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a blank comment', async () => {
+      await expect(
+        service.addComment({ orderId: 'order-1', text: '   ' }, lead),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(db.orderComment.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown order', async () => {
+      db.order.findUnique.mockResolvedValue(null);
+      await expect(
+        service.addComment({ orderId: 'nope', text: 'Hello' }, lead),
       ).rejects.toBeInstanceOf(NotFoundException);
     });
   });

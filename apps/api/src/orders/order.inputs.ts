@@ -178,6 +178,29 @@ export class AddStatusUpdateInput {
   note?: string;
 }
 
+@InputType()
+export class AddOrderCommentInput {
+  @Field(() => ID)
+  @IsString()
+  @IsNotEmpty()
+  orderId: string;
+
+  @Field()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(4000)
+  text: string;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Where it came from, e.g. "Lürssen, J. Meyer, by mail"',
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  source?: string;
+}
+
 /** Filters and paging for the `orders` query. */
 @ArgsType()
 export class OrdersArgs {

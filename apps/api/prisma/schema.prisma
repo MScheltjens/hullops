@@ -50,6 +50,7 @@ model User {
   createdOrders Order[]           @relation("OrderCreatedBy")
   assignments   OrderAssignment[]
   statusUpdates StatusUpdate[]
+  orderComments OrderComment[]
 }
 
 model Vessel {
@@ -85,6 +86,7 @@ model Order {
 
   assignments   OrderAssignment[]
   statusUpdates StatusUpdate[]
+  comments      OrderComment[]
 
   // Service-specific details (1:1). Exactly one is set, matching serviceType;
   // the database doesn't enforce this, so application code must.
@@ -159,6 +161,22 @@ model StatusUpdate {
   authorId String
   author   User    @relation(fields: [authorId], references: [id])
   photos   Photo[]
+
+  @@index([orderId, createdAt])
+}
+
+// Free-text information on an order that the app has no field for. The
+// project lead passes on what the shipyard tells them; the team reads it.
+model OrderComment {
+  id        String   @id @default(cuid())
+  text      String
+  source    String? // where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  createdAt DateTime @default(now())
+
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation(fields: [authorId], references: [id])
 
   @@index([orderId, createdAt])
 }

@@ -40,7 +40,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           read every message on the server.
         */}
         <NextIntlClientProvider
-          messages={{ login: messages.login, orderForm: messages.orderForm }}
+          messages={{
+            login: messages.login,
+            orderForm: messages.orderForm,
+            comments: messages.comments,
+          }}
         >
           {children}
         </NextIntlClientProvider>

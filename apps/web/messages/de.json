@@ -54,7 +54,8 @@
       "CLEANING": "Reinigung",
       "PROTECTION": "Schutz"
     },
-    "newOrder": "Neuer Auftrag"
+    "newOrder": "Neuer Auftrag",
+    "comments": "{count, plural, one {# Kommentar} other {# Kommentare}}"
   },
   "orderForm": {
     "pageTitle": "Neuer Auftrag",
@@ -105,7 +106,28 @@
     "errors": {
       "forbidden": "Nur Projektleiter können Aufträge anlegen.",
       "incomplete": "Bitte füllen Sie alle Pflichtfelder aus.",
-    "invalid": "Der Auftrag konnte nicht angelegt werden:",
+      "invalid": "Der Auftrag konnte nicht angelegt werden:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    }
+  },
+  "orderDetail": {
+    "back": "Alle Aufträge",
+    "details": "Details",
+    "createdBy": "Angelegt von",
+    "comments": "Kommentare",
+    "noComments": "Noch keine Kommentare.",
+    "from": "von",
+    "history": "Verlauf"
+  },
+  "comments": {
+    "text": "Kommentar",
+    "source": "Quelle",
+    "sourceHint": "Optional: von wem die Information stammt, z. B. Lürssen, J. Meyer, per E-Mail",
+    "submit": "Kommentar hinzufügen",
+    "submitting": "Wird hinzugefügt…",
+    "errors": {
+      "forbidden": "Nur Projektleiter können Kommentare hinzufügen.",
+      "invalid": "Ein Kommentar darf nicht leer oder länger als 4000 Zeichen sein.",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
     }
   }

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { apiAsUser, requireUser } from "@/lib/dal";
+import { StatusBadge, type Status } from "./status-badge";
 
-const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const;
+const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const satisfies readonly Status[];
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
-type Status = (typeof STATUSES)[number];
 type ServiceType = (typeof SERVICE_TYPES)[number];
 
 interface OrderRow {
@@ -18,6 +18,7 @@ interface OrderRow {
   shipyard: string;
   berth: string | null;
   vessel: { name: string };
+  commentCount: number;
   team: { id: string; name: string }[];
 }
 
@@ -26,6 +27,7 @@ const ORDERS = `
     orders(status: $status, serviceType: $serviceType, overdue: $overdue, take: 100) {
       id title status serviceType overdue dueDate shipyard berth
       vessel { name }
+      commentCount
       team { id name }
     }
   }`;
@@ -149,10 +151,20 @@ export default async function OrdersPage({
               {orders.map((order) => (
                 <tr key={order.id} className="align-top">
                   <td className="px-4 py-3">
-                    <div className="font-medium">{order.title}</div>
+                    <Link
+                      href={`/orders/${order.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {order.title}
+                    </Link>
                     <div className="text-xs text-zinc-500 dark:text-zinc-400">
                       {[order.shipyard, order.berth].filter(Boolean).join(" · ")}
                     </div>
+                    {order.commentCount > 0 && (
+                      <div className="text-xs text-sky-700 dark:text-sky-400">
+                        {t("comments", { count: order.commentCount })}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">{order.vessel.name}</td>
                   <td className="px-4 py-3">
@@ -212,27 +224,5 @@ function Filter({
         {children}
       </select>
     </label>
-  );
-}
-
-const STATUS_STYLES: Record<Status, string> = {
-  PLANNED: "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200",
-  IN_PROGRESS: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300",
-  DONE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-};
-
-function StatusBadge({
-  status,
-  children,
-}: {
-  status: Status;
-  children: React.ReactNode;
-}) {
-  return (
-    <span
-      className={`rounded px-2 py-0.5 text-xs font-medium whitespace-nowrap ${STATUS_STYLES[status]}`}
-    >
-      {children}
-    </span>
   );
 }

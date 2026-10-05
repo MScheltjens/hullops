@@ -3,8 +3,11 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiAsUser, requireUser } from "@/lib/dal";
+import { canUpdateOrder, nextStatus } from "@/lib/order-status";
 import { StatusBadge, type Status } from "../status-badge";
+import { assignMember, removeMember } from "./actions";
 import { CommentForm } from "./comment-form";
+import { StatusActions } from "./status-actions";
 
 interface OrderDetail {
   id: string;
@@ -84,6 +87,19 @@ export default async function OrderDetailPage({
   // The API answers null for an unknown id.
   if (!order) notFound();
 
+  const isLead = user.role === "PROJECT_LEAD";
+  // People who work in this service area and aren't on the team yet. Only
+  // leads can add members, so only they need the list.
+  const candidates = isLead
+    ? (
+        await apiAsUser<{ users: { id: string; name: string }[] }>(
+          "query ($serviceType: ServiceType) { users(serviceType: $serviceType) { id name } }",
+          { serviceType: order.serviceType },
+        )
+      ).users.filter((u) => !order.team.some((m) => m.id === u.id))
+    : [];
+  const mayUpdate = canUpdateOrder(user, order.team);
+
   const t = await getTranslations("orderDetail");
   const tOrders = await getTranslations("orders");
   const tForm = await getTranslations("orderForm");
@@ -125,6 +141,17 @@ export default async function OrderDetailPage({
           </p>
         )}
       </div>
+
+      {/* The thing people do on site, so it comes before the details. */}
+      {mayUpdate && (
+        <Section title={t("update")}>
+          <StatusActions
+            orderId={order.id}
+            status={order.status}
+            next={nextStatus(order.status)}
+          />
+        </Section>
+      )}
 
       <Section title={t("details")}>
         <dl className="grid gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
@@ -173,10 +200,71 @@ export default async function OrderDetailPage({
               </Item>
             </>
           )}
-          <Item label={tOrders("columns.team")}>
-            {order.team.map((member) => member.name).join(", ") || undefined}
-          </Item>
         </dl>
+      </Section>
+
+      <Section title={t("team")}>
+        {order.team.length === 0 ? (
+          <p className="text-sm text-zinc-500 italic dark:text-zinc-400">
+            {t("noTeam")}
+          </p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {order.team.map((member) => (
+              <li
+                key={member.id}
+                className="flex min-h-11 items-center justify-between gap-3"
+              >
+                <span>{member.name}</span>
+                {isLead && (
+                  <form action={removeMember.bind(null, order.id, member.id)}>
+                    <button
+                      type="submit"
+                      aria-label={`${t("removeMember")}: ${member.name}`}
+                      className="min-h-11 rounded-md px-3 text-sm font-medium text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                    >
+                      {t("removeMember")}
+                    </button>
+                  </form>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {isLead &&
+          (candidates.length === 0 ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              {t("noOneToAdd")}
+            </p>
+          ) : (
+            <form
+              action={assignMember.bind(null, order.id)}
+              className="flex gap-3"
+            >
+              <select
+                name="userId"
+                required
+                defaultValue=""
+                aria-label={t("addMember")}
+                className="min-h-11 min-w-0 flex-1 rounded-md border border-zinc-300 bg-white px-2 text-base dark:border-zinc-700 dark:bg-zinc-900"
+              >
+                <option value="" disabled>
+                  {t("chooseMember")}
+                </option>
+                {candidates.map((candidate) => (
+                  <option key={candidate.id} value={candidate.id}>
+                    {candidate.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="min-h-11 rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800"
+              >
+                {t("add")}
+              </button>
+            </form>
+          ))}
       </Section>
 
       <Section title={t("comments")}>

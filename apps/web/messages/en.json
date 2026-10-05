@@ -117,7 +117,15 @@
     "comments": "Comments",
     "noComments": "No comments yet.",
     "from": "from",
-    "history": "History"
+    "history": "History",
+    "update": "Update",
+    "team": "Team",
+    "noTeam": "No team yet",
+    "removeMember": "Remove",
+    "addMember": "Add team member",
+    "chooseMember": "Choose a person…",
+    "add": "Add",
+    "noOneToAdd": "Everyone who works in this service area is already on the team."
   },
   "comments": {
     "text": "Comment",
@@ -128,6 +136,23 @@
     "errors": {
       "forbidden": "Only project leads can add comments.",
       "invalid": "A comment can't be empty or longer than 4000 characters.",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    }
+  },
+  "statusActions": {
+    "note": "Note",
+    "noteHint": "Optional when you move the order forward",
+    "advance": {
+      "IN_PROGRESS": "Start work",
+      "DONE": "Mark as done"
+    },
+    "addNote": "Add note only",
+    "saving": "Saving…",
+    "confirmDone": "Mark this order as done? This can't be undone.",
+    "errors": {
+      "forbidden": "Only the order's team and project leads can update it.",
+      "noteRequired": "Write a note first.",
+      "outdated": "The order was changed in the meantime. Reload the page and try again.",
       "unavailable": "The server can't be reached right now. Please try again later."
     }
   }

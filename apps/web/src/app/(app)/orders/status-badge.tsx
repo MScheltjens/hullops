@@ -1,4 +1,6 @@
-export type Status = "PLANNED" | "IN_PROGRESS" | "DONE";
+import type { Status } from "@/lib/order-status";
+
+export type { Status };
 
 const STATUS_STYLES: Record<Status, string> = {
   PLANNED: "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200",

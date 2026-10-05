@@ -1,0 +1,9 @@
+# Keeps the build context small and secrets out of the image.
+**/node_modules
+**/dist
+**/.next
+**/.env
+.git
+apps/web
+**/src/generated
+**/coverage

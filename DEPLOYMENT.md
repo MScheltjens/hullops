@@ -28,6 +28,13 @@ docker build -f apps/api/Dockerfile -t hullops-api .
 Most hosts build the image themselves from the Dockerfile path
 `apps/api/Dockerfile` with the repository root as context.
 
+**Railway:** [railway.json](railway.json) already tells it to use that
+Dockerfile and to check `/health`, so "Deploy from GitHub repo" needs no
+build settings. Without it Railway doesn't find a Dockerfile in the root and
+falls back to its automatic builder, which fails on this monorepo
+(`ERR_PNPM_OUTDATED_LOCKFILE`). Keep the service's Root Directory at the
+repository root.
+
 Environment variables:
 
 | Variable | Value |

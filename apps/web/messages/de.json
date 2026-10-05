@@ -117,7 +117,15 @@
     "comments": "Kommentare",
     "noComments": "Noch keine Kommentare.",
     "from": "von",
-    "history": "Verlauf"
+    "history": "Verlauf",
+    "update": "Aktualisieren",
+    "team": "Team",
+    "noTeam": "Noch kein Team",
+    "removeMember": "Entfernen",
+    "addMember": "Teammitglied hinzufügen",
+    "chooseMember": "Person auswählen…",
+    "add": "Hinzufügen",
+    "noOneToAdd": "Alle Personen dieses Leistungsbereichs sind bereits im Team."
   },
   "comments": {
     "text": "Kommentar",
@@ -128,6 +136,23 @@
     "errors": {
       "forbidden": "Nur Projektleiter können Kommentare hinzufügen.",
       "invalid": "Ein Kommentar darf nicht leer oder länger als 4000 Zeichen sein.",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    }
+  },
+  "statusActions": {
+    "note": "Notiz",
+    "noteHint": "Optional, wenn Sie den Auftrag weiterschalten",
+    "advance": {
+      "IN_PROGRESS": "Arbeit beginnen",
+      "DONE": "Als erledigt markieren"
+    },
+    "addNote": "Nur Notiz speichern",
+    "saving": "Wird gespeichert…",
+    "confirmDone": "Auftrag als erledigt markieren? Das lässt sich nicht rückgängig machen.",
+    "errors": {
+      "forbidden": "Nur das Team des Auftrags und Projektleiter können ihn aktualisieren.",
+      "noteRequired": "Bitte zuerst eine Notiz schreiben.",
+      "outdated": "Der Auftrag wurde zwischenzeitlich geändert. Laden Sie die Seite neu und versuchen Sie es erneut.",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
     }
   }

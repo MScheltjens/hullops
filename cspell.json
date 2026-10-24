@@ -1,0 +1,50 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/dist/**",
+    "**/generated/**",
+    "**/migrations/**",
+    "pnpm-lock.yaml",
+    "apps/web/messages/de.json"
+  ],
+  "ignoreRegExpList": [
+    "/Basic [A-Za-z0-9+/=]{8,}/"
+  ],
+  "words": [
+    "Blohm",
+    "Voss",
+    "Lürssen",
+    "Lloyd",
+    "Werft",
+    "Proplex",
+    "Schweißschutzdecke",
+    "Hoffmann",
+    "Mehmet",
+    "Yilmaz",
+    "Piotr",
+    "Nowak",
+    "Jong",
+    "Rossi",
+    "titel",
+    "cuid",
+    "hullops",
+    "datname",
+    "dbname",
+    "pgdata",
+    "protobufjs",
+    "esbuild",
+    "unrs",
+    "tsgolint",
+    "healthcheck",
+    "upserting",
+    "IHDR",
+    "IDAT",
+    "IEND",
+    "IIBBBBB"
+  ]
+}

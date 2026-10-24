@@ -8,7 +8,7 @@ const STATUS_STYLES: Record<Status, string> = {
   DONE: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
 };
 
-/** The coloured label for an order's status, shared by the list and detail pages. */
+/** The colored label for an order's status, shared by the list and detail pages. */
 export function StatusBadge({
   status,
   children,

@@ -18,8 +18,10 @@
     "language": "Sprache",
     "roles": {
       "PROJECT_LEAD": "Projektleitung",
-      "WORKER": "Fachkraft"
-    }
+      "WORKER": "Fachkraft",
+      "ADMIN": "Administrator"
+    },
+    "users": "Benutzer"
   },
   "orders": {
     "title": "Aufträge",
@@ -155,5 +157,46 @@
       "outdated": "Der Auftrag wurde zwischenzeitlich geändert. Laden Sie die Seite neu und versuchen Sie es erneut.",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
     }
+  },
+  "admin": {
+    "title": "Benutzer",
+    "subtitle": "Verwalten, wer HullOps nutzen darf",
+    "addUser": "Benutzer hinzufügen",
+    "name": "Name",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "passwordHint": "Mindestens 8 Zeichen. Geben Sie es der Person selbst weiter.",
+    "role": "Rolle",
+    "roles": {
+      "ADMIN": "Administrator",
+      "PROJECT_LEAD": "Projektleiter",
+      "WORKER": "Mitarbeiter"
+    },
+    "serviceAreas": "Leistungsbereiche",
+    "serviceTypeNames": {
+      "CLEANING": "Reinigung",
+      "PROTECTION": "Schutz"
+    },
+    "create": "Benutzer anlegen",
+    "creating": "Wird angelegt…",
+    "inactive": "Deaktiviert",
+    "you": "Sie",
+    "deactivate": "Deaktivieren",
+    "reactivate": "Wieder aktivieren",
+    "errors": {
+      "forbidden": "Das dürfen nur Administratoren.",
+      "conflict": "Ein Benutzer mit dieser E-Mail existiert bereits.",
+      "invalid": "Bitte prüfen Sie die Felder:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    },
+    "manage": "Verwalten",
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert.",
+    "resetPassword": "Passwort zurücksetzen",
+    "newPassword": "Neues Passwort",
+    "setPassword": "Neues Passwort setzen",
+    "passwordChanged": "Passwort geändert.",
+    "yourOwnRole": "Sie können Ihre eigene Rolle nicht ändern und sich nicht selbst deaktivieren."
   }
 }

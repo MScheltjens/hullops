@@ -90,6 +90,7 @@ const PIOTR = 'piotr.nowak@hullops.example';
 const ANNA = 'anna.schulz@hullops.example';
 const TOM = 'tom.dejong@hullops.example';
 const SOFIA = 'sofia.rossi@hullops.example';
+const ADMIN = 'admin@hullops.example';
 
 /**
  * Builds the demo data with dates relative to `now`, so orders are in
@@ -154,6 +155,16 @@ export function buildSeedData(now: Date): SeedData {
       name: 'Sofia Rossi',
       role: 'WORKER',
       serviceTypes: ['CLEANING'],
+      locale: 'EN',
+    },
+    {
+      // The technical administrator: manages users and reads everything, but
+      // is on no team and creates no orders. For a demo it shares the public
+      // SEED_PASSWORD like everyone else.
+      email: ADMIN,
+      name: 'Admin',
+      role: 'ADMIN',
+      serviceTypes: [],
       locale: 'EN',
     },
   ];

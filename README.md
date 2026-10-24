@@ -103,7 +103,8 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Prisma + GraphQL setup, vessel management
 - [x] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
 - [x] Seed data for demos
-- [x] Authentication and roles (project lead / worker)
+- [x] Authentication and roles (project lead / worker / administrator)
+- [x] Administrator: add users, change names, roles and service areas, reset passwords, deactivate and reactivate (`admin@hullops.example` in the demo data)
 - [x] Web: login, order overview, English and German
 - [x] Web: create orders, order details with comments, status updates and team assignment
 - [x] Mobile first, installable as a PWA

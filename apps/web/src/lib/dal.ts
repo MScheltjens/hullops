@@ -16,7 +16,7 @@ export interface CurrentUser {
   id: string;
   name: string;
   email: string;
-  role: "PROJECT_LEAD" | "WORKER";
+  role: "PROJECT_LEAD" | "WORKER" | "ADMIN";
   locale: Locale;
 }
 

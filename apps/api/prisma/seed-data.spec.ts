@@ -17,6 +17,16 @@ describe('seed data', () => {
     expect(unique(orders.map((o) => o.id))).toBe(true);
   });
 
+  it('has an administrator who is on no team and creates no orders', () => {
+    const admins = users.filter((user) => user.role === 'ADMIN');
+    expect(admins).toHaveLength(1);
+    const [admin] = admins;
+    for (const order of orders) {
+      expect(order.createdByEmail).not.toBe(admin.email);
+      expect(order.teamEmails).not.toContain(admin.email);
+    }
+  });
+
   it('uses only valid IMO numbers', () => {
     for (const vessel of vessels) {
       if (vessel.imoNumber !== null) {

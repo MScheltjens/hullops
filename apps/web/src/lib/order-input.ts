@@ -8,6 +8,8 @@
  * would only let the two drift apart.
  */
 
+import { number, text } from "./form-data";
+
 export const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 export const PROTECTION_KINDS = [
   "ENCLOSURE",
@@ -22,22 +24,6 @@ export const PROTECTION_MATERIALS = [
   "PROPLEX_HD",
   "GLASS_FIBER_FABRIC",
 ] as const;
-
-/** A text field: trimmed, and undefined when left empty. */
-function text(formData: FormData, name: string): string | undefined {
-  const value = formData.get(name);
-  return typeof value === "string" && value.trim() !== ""
-    ? value.trim()
-    : undefined;
-}
-
-/** A number field: undefined when empty (or not a number). */
-function number(formData: FormData, name: string): number | undefined {
-  const value = text(formData, name);
-  if (value === undefined) return undefined;
-  const parsed = Number(value);
-  return Number.isNaN(parsed) ? undefined : parsed;
-}
 
 /**
  * A date field (`<input type="date">` gives "2026-10-05") as a timestamp.

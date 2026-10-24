@@ -24,7 +24,7 @@ export function nextStatus(status: Status): ForwardStatus | undefined {
  * leads, like the API's rule for status updates.
  */
 export function canUpdateOrder(
-  user: { id: string; role: "PROJECT_LEAD" | "WORKER" },
+  user: { id: string; role: "PROJECT_LEAD" | "WORKER" | "ADMIN" },
   team: readonly { id: string }[],
 ): boolean {
   return user.role === "PROJECT_LEAD" || team.some((m) => m.id === user.id);

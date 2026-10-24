@@ -37,6 +37,7 @@ const makeUser = (
   ...fields,
   email: `${fields.id}@hullops.example`,
   locale: 'EN',
+  active: true,
   createdAt: new Date(0),
   updatedAt: new Date(0),
 });

@@ -6,7 +6,7 @@ import type { Role } from '../generated/prisma/client';
  */
 
 /** Admin-set passwords must be at least this long. */
-export const MIN_PASSWORD_LENGTH = 12;
+export const MIN_PASSWORD_LENGTH = 8;
 
 /**
  * Stops an admin from locking themselves out. Nobody may change their own

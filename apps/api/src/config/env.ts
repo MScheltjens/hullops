@@ -40,7 +40,7 @@ const envSchema = z
     ADMIN_EMAIL: z.string().email().optional(),
     ADMIN_PASSWORD: z
       .string()
-      .min(12, 'must be at least 12 characters')
+      .min(8, 'must be at least 8 characters')
       .optional(),
   })
   .refine((env) => Boolean(env.ADMIN_EMAIL) === Boolean(env.ADMIN_PASSWORD), {

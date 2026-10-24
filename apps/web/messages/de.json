@@ -165,7 +165,7 @@
     "name": "Name",
     "email": "E-Mail",
     "password": "Passwort",
-    "passwordHint": "Mindestens 12 Zeichen. Geben Sie es der Person selbst weiter.",
+    "passwordHint": "Mindestens 8 Zeichen. Geben Sie es der Person selbst weiter.",
     "role": "Rolle",
     "roles": {
       "ADMIN": "Administrator",
@@ -188,6 +188,15 @@
       "conflict": "Ein Benutzer mit dieser E-Mail existiert bereits.",
       "invalid": "Bitte prüfen Sie die Felder:",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
-    }
+    },
+    "manage": "Verwalten",
+    "save": "Änderungen speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert.",
+    "resetPassword": "Passwort zurücksetzen",
+    "newPassword": "Neues Passwort",
+    "setPassword": "Neues Passwort setzen",
+    "passwordChanged": "Passwort geändert.",
+    "yourOwnRole": "Sie können Ihre eigene Rolle nicht ändern und sich nicht selbst deaktivieren."
   }
 }

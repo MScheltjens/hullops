@@ -212,10 +212,7 @@ describe('UsersService', () => {
 
     it('only lets administrators reset passwords', async () => {
       await expect(
-        service.resetPassword(
-          { userId: 'w-1', password: 'x'.repeat(12) },
-          lead,
-        ),
+        service.resetPassword({ userId: 'w-1', password: 'x'.repeat(8) }, lead),
       ).rejects.toBeInstanceOf(ForbiddenException);
     });
   });

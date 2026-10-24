@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildCreateUserInput } from "./user-input";
+import {
+  buildCreateUserInput,
+  buildResetPasswordInput,
+  buildUpdateUserInput,
+} from "./user-input";
 
 function form(entries: [string, string][]): FormData {
   const formData = new FormData();
@@ -43,5 +47,46 @@ describe("buildCreateUserInput", () => {
 
   it("sends no service areas when none are checked", () => {
     expect(buildCreateUserInput(form([])).serviceTypes).toEqual([]);
+  });
+});
+
+describe("buildUpdateUserInput", () => {
+  it("carries the user id and the changed fields", () => {
+    const input = buildUpdateUserInput(
+      "user-1",
+      form([
+        ["name", " Tom "],
+        ["role", "PROJECT_LEAD"],
+        ["serviceTypes", "PROTECTION"],
+      ]),
+    );
+
+    expect(input).toEqual({
+      userId: "user-1",
+      name: "Tom",
+      role: "PROJECT_LEAD",
+      serviceTypes: ["PROTECTION"],
+    });
+  });
+
+  it("leaves the role out when the form has none (your own row)", () => {
+    const input = buildUpdateUserInput("me", form([["name", "Me"]]));
+
+    expect(input.role).toBeUndefined();
+  });
+
+  it("sends an empty list when every service area is unchecked", () => {
+    // Unchecking everything must clear the areas, not leave them unchanged.
+    expect(buildUpdateUserInput("u", form([["name", "X"]])).serviceTypes).toEqual(
+      [],
+    );
+  });
+});
+
+describe("buildResetPasswordInput", () => {
+  it("sends the password exactly as typed", () => {
+    expect(
+      buildResetPasswordInput("user-1", form([["password", " new pass "]])),
+    ).toEqual({ userId: "user-1", password: " new pass " });
   });
 });

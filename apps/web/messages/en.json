@@ -165,7 +165,7 @@
     "name": "Name",
     "email": "Email",
     "password": "Password",
-    "passwordHint": "At least 12 characters. Give it to the person yourself.",
+    "passwordHint": "At least 8 characters. Give it to the person yourself.",
     "role": "Role",
     "roles": {
       "ADMIN": "Administrator",
@@ -188,6 +188,15 @@
       "conflict": "A user with this email already exists.",
       "invalid": "Please check the fields:",
       "unavailable": "The server can't be reached right now. Please try again later."
-    }
+    },
+    "manage": "Manage",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "resetPassword": "Reset password",
+    "newPassword": "New password",
+    "setPassword": "Set new password",
+    "passwordChanged": "Password changed.",
+    "yourOwnRole": "You can't change your own role or deactivate yourself."
   }
 }

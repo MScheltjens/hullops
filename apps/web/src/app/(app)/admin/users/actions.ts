@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { ApiError } from "@/lib/api";
 import { apiAsUser, requireUser } from "@/lib/dal";
 import { echoValues } from "@/lib/order-input";
-import { buildCreateUserInput } from "@/lib/user-input";
+import {
+  buildCreateUserInput,
+  buildResetPasswordInput,
+  buildUpdateUserInput,
+} from "@/lib/user-input";
 
 export interface CreateUserState {
   error?: "forbidden" | "conflict" | "invalid" | "unavailable";
@@ -72,4 +76,71 @@ export async function setActive(userId: string, active: boolean) {
   if (user.role !== "ADMIN") return;
   await apiAsUser(SET_ACTIVE, { userId, active });
   revalidatePath("/admin/users");
+}
+
+/** What the edit and reset forms report back. */
+export interface ManageUserState {
+  error?: "forbidden" | "invalid" | "unavailable";
+  messages?: string[];
+  /** The change went through; the form shows a short confirmation. */
+  done?: boolean;
+}
+
+const UPDATE_USER = `
+  mutation ($input: UpdateUserInput!) {
+    updateUser(input: $input) { id }
+  }`;
+const RESET_PASSWORD = `
+  mutation ($input: ResetPasswordInput!) {
+    resetUserPassword(input: $input) { id }
+  }`;
+
+/**
+ * Runs one of the manage mutations and turns the API's errors into form
+ * state. Shared by the edit and the reset-password actions.
+ */
+async function runManage(
+  mutation: string,
+  input: Record<string, unknown>,
+): Promise<ManageUserState> {
+  const user = await requireUser();
+  if (user.role !== "ADMIN") return { error: "forbidden" };
+  try {
+    await apiAsUser(mutation, { input });
+  } catch (error) {
+    if (error instanceof ApiError) {
+      if (error.code === "FORBIDDEN") return { error: "forbidden" };
+      if (error.code === "BAD_REQUEST" || error.code === "BAD_USER_INPUT") {
+        return {
+          error: "invalid",
+          messages:
+            error.code === "BAD_REQUEST" && error.validationErrors.length > 0
+              ? error.validationErrors
+              : undefined,
+        };
+      }
+    }
+    console.error("Managing a user failed", error);
+    return { error: "unavailable" };
+  }
+  revalidatePath("/admin/users");
+  return { done: true };
+}
+
+/** Bound in the page: `updateUser.bind(null, user.id)`. */
+export async function updateUser(
+  userId: string,
+  _previous: ManageUserState,
+  formData: FormData,
+): Promise<ManageUserState> {
+  return runManage(UPDATE_USER, buildUpdateUserInput(userId, formData));
+}
+
+/** Bound in the page: `resetPassword.bind(null, user.id)`. */
+export async function resetPassword(
+  userId: string,
+  _previous: ManageUserState,
+  formData: FormData,
+): Promise<ManageUserState> {
+  return runManage(RESET_PASSWORD, buildResetPasswordInput(userId, formData));
 }

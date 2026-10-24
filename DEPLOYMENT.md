@@ -44,7 +44,7 @@ Environment variables:
 | `NODE_ENV` | `production` (the Dockerfile sets it; this turns off GraphiQL and introspection) |
 | `PORT` | usually set by the host; defaults to 4000 |
 | `CORS_ORIGINS` | the web app's URL; only needed if a browser ever calls the API directly (a future native or client-side app) |
-| `ADMIN_EMAIL` and `ADMIN_PASSWORD` | the first administrator, e.g. `admin@hullops.example` and a password of at least 12 characters you choose. Set both or neither. |
+| `ADMIN_EMAIL` and `ADMIN_PASSWORD` | the first administrator, e.g. `admin@hullops.example` and a password of at least 8 characters you choose. Set both or neither. |
 
 On start the container applies pending migrations (`prisma migrate deploy`)
 and then starts the API. Point the host's health check at `GET /health`
@@ -52,16 +52,24 @@ and then starts the API. Point the host's health check at `GET /health`
 
 ### The first administrator
 
-Only an administrator can create users, so a new database needs one. Set
-`ADMIN_EMAIL` and `ADMIN_PASSWORD` on the API: when it starts and no active
-administrator exists, it creates one. On later starts it does nothing, and it
-never changes an existing account. Log in with it, open **Users** in the menu,
-and add your project leads and workers. Afterwards you can remove **both**
-variables (the API refuses to start with only one of them set), so the
-password no longer sits in the host's settings.
+Only an administrator can create users, so a new database needs one. There
+are two ways:
 
-The seed has no administrator on purpose: its users share a public password,
-and an admin with it could lock everyone out of a public demo.
+- **Seed it** (see below): the demo data includes `admin@hullops.example`
+  with the same demo password as the other users.
+- **Set it on the API** without opening the database: set `ADMIN_EMAIL` and
+  `ADMIN_PASSWORD` (e.g. `admin@hullops.example` and a password of at least 8
+  characters). When the API starts and no active administrator exists, it
+  creates one. On later starts it does nothing, and it never changes an
+  existing account. Afterwards you can remove **both** variables (the API
+  refuses to start with only one of them set).
+
+Log in, open **Users** in the menu, and add your project leads and workers.
+
+On a public demo the seeded administrator has a public password, so anyone
+can log in as it and lock the other demo users out. That is acceptable for a
+demo; re-running the seed restores the demo users. For anything real, don't
+seed, and use `ADMIN_EMAIL` and `ADMIN_PASSWORD` with a password of your own.
 
 ### Demo data (optional)
 

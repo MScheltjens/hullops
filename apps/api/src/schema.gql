@@ -69,7 +69,7 @@ input CreateUserInput {
   name: String!
 
   """
-  At least 12 characters. The user can't change it themselves yet, so an admin hands it over.
+  At least 8 characters. The user can't change it themselves yet, so an admin hands it over.
   """
   password: String!
   role: Role!

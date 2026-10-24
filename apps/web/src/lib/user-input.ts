@@ -1,7 +1,7 @@
 import { text } from "./form-data";
 
 /**
- * Turns the "add a user" form into the `CreateUserInput` the API expects. A
+ * Turns the user-management forms into the inputs the API expects. A
  * plain function, like order-input.ts. The API checks every rule (valid
  * email, password length, unique email); nothing is repeated here.
  */
@@ -18,4 +18,22 @@ export function buildCreateUserInput(formData: FormData) {
     role: text(formData, "role"),
     serviceTypes: formData.getAll("serviceTypes"),
   };
+}
+
+/**
+ * The edit form. Your own row has no role field (you can't change your own
+ * role), so `role` is then simply left out and the API keeps the current one.
+ */
+export function buildUpdateUserInput(userId: string, formData: FormData) {
+  return {
+    userId,
+    name: text(formData, "name"),
+    role: text(formData, "role"),
+    serviceTypes: formData.getAll("serviceTypes"),
+  };
+}
+
+/** The reset-password form. The password is sent exactly as typed. */
+export function buildResetPasswordInput(userId: string, formData: FormData) {
+  return { userId, password: String(formData.get("password") ?? "") };
 }

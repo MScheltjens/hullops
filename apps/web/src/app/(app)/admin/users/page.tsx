@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { apiAsUser, requireUser } from "@/lib/dal";
 import { setActive } from "./actions";
 import { CreateUserForm } from "./create-user-form";
+import { EditUserForm, ResetPasswordForm } from "./manage-user";
 
 interface UserRow {
   id: string;
@@ -50,43 +51,74 @@ export default async function UsersPage() {
           return (
             <li
               key={user.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+              className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
             >
-              <div className={user.active ? "" : "opacity-60"}>
-                <div className="font-medium">
-                  {user.name}
-                  {isMe && (
-                    <span className="ml-2 text-xs font-normal text-zinc-500">
-                      ({t("you")})
-                    </span>
-                  )}
-                  {!user.active && (
-                    <span className="ml-2 rounded bg-zinc-200 px-1.5 py-0.5 text-xs font-medium dark:bg-zinc-800">
-                      {t("inactive")}
-                    </span>
-                  )}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className={user.active ? "" : "opacity-60"}>
+                  <div className="font-medium">
+                    {user.name}
+                    {isMe && (
+                      <span className="ml-2 text-xs font-normal text-zinc-500">
+                        ({t("you")})
+                      </span>
+                    )}
+                    {!user.active && (
+                      <span className="ml-2 rounded bg-zinc-200 px-1.5 py-0.5 text-xs font-medium dark:bg-zinc-800">
+                        {t("inactive")}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {user.email}
+                  </div>
+                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {[
+                      t(`roles.${user.role}`),
+                      ...user.serviceTypes.map((s) =>
+                        t(`serviceTypeNames.${s}`),
+                      ),
+                    ].join(" · ")}
+                  </div>
                 </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {user.email}
-                </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  {[
-                    t(`roles.${user.role}`),
-                    ...user.serviceTypes.map((s) => t(`serviceTypeNames.${s}`)),
-                  ].join(" · ")}
-                </div>
+                {/* You can't deactivate yourself; the API refuses it too. */}
+                {!isMe && (
+                  <form action={setActive.bind(null, user.id, !user.active)}>
+                    <button
+                      type="submit"
+                      className="min-h-11 rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
+                    >
+                      {user.active ? t("deactivate") : t("reactivate")}
+                    </button>
+                  </form>
+                )}
               </div>
-              {/* You can't deactivate yourself; the API refuses it too. */}
-              {!isMe && (
-                <form action={setActive.bind(null, user.id, !user.active)}>
-                  <button
-                    type="submit"
-                    className="min-h-11 rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
-                  >
-                    {user.active ? t("deactivate") : t("reactivate")}
-                  </button>
-                </form>
-              )}
+
+              {/* Collapsed by default, so the list stays short on a phone. */}
+              <details className="mt-3">
+                <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-sky-700 dark:text-sky-400">
+                  {t("manage")}
+                </summary>
+                <div className="mt-2 flex max-w-xl flex-col gap-6">
+                  {/*
+                    The key makes the form start over with the saved values
+                    after a change, since a mounted form keeps what was typed.
+                  */}
+                  <EditUserForm
+                    key={`${user.name}|${user.role}|${user.serviceTypes.join()}`}
+                    userId={user.id}
+                    name={user.name}
+                    role={user.role}
+                    serviceTypes={user.serviceTypes}
+                    isMe={isMe}
+                  />
+                  <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+                    <h3 className="text-sm font-semibold">
+                      {t("resetPassword")}
+                    </h3>
+                    <ResetPasswordForm userId={user.id} />
+                  </div>
+                </div>
+              </details>
             </li>
           );
         })}

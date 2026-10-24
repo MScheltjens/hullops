@@ -103,5 +103,8 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Seed data for demos
 - [x] Authentication and roles (project lead / worker)
 - [x] Web: login, order overview, English and German
-- [ ] Web: create and update orders, order details, vessels
+- [x] Web: create orders, order details with comments, status updates and team assignment
+- [x] Mobile first, installable as a PWA
+- [x] Deployment: web on Vercel, API and PostgreSQL on Railway
+- [ ] Web: vessel management
 - [ ] Status updates with photo uploads

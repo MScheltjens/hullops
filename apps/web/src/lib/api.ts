@@ -1,11 +1,14 @@
 import "server-only";
+import { parseApiUrl } from "./api-url";
 
 /**
  * Talks to the HullOps GraphQL API. Server-only: requests carry the user's
  * token, which never reaches the browser.
  */
 
-const API_URL = process.env.API_URL ?? "http://localhost:4000/graphql";
+// Checked when the server starts, so a mistyped setting fails loudly with a
+// clear message instead of as "server can't be reached" at login.
+const API_URL = parseApiUrl(process.env.API_URL);
 
 /** An error returned by the API, with its machine-readable code. */
 export class ApiError extends Error {

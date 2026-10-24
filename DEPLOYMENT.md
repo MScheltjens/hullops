@@ -77,6 +77,8 @@ On Vercel: import the repository, set the root directory to `apps/web`, and add:
 |---|---|
 | `API_URL` | the API's public GraphQL URL, e.g. `https://hullops-api.example.com/graphql` |
 
+Write the full URL, starting with `https://`. A value without it (or any value that isn't an http(s) URL) fails the build with a message that names `API_URL`, so you see the mistake when deploying instead of as "server can't be reached" at login. After changing the variable, redeploy.
+
 The session cookie is `secure` in production, so the site must be served over
 HTTPS (Vercel does this).
 

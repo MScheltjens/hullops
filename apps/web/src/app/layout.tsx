@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
-  // The browser's address bar takes this colour on phones.
+  // The browser's address bar takes this color on phones.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#0369a1" },
     { media: "(prefers-color-scheme: dark)", color: "#09090b" },

@@ -10,7 +10,7 @@ import struct
 import zlib
 from pathlib import Path
 
-BLUE = (3, 105, 161)  # Tailwind sky-700, the app's accent colour
+BLUE = (3, 105, 161)  # Tailwind sky-700, the app's accent color
 WHITE = (255, 255, 255)
 
 

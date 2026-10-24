@@ -36,8 +36,10 @@ export class AuthService {
       password,
       user?.passwordHash ?? (await this.dummyHash),
     );
-    if (!user || !passwordMatches) {
-      // One message for both cases, for the same reason as dummyHash.
+    // A deactivated user gets the same answer as a wrong password: the
+    // response doesn't reveal that the account exists.
+    if (!user || !user.active || !passwordMatches) {
+      // One message for all cases, for the same reason as dummyHash.
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -53,7 +55,7 @@ export class AuthService {
 
   /**
    * Returns the user a token belongs to, or null if the token is invalid,
-   * expired, or the user no longer exists.
+   * expired, or the user no longer exists or has been deactivated.
    *
    * The user is loaded on every request (one indexed query) rather than
    * trusted from the token, so a deleted user or a changed role takes effect
@@ -66,6 +68,10 @@ export class AuthService {
     } catch {
       return null;
     }
-    return this.prisma.user.findUnique({ where: { id: payload.sub } });
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+    });
+    // A deactivated user's tokens stop working at once, not when they expire.
+    return user?.active ? user : null;
   }
 }

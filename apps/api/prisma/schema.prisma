@@ -15,6 +15,7 @@ datasource db {
 enum Role {
   PROJECT_LEAD
   WORKER
+  ADMIN // technical administrator: manages users, reads everything, doesn't run the work
 }
 
 // Language for text the server sends a user (e.g. emails). The web app
@@ -44,6 +45,9 @@ model User {
   role         Role          @default(WORKER)
   serviceTypes ServiceType[] // service areas this person can work in
   locale       Locale        @default(EN)
+  // A deactivated user can't log in or use the API, but stays in the history
+  // of orders, status updates and comments they took part in.
+  active       Boolean       @default(true)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

@@ -18,8 +18,10 @@
     "language": "Language",
     "roles": {
       "PROJECT_LEAD": "Project lead",
-      "WORKER": "Worker"
-    }
+      "WORKER": "Worker",
+      "ADMIN": "Administrator"
+    },
+    "users": "Users"
   },
   "orders": {
     "title": "Orders",
@@ -153,6 +155,38 @@
       "forbidden": "Only the order's team and project leads can update it.",
       "noteRequired": "Write a note first.",
       "outdated": "The order was changed in the meantime. Reload the page and try again.",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    }
+  },
+  "admin": {
+    "title": "Users",
+    "subtitle": "Manage who can use HullOps",
+    "addUser": "Add a user",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "At least 12 characters. Give it to the person yourself.",
+    "role": "Role",
+    "roles": {
+      "ADMIN": "Administrator",
+      "PROJECT_LEAD": "Project lead",
+      "WORKER": "Worker"
+    },
+    "serviceAreas": "Service areas",
+    "serviceTypeNames": {
+      "CLEANING": "Cleaning",
+      "PROTECTION": "Protection"
+    },
+    "create": "Create user",
+    "creating": "Creating…",
+    "inactive": "Deactivated",
+    "you": "you",
+    "deactivate": "Deactivate",
+    "reactivate": "Reactivate",
+    "errors": {
+      "forbidden": "Only administrators can do this.",
+      "conflict": "A user with this email already exists.",
+      "invalid": "Please check the fields:",
       "unavailable": "The server can't be reached right now. Please try again later."
     }
   }

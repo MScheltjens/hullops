@@ -28,13 +28,22 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
           >
             {t("common.appName")}
           </Link>
-          <nav className="flex-1">
+          <nav className="flex flex-1 gap-5">
             <Link
               href="/orders"
               className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
             >
               {t("nav.orders")}
             </Link>
+            {/* Only administrators manage users; the page and the API check too. */}
+            {user.role === "ADMIN" && (
+              <Link
+                href="/admin/users"
+                className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
+              >
+                {t("nav.users")}
+              </Link>
+            )}
           </nav>
 
           {/* On a phone this wraps onto its own row, below the logo and nav. */}

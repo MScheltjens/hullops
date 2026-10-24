@@ -63,6 +63,21 @@ input CreateOrderInput {
   vesselId: ID!
 }
 
+input CreateUserInput {
+  email: String!
+  locale: Locale! = EN
+  name: String!
+
+  """
+  At least 12 characters. The user can't change it themselves yet, so an admin hands it over.
+  """
+  password: String!
+  role: Role!
+
+  """Service areas this person can work in"""
+  serviceTypes: [ServiceType!]! = []
+}
+
 input CreateVesselInput {
   """7 digits, without the "IMO" prefix"""
   imoNumber: String
@@ -95,12 +110,20 @@ type Mutation {
   addStatusUpdate(input: AddStatusUpdateInput!): Order!
   assignTeamMember(orderId: ID!, userId: ID!): Order!
   createOrder(input: CreateOrderInput!): Order!
+  createUser(input: CreateUserInput!): User!
   createVessel(input: CreateVesselInput!): Vessel!
   login(input: LoginInput!): AuthPayload!
   removeTeamMember(orderId: ID!, userId: ID!): Order!
+  resetUserPassword(input: ResetPasswordInput!): User!
 
   """Language for text the server sends you, such as emails"""
   setMyLocale(locale: Locale!): User!
+
+  """Deactivate or reactivate a user. Not yourself."""
+  setUserActive(active: Boolean!, userId: ID!): User!
+
+  """Change a name, role or service areas. Not your own role."""
+  updateUser(input: UpdateUserInput!): User!
 }
 
 type Order {
@@ -229,12 +252,20 @@ type Query {
     take: Int! = 50
     vesselId: ID
   ): [Order!]!
-  users(role: Role, serviceType: ServiceType): [User!]!
+
+  """Active users. Administrators can include deactivated ones."""
+  users(includeInactive: Boolean! = false, role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
   vessels: [Vessel!]!
 }
 
+input ResetPasswordInput {
+  password: String!
+  userId: ID!
+}
+
 enum Role {
+  ADMIN
   PROJECT_LEAD
   WORKER
 }
@@ -256,7 +287,16 @@ type StatusUpdate {
   status: OrderStatus!
 }
 
+input UpdateUserInput {
+  name: String
+  role: Role
+  serviceTypes: [ServiceType!]
+  userId: ID!
+}
+
 type User {
+  """A deactivated user can't log in or use the API"""
+  active: Boolean!
   email: String!
   id: ID!
   locale: Locale!

@@ -26,4 +26,9 @@ export class User {
 
   @Field(() => Locale)
   locale: Locale;
+
+  @Field({
+    description: "A deactivated user can't log in or use the API",
+  })
+  active: boolean;
 }

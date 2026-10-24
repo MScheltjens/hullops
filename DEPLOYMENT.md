@@ -44,10 +44,24 @@ Environment variables:
 | `NODE_ENV` | `production` (the Dockerfile sets it; this turns off GraphiQL and introspection) |
 | `PORT` | usually set by the host; defaults to 4000 |
 | `CORS_ORIGINS` | the web app's URL; only needed if a browser ever calls the API directly (a future native or client-side app) |
+| `ADMIN_EMAIL` and `ADMIN_PASSWORD` | the first administrator, e.g. `admin@hullops.example` and a password of at least 12 characters you choose. Set both or neither. |
 
 On start the container applies pending migrations (`prisma migrate deploy`)
 and then starts the API. Point the host's health check at `GET /health`
 (200 when the database answers, 503 when not).
+
+### The first administrator
+
+Only an administrator can create users, so a new database needs one. Set
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` on the API: when it starts and no active
+administrator exists, it creates one. On later starts it does nothing, and it
+never changes an existing account. Log in with it, open **Users** in the menu,
+and add your project leads and workers. Afterwards you can remove **both**
+variables (the API refuses to start with only one of them set), so the
+password no longer sits in the host's settings.
+
+The seed has no administrator on purpose: its users share a public password,
+and an admin with it could lock everyone out of a public demo.
 
 ### Demo data (optional)
 

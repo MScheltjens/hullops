@@ -24,6 +24,7 @@ describe('AuthService', () => {
     id: string;
     email: string;
     role: string;
+    active: boolean;
     passwordHash: string;
   };
 
@@ -32,6 +33,7 @@ describe('AuthService', () => {
       id: 'user-lena',
       email: 'lena@hullops.example',
       role: 'PROJECT_LEAD',
+      active: true,
       passwordHash: await hashPassword('right-password'),
     };
   });
@@ -52,6 +54,7 @@ describe('AuthService', () => {
         id: lena.id,
         email: lena.email,
         role: 'PROJECT_LEAD',
+        active: true,
       });
       expect(result.user).not.toHaveProperty('passwordHash');
     });
@@ -82,6 +85,15 @@ describe('AuthService', () => {
       );
     });
 
+    it('rejects a deactivated user with the very same error', async () => {
+      // Even with the right password: a deactivated account can't log in, and
+      // the answer doesn't reveal that the account exists.
+      prisma.user.findUnique.mockResolvedValue({ ...lena, active: false });
+      await expect(service.login(lena.email, 'right-password')).rejects.toThrow(
+        new UnauthorizedException('Invalid email or password'),
+      );
+    });
+
     it('rejects an unknown email with the very same error', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
       await expect(
@@ -93,14 +105,21 @@ describe('AuthService', () => {
   describe('authenticate', () => {
     it('returns the user a valid token belongs to', async () => {
       const token = await jwt.signAsync({ sub: lena.id });
-      prisma.user.findUnique.mockResolvedValue({ id: lena.id });
+      prisma.user.findUnique.mockResolvedValue({ id: lena.id, active: true });
 
       await expect(service.authenticate(token)).resolves.toEqual({
         id: lena.id,
+        active: true,
       });
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: lena.id },
       });
+    });
+
+    it('returns null for a deactivated user, even with a valid token', async () => {
+      const token = await jwt.signAsync({ sub: lena.id });
+      prisma.user.findUnique.mockResolvedValue({ id: lena.id, active: false });
+      await expect(service.authenticate(token)).resolves.toBeNull();
     });
 
     it('returns null for a user that no longer exists', async () => {

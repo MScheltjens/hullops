@@ -4,7 +4,9 @@
 
 HullOps is a planning tool for subcontractors who work on shipyards. Project leads plan cleaning and protection jobs on vessels, put a team on each job, and follow its progress until it's done.
 
-> **Status:** in development. The API covers vessels, orders, teams and login with roles. The web app has login and an order overview in English and German (see [Roadmap](#roadmap)).
+**Live demo:** https://hullops.vercel.app (demo data only; log in with a seeded demo user, see [Getting started](#getting-started)). Meant for a phone: open it there and add it to the home screen.
+
+> **Status:** in development. The API covers vessels, orders, teams, comments and login with roles. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, and creating orders. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -103,5 +105,8 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Seed data for demos
 - [x] Authentication and roles (project lead / worker)
 - [x] Web: login, order overview, English and German
-- [ ] Web: create and update orders, order details, vessels
+- [x] Web: create orders, order details with comments, status updates and team assignment
+- [x] Mobile first, installable as a PWA
+- [x] Deployment: web on Vercel, API and PostgreSQL on Railway
+- [ ] Web: vessel management
 - [ ] Status updates with photo uploads

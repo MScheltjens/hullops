@@ -116,6 +116,9 @@ type Mutation {
   removeTeamMember(orderId: ID!, userId: ID!): Order!
   resetUserPassword(input: ResetPasswordInput!): User!
 
+  """Enter or replace what a foreman asked for, for one vessel and week"""
+  saveStaffingRequest(input: SaveStaffingRequestInput!): StaffingRequest!
+
   """Language for text the server sends you, such as emails"""
   setMyLocale(locale: Locale!): User!
 
@@ -253,6 +256,9 @@ type Query {
     vesselId: ID
   ): [Order!]!
 
+  """The staffing requests of one week, given as its Monday"""
+  staffingRequests(weekStart: String!): [StaffingRequest!]!
+
   """Active users. Administrators can include deactivated ones."""
   users(includeInactive: Boolean! = false, role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
@@ -270,10 +276,54 @@ enum Role {
   WORKER
 }
 
+input SaveStaffingRequestInput {
+  note: String
+
+  """The foreman's name"""
+  reportedBy: String
+
+  """Workers the foreman asked for by name"""
+  requestedWorkerIds: [ID!]! = []
+  vesselId: ID!
+
+  """The Monday of the week, as 2026-10-26"""
+  weekStart: String!
+
+  """How many actually worked, filled in afterwards"""
+  workersActual: Int
+
+  """Workers needed in total, including those asked for by name"""
+  workersNeeded: Int!
+}
+
 """Cleaning or protection. Both can run on a vessel at once."""
 enum ServiceType {
   CLEANING
   PROTECTION
+}
+
+type StaffingRequest {
+  """Who entered or last changed it"""
+  enteredBy: User!
+  id: ID!
+  note: String
+
+  """The foreman's name"""
+  reportedBy: String
+
+  """Asked for by name"""
+  requestedWorkers: [User!]!
+  updatedAt: DateTime!
+  vessel: Vessel!
+
+  """The Monday of the week, as 2026-10-26"""
+  weekStart: String!
+
+  """How many actually worked, filled in afterwards"""
+  workersActual: Int
+
+  """Workers needed in total, including those asked for by name"""
+  workersNeeded: Int!
 }
 
 """An entry in an order’s history"""

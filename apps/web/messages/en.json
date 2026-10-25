@@ -21,7 +21,8 @@
       "WORKER": "Worker",
       "ADMIN": "Administrator"
     },
-    "users": "Users"
+    "users": "Users",
+    "vessels": "Vessels"
   },
   "orders": {
     "title": "Orders",
@@ -110,7 +111,8 @@
       "incomplete": "Please fill in all required fields.",
       "invalid": "The order could not be created:",
       "unavailable": "The server can't be reached right now. Please try again later."
-    }
+    },
+    "addVessel": "Add a vessel"
   },
   "orderDetail": {
     "back": "All orders",
@@ -198,5 +200,26 @@
     "setPassword": "Set new password",
     "passwordChanged": "Password changed.",
     "yourOwnRole": "You can't change your own role or deactivate yourself."
+  },
+  "vessels": {
+    "title": "Vessels",
+    "subtitle": "The vessels orders are planned for",
+    "add": "Add a vessel",
+    "name": "Name",
+    "imoNumber": "IMO number",
+    "imoHint": "Optional. 7 digits without \"IMO\", e.g. 9074729.",
+    "vesselType": "Type",
+    "vesselTypeHint": "Optional, e.g. yacht or container ship.",
+    "lengthM": "Length (m)",
+    "create": "Add vessel",
+    "creating": "Adding…",
+    "empty": "No vessels yet.",
+    "noDetails": "No further details",
+    "errors": {
+      "forbidden": "Only project leads can add vessels.",
+      "conflict": "A vessel with this IMO number already exists.",
+      "invalid": "Please check the fields:",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    }
   }
 }

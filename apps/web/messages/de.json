@@ -21,7 +21,8 @@
       "WORKER": "Fachkraft",
       "ADMIN": "Administrator"
     },
-    "users": "Benutzer"
+    "users": "Benutzer",
+    "vessels": "Schiffe"
   },
   "orders": {
     "title": "Aufträge",
@@ -110,7 +111,8 @@
       "incomplete": "Bitte füllen Sie alle Pflichtfelder aus.",
       "invalid": "Der Auftrag konnte nicht angelegt werden:",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
-    }
+    },
+    "addVessel": "Schiff hinzufügen"
   },
   "orderDetail": {
     "back": "Alle Aufträge",
@@ -198,5 +200,26 @@
     "setPassword": "Neues Passwort setzen",
     "passwordChanged": "Passwort geändert.",
     "yourOwnRole": "Sie können Ihre eigene Rolle nicht ändern und sich nicht selbst deaktivieren."
+  },
+  "vessels": {
+    "title": "Schiffe",
+    "subtitle": "Die Schiffe, für die Aufträge geplant werden",
+    "add": "Schiff hinzufügen",
+    "name": "Name",
+    "imoNumber": "IMO-Nummer",
+    "imoHint": "Optional. 7 Ziffern ohne „IMO“, z. B. 9074729.",
+    "vesselType": "Typ",
+    "vesselTypeHint": "Optional, z. B. Yacht oder Containerschiff.",
+    "lengthM": "Länge (m)",
+    "create": "Schiff hinzufügen",
+    "creating": "Wird hinzugefügt…",
+    "empty": "Noch keine Schiffe.",
+    "noDetails": "Keine weiteren Angaben",
+    "errors": {
+      "forbidden": "Nur Projektleiter können Schiffe hinzufügen.",
+      "conflict": "Ein Schiff mit dieser IMO-Nummer existiert bereits.",
+      "invalid": "Bitte prüfen Sie die Felder:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    }
   }
 }

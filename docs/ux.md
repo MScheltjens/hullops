@@ -113,7 +113,7 @@ This needs **availability data** (who is on leave). That comes from Crewmeister 
 
 ## How to know it works
 
-- **Three tasks per role**, for every role without exception, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status.
+- **Three tasks per role**, for every role without exception, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status, leave a note on an order (for example "scaffolding in the way"). Administrator: add a user, deactivate or reactivate one, reset a password.
 - **One real team lead tries it** while someone watches and says nothing. Where he hesitates is where the screen is wrong.
 - Count taps and typed characters per task, and aim to shrink both.
 

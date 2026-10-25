@@ -34,6 +34,8 @@ The test for every screen: **a new team lead can use it after one hour of explan
 
 ### 1. Team lead: next week's request (PC)
 
+With automatic planning (below) this screen is what opens when he chooses **Change**; most weeks he only checks and presses OK.
+
 ```
  Good morning Heinz                                      Naval Vessel N1
  ───────────────────────────────────────────────────────────────────
@@ -83,6 +85,32 @@ The yard and berth come from the last order on that vessel; nobody invents a tit
 ```
 One big button per order.
 
+## Planning that mostly happens by itself
+
+In practice the same people stay on the same vessel week after week. So the app **carries last week's crew over to next week by itself**, except for workers who are not available. Entering a request becomes the exception, not the routine, and that is much less work for everyone.
+
+What the team lead sees on Monday, instead of an empty form:
+
+```
+ Request for next week (26 Oct - 1 Nov)               planned automatically
+  10 people · same crew as last week
+  Piotr, Sofia, Mehmet        Anna: not available (leave) → 1 more needed
+
+                                          [ OK ]   [ Change ]
+```
+
+**Changes in a busy week** keep going through WhatsApp: the team lead tells the project lead, and the **project lead changes the plan in the app**, for example by moving workers to a vessel with more work. The app helps with warnings (a worker asked for by two vessels; a vessel that is short) instead of replacing the conversation.
+
+How it works, as rules that can be tested:
+
+1. Last week's request is the starting point: the same total and the same workers asked for by name.
+2. A named worker is kept only if available that week (active, and not away). The total stays the same, so a missing worker shows up as "1 more needed" instead of silently shrinking the request.
+3. A request someone entered by hand is **never overwritten**; only vessels without a request for that week are filled in.
+4. An automatically planned request is marked as such, so nobody mistakes it for something a person decided.
+5. It runs once a week for the coming week, and the project lead can also trigger it.
+
+This needs **availability data** (who is on leave). That comes from Crewmeister later (see the README); until then the office marks workers as unavailable, and the demo uses sample data.
+
 ## How to know it works
 
 - **Three tasks per role**, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status.
@@ -92,7 +120,7 @@ One big button per order.
 ## Open questions
 
 - **Confirmation.** Today the office answers "ok" in WhatsApp. Should a request show as *confirmed* (possibly with a changed number) so the team lead doesn't have to ask?
-- **Reminders.** Who nudges when a request is missing on Friday? A "who is missing" list for the office is the cheap answer.
+- **Reminders.** With automatic planning a request is rarely missing; a vessel that had no request last week has nothing to carry over and shows up for the office.
 - **Availability.** Seeing who is on leave while choosing the crew needs Crewmeister (see the README).
 
 ## Where we are
@@ -103,3 +131,4 @@ One big button per order.
 | Weekly request per vessel with workers by name, a team lead per vessel, a warning for double-booked workers | Number stepper and last week's crew pre-ticked as shown above |
 | Order form with a vessel list and choices for service, protection kind and materials | The full choice-based order form shown above (method, surface, dates and crew as buttons) |
 | Mobile first layout, installable as a PWA, English and German | Editing and cancelling orders; confirmation; practice account |
+| | Automatic planning from last week, and availability (leave) as the input it needs |

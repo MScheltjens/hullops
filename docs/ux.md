@@ -20,7 +20,7 @@ These are assumptions to check with real users, not facts.
 
 ## The bar: explainable in an hour
 
-The test for every screen: **a new team lead can use it after one hour of explanation on his first day**, without being "a phone and PC wizard". That leads to these rules:
+The test for every screen: **any new user, whatever the role, can use it after one hour of explanation on their first day**, without being "a phone and PC wizard". That holds for the worker with a phone on the yard, the team lead in the container office, the project lead at the office and the administrator alike. Nobody gets a harder app because their job is more complicated; a project lead's screens simply do more things, in the same way. That leads to these rules:
 
 1. **Choose, don't type.** Work, vessel, method, surface, dates, crew: everything that can be categorized is a button. Free text is for real exceptions ("Other…" or an optional note).
 2. **One pattern everywhere.** Big labelled buttons, and one clearly marked button at the bottom to save. No hidden menus, no swipes, no long presses. If you understand one screen you understand them all.
@@ -113,7 +113,7 @@ This needs **availability data** (who is on leave). That comes from Crewmeister 
 
 ## How to know it works
 
-- **Three tasks per role**, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status.
+- **Three tasks per role**, for every role without exception, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status.
 - **One real team lead tries it** while someone watches and says nothing. Where he hesitates is where the screen is wrong.
 - Count taps and typed characters per task, and aim to shrink both.
 

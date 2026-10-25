@@ -23,6 +23,43 @@ Protection uses materials such as OSB (standard or fire-resistant), Proplex (3 m
 
 Each job is an **order** for one vessel. An order moves from `PLANNED` to `IN_PROGRESS` to `DONE`, has a team of workers, and keeps a history of status updates with photos. An order is **overdue** when its due date has passed and it isn't done yet.
 
+## Why it is built this way
+
+HullOps comes from a real way of working. On the yard, planning and all communication run through WhatsApp, and Crewmeister holds working hours and leave. The goal is to move the **planning** out of chat threads into one place, and keep WhatsApp for what is genuinely live. The choices below follow from that.
+
+**Who uses it, and why there are four roles**
+
+| Role | Who | Why it exists |
+|---|---|---|
+| Project lead | The office | Plans orders, passes on what the shipyard tells them, manages teams, and invoices the customer. |
+| Team lead (*Vorarbeiter*) | On the yard, one per vessel | Knows what his vessel needs, so he asks for workers for the coming week himself, including by name. |
+| Worker | On the yard | Reads the plan and updates the status of his orders. |
+| Administrator | Technical | Manages accounts. Reads everything but doesn't run the work, so responsibilities stay separate. |
+
+The shipyard's own people (the customer's side) have **no login**. The project lead enters what they say as free-text comments, so the app doesn't need accounts for other companies and stays single-tenant.
+
+**Decisions and their reasons**
+
+- **Mobile first, installable as a PWA.** Most use is on a phone on the yard: big tap targets, cards instead of wide tables, and "add to home screen" instead of an app store. There is no service worker because there is no offline mode.
+- **Workers can be requested by name.** Keeping the same people on the same vessel is better than rotating them, so the weekly request carries names, is prefilled from the week before, and warns when one worker is asked for by two vessels.
+- **The API is language-neutral.** It sends codes (`CLEANING`, `IN_PROGRESS`) and the web app translates them, English and German, because it is mainly used in Germany.
+- **Validation lives in the API.** The web forms only reshape input; the API checks every rule and reports all violations at once. Repeating the rules in the browser would let the two drift apart.
+- **The login token never reaches the browser.** Pages render on the server and call the API with the token from an httpOnly cookie.
+- **Rights are checked where the data is.** The pages hide what you may not do, but the API and the Server Actions enforce it. Deactivating a user cuts off their existing token at once.
+- **Computed, not stored:** "overdue" is worked out when needed, so it can't go stale.
+- **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (re-seeding restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
+
+**Planned: leave and sickness from Crewmeister**
+
+Workers have a profile in both systems, and you can't plan someone who is on leave. The plan is a small "availability" model in HullOps that the planning page uses (unavailable workers are marked, and a request by name for someone absent gives a warning), fed by interchangeable sources behind one interface: a demo source with sample data, and a Crewmeister source using its V3 absence API.
+
+- **Not wired to a live Crewmeister account in the public demo**: Crewmeister's developer portal describes no sandbox (developers use the same production API as the apps), so it would need a real account with real employee data.
+- **Only "unavailable" is stored, never the reason.** Sick leave is health data, and a planner needs to know *that* someone is away, not *why*.
+- **A local copy, not live calls.** A sync writes absences into HullOps' own database, so the planning stays fast and keeps working when Crewmeister is slow or down.
+- **Profiles are matched on email**, with an overview of who is and isn't linked.
+
+This is not built yet; see the [Roadmap](#roadmap).
+
 ## Tech stack
 
 | Part | Technology |
@@ -110,4 +147,5 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Mobile first, installable as a PWA
 - [x] Deployment: web on Vercel, API and PostgreSQL on Railway
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
+- [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source
 - [ ] Status updates with photo uploads

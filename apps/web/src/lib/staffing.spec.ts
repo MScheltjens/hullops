@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assignedFor, findDoubleBookings, otherVessels } from "./staffing";
+import {
+  assignedFor,
+  canEnterRequest,
+  findDoubleBookings,
+  otherVessels,
+} from "./staffing";
 
 const WEEK = new Date("2026-10-26T00:00:00Z"); // a Monday
 const anna = { id: "anna", name: "Anna" };
@@ -88,5 +93,37 @@ describe("otherVessels", () => {
 
   it("names nobody for a worker who is not double-booked", () => {
     expect(otherVessels(bookings, "tom", "v1")).toEqual([]);
+  });
+});
+
+describe("canEnterRequest", () => {
+  const heinz = { id: "heinz", name: "Heinz" };
+  const vessel = { teamLead: heinz };
+
+  it("lets a project lead enter a request for any vessel", () => {
+    const lead = { id: "lena", role: "PROJECT_LEAD" };
+    expect(canEnterRequest(lead, vessel)).toBe(true);
+    expect(canEnterRequest(lead, { teamLead: null })).toBe(true);
+  });
+
+  it("lets a team lead enter a request for his own vessel", () => {
+    expect(canEnterRequest({ id: "heinz", role: "TEAM_LEAD" }, vessel)).toBe(
+      true,
+    );
+  });
+
+  it("refuses a team lead for another team lead's vessel or one without", () => {
+    const ute = { id: "ute", role: "TEAM_LEAD" };
+    expect(canEnterRequest(ute, vessel)).toBe(false);
+    expect(canEnterRequest(ute, { teamLead: null })).toBe(false);
+  });
+
+  it("refuses workers and administrators", () => {
+    expect(canEnterRequest({ id: "heinz", role: "WORKER" }, vessel)).toBe(
+      false,
+    );
+    expect(canEnterRequest({ id: "heinz", role: "ADMIN" }, vessel)).toBe(
+      false,
+    );
   });
 });

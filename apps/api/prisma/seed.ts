@@ -47,13 +47,38 @@ async function main() {
           return id;
         };
 
-        for (const vessel of vessels) {
+        for (const { teamLeadEmail, ...fields } of vessels) {
+          const data = {
+            ...fields,
+            teamLeadId: teamLeadEmail ? userId(teamLeadEmail) : null,
+          };
           await tx.vessel.upsert({
-            where: { id: vessel.id },
-            create: vessel,
-            update: vessel,
+            where: { id: fields.id },
+            create: data,
+            update: data,
           });
         }
+
+        // Seed data from earlier versions: remove the vessels and orders the
+        // seed no longer has. Only the seed's own records (ids start with
+        // "seed-") are touched, and a vessel that still has other orders or
+        // requests attached is kept.
+        const vesselIds = vessels.map((vessel) => vessel.id);
+        await tx.order.deleteMany({
+          where: {
+            id: { startsWith: 'seed-', notIn: orders.map((order) => order.id) },
+          },
+        });
+        await tx.staffingRequest.deleteMany({
+          where: { vesselId: { startsWith: 'seed-', notIn: vesselIds } },
+        });
+        await tx.vessel.deleteMany({
+          where: {
+            id: { startsWith: 'seed-', notIn: vesselIds },
+            orders: { none: {} },
+            staffingRequests: { none: {} },
+          },
+        });
 
         // Orders have nested details, team and history, so recreating them is
         // simpler than upserting every part. Deleting an order cascades to all
@@ -119,7 +144,6 @@ async function main() {
               weekStart: weekStartFor(now, request.weekOffset),
               workersNeeded: request.workersNeeded,
               workersActual: request.workersActual,
-              reportedBy: request.reportedBy,
               note: request.note,
               vessel: { connect: { id: request.vesselId } },
               enteredBy: { connect: { id: userId(request.enteredByEmail) } },

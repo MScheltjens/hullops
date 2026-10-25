@@ -10,15 +10,14 @@ const inputClass =
 export interface StaffingDefaults {
   workersNeeded: number | null;
   workersActual: number | null;
-  reportedBy: string;
   note: string;
   workerIds: string[];
 }
 
 /**
- * What the foreman asked for, for one vessel and one week. The project lead
- * fills it in; it starts from the week before, so keeping the same crew is
- * the default and only changes need typing.
+ * What the vessel's team lead asks for, for one vessel and one week. It starts
+ * from the week before, so keeping the same crew is the default and only
+ * changes need typing.
  */
 export function StaffingForm({
   vesselId,
@@ -86,15 +85,6 @@ export function StaffingForm({
         ))}
       </fieldset>
 
-      <label className="flex flex-col gap-1 text-sm font-medium">
-        {t("foreman")}
-        <input
-          name="reportedBy"
-          maxLength={100}
-          defaultValue={defaults.reportedBy}
-          className={inputClass}
-        />
-      </label>
       <label className="flex flex-col gap-1 text-sm font-medium">
         {t("note")}
         <textarea

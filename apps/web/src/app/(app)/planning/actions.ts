@@ -26,9 +26,12 @@ export async function saveRequest(
   formData: FormData,
 ): Promise<SaveRequestState> {
   // A Server Action is a public endpoint: check the role here, even though
-  // the page already hides the form. (The API checks it again.)
+  // the page already hides the form. Whether a team lead may enter a request
+  // for this vessel depends on the vessel, which the API checks.
   const user = await requireUser();
-  if (user.role !== "PROJECT_LEAD") return { error: "forbidden" };
+  if (user.role !== "PROJECT_LEAD" && user.role !== "TEAM_LEAD") {
+    return { error: "forbidden" };
+  }
 
   try {
     await apiAsUser(SAVE_REQUEST, {

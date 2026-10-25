@@ -4,6 +4,7 @@ import Link from "next/link";
 import { apiAsUser, requireUser } from "@/lib/dal";
 import {
   assignedFor,
+  canEnterRequest,
   findDoubleBookings,
   otherVessels,
 } from "@/lib/staffing";
@@ -14,11 +15,13 @@ interface Person {
   id: string;
   name: string;
 }
+interface VesselRow extends Person {
+  teamLead: Person | null;
+}
 interface RequestRow {
   vessel: { id: string; name: string };
   workersNeeded: number;
   workersActual: number | null;
-  reportedBy: string | null;
   note: string | null;
   requestedWorkers: Person[];
 }
@@ -27,7 +30,7 @@ const REQUESTS = `
   query ($week: String!) {
     staffingRequests(weekStart: $week) {
       vessel { id name }
-      workersNeeded workersActual reportedBy note
+      workersNeeded workersActual note
       requestedWorkers { id name }
     }
   }`;
@@ -48,7 +51,9 @@ export default async function PlanningPage({
 
   const [{ vessels }, current, previous, { users }, { orders }] =
     await Promise.all([
-      apiAsUser<{ vessels: Person[] }>("{ vessels { id name } }"),
+      apiAsUser<{ vessels: VesselRow[] }>(
+        "{ vessels { id name teamLead { id name } } }",
+      ),
       apiAsUser<{ staffingRequests: RequestRow[] }>(REQUESTS, {
         week: weekStart,
       }),
@@ -76,7 +81,6 @@ export default async function PlanningPage({
   const day = (date: Date) =>
     format.dateTime(date, { day: "numeric", month: "short", timeZone: "UTC" });
   const lastDay = new Date(week.getTime() + 6 * 86_400_000);
-  const isLead = user.role === "PROJECT_LEAD";
 
   const requestByVessel = new Map(
     current.staffingRequests.map((r) => [r.vessel.id, r]),
@@ -85,6 +89,11 @@ export default async function PlanningPage({
     previous.staffingRequests.map((r) => [r.vessel.id, r]),
   );
   const doubleBookings = findDoubleBookings(current.staffingRequests);
+  // A team lead sees the vessels he is responsible for first.
+  const sortedVessels = [...vessels].sort(
+    (a, b) =>
+      Number(canEnterRequest(user, b)) - Number(canEnterRequest(user, a)),
+  );
 
   const nav =
     "flex min-h-11 items-center rounded-md border border-zinc-300 px-4 text-sm font-medium hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900";
@@ -116,13 +125,13 @@ export default async function PlanningPage({
         </Link>
       </div>
 
-      {vessels.length === 0 ? (
+      {sortedVessels.length === 0 ? (
         <p className="rounded-md border border-dashed border-zinc-300 px-4 py-10 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
           {t("noVessels")}
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {vessels.map((vessel) => {
+          {sortedVessels.map((vessel) => {
             const request = requestByVessel.get(vessel.id);
             const last = previousByVessel.get(vessel.id);
             const assigned = assignedFor(orders, vessel.id, week);
@@ -132,7 +141,6 @@ export default async function PlanningPage({
               workersNeeded: source?.workersNeeded ?? null,
               // What actually worked is only known afterwards.
               workersActual: request?.workersActual ?? null,
-              reportedBy: source?.reportedBy ?? "",
               note: request?.note ?? "",
               workerIds: source?.requestedWorkers.map((w) => w.id) ?? [],
             };
@@ -144,6 +152,11 @@ export default async function PlanningPage({
                 className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
               >
                 <div className="font-medium">{vessel.name}</div>
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  {vessel.teamLead
+                    ? t("teamLeadIs", { name: vessel.teamLead.name })
+                    : t("noTeamLead")}
+                </div>
 
                 {request ? (
                   <div className="mt-1 flex flex-col gap-1 text-sm">
@@ -151,12 +164,6 @@ export default async function PlanningPage({
                       {t("requested", { count: request.workersNeeded })}
                       {request.requestedWorkers.length > 0 &&
                         ` · ${t("namedCount", { count: request.requestedWorkers.length })}`}
-                      {request.reportedBy && (
-                        <span className="text-zinc-600 dark:text-zinc-400">
-                          {" · "}
-                          {t("foremanIs", { name: request.reportedBy })}
-                        </span>
-                      )}
                     </div>
                     {request.requestedWorkers.length > 0 && (
                       <div className="text-zinc-700 dark:text-zinc-300">
@@ -213,8 +220,8 @@ export default async function PlanningPage({
                   </p>
                 )}
 
-                {/* Only project leads enter requests; the API checks too. */}
-                {isLead && (
+                {/* Project leads and the vessel's own team lead enter requests; the API checks too. */}
+                {canEnterRequest(user, vessel) && (
                   <details className="mt-3">
                     <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-sky-700 dark:text-sky-400">
                       {request ? t("edit") : t("enter")}

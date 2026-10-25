@@ -3,8 +3,8 @@ import { User } from '../users/user.model';
 import { Vessel } from '../vessels/vessel.model';
 
 /**
- * What a shipyard foreman asked for, for one vessel and one week. The
- * project lead enters it. `weekStart` and `requestedWorkers` are resolved in
+ * What a vessel's team lead asked for, for one vessel and one week. The
+ * team lead enters it himself; a project lead can too. `weekStart` and `requestedWorkers` are resolved in
  * StaffingResolver.
  */
 @ObjectType()
@@ -32,13 +32,12 @@ export class StaffingRequest {
   @Field(() => [User], { description: 'Asked for by name' })
   requestedWorkers: User[];
 
-  @Field(() => String, { nullable: true, description: "The foreman's name" })
-  reportedBy: string | null;
-
   @Field(() => String, { nullable: true })
   note: string | null;
 
-  @Field(() => User, { description: 'Who entered or last changed it' })
+  @Field(() => User, {
+    description: 'The team lead or project lead who entered or last changed it',
+  })
   enteredBy: User;
 
   @Field()

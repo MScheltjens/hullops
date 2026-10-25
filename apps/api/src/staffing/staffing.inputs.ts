@@ -53,12 +53,6 @@ export class SaveStaffingRequestInput {
   @IsString({ each: true })
   requestedWorkerIds: string[];
 
-  @Field(() => String, { nullable: true, description: "The foreman's name" })
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
-  reportedBy?: string;
-
   @Field(() => String, { nullable: true })
   @IsOptional()
   @IsString()

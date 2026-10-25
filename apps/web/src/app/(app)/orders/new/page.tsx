@@ -27,11 +27,10 @@ export default async function NewOrderPage() {
         {t("pageTitle")}
       </h1>
       {vessels.length === 0 ? (
-        // The web app can't create vessels yet, so an empty list is a dead end.
         <p className="rounded-md border border-dashed border-zinc-300 px-4 py-10 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
           {t("noVessels")}{" "}
-          <Link href="/orders" className="underline">
-            {t("cancel")}
+          <Link href="/vessels" className="underline">
+            {t("addVessel")}
           </Link>
         </p>
       ) : (

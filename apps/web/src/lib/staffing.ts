@@ -70,3 +70,16 @@ export function otherVessels(
     .filter((vessel) => vessel.id !== vesselId)
     .map((vessel) => vessel.name);
 }
+
+/**
+ * Whether this user may enter the weekly request for a vessel: project leads
+ * for any vessel, a team lead only for the vessels he is responsible for.
+ * The API enforces the same rule; this only decides who gets the form.
+ */
+export function canEnterRequest(
+  user: { id: string; role: string },
+  vessel: { teamLead: { id: string } | null },
+): boolean {
+  if (user.role === "PROJECT_LEAD") return true;
+  return user.role === "TEAM_LEAD" && vessel.teamLead?.id === user.id;
+}

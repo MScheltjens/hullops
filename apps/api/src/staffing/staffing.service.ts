@@ -52,11 +52,13 @@ export class StaffingService {
     input: SaveStaffingRequestInput,
     actor: AuthUser,
   ): Promise<StaffingRequestWithRelations> {
-    // The resolver already restricts this to project leads; checking here
-    // too keeps the rule intact if the service is called from elsewhere.
-    if (actor.role !== 'PROJECT_LEAD') {
+    // The resolver already restricts this to project leads and team leads;
+    // checking here too keeps the rule intact if the service is called from
+    // elsewhere. A team lead may only enter requests for his own vessel,
+    // which is checked below once the vessel is loaded.
+    if (actor.role !== 'PROJECT_LEAD' && actor.role !== 'TEAM_LEAD') {
       throw new ForbiddenException(
-        'Only project leads can enter staffing requests',
+        'Only project leads and team leads can enter staffing requests',
       );
     }
     const errors = validateStaffingRequest(input);
@@ -67,7 +69,6 @@ export class StaffingService {
     const fields = {
       workersNeeded: input.workersNeeded,
       workersActual: input.workersActual ?? null,
-      reportedBy: input.reportedBy?.trim() || null,
       note: input.note?.trim() || null,
     };
 
@@ -79,6 +80,11 @@ export class StaffingService {
       });
       if (!vessel) {
         throw new NotFoundException(`Vessel ${input.vesselId} not found`);
+      }
+      if (actor.role === 'TEAM_LEAD' && vessel.teamLeadId !== actor.id) {
+        throw new ForbiddenException(
+          'A team lead can only enter requests for his own vessels',
+        );
       }
 
       if (workerIds.length > 0) {

@@ -18,7 +18,6 @@ export function buildSaveStaffingInput(
     workersActual: number(formData, "workersActual"),
     // Unchecking everyone must clear the list, so an empty list is sent.
     requestedWorkerIds: formData.getAll("workerIds"),
-    reportedBy: text(formData, "reportedBy"),
     note: text(formData, "note"),
   };
 }

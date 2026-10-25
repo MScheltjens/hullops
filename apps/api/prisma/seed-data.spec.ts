@@ -27,13 +27,21 @@ describe('seed data', () => {
     }
   });
 
+  it('puts only team leads in charge of vessels', () => {
+    for (const vessel of vessels) {
+      if (vessel.teamLeadEmail) {
+        expect(userByEmail.get(vessel.teamLeadEmail)?.role).toBe('TEAM_LEAD');
+      }
+    }
+  });
+
   describe('staffing requests', () => {
-    it('reference existing vessels and users, entered by a project lead', () => {
+    it("reference existing vessels and are entered by the vessel's team lead", () => {
       for (const request of staffingRequests) {
-        expect(vessels.some((v) => v.id === request.vesselId)).toBe(true);
-        expect(userByEmail.get(request.enteredByEmail)?.role).toBe(
-          'PROJECT_LEAD',
-        );
+        const vessel = vessels.find((v) => v.id === request.vesselId);
+        expect(vessel).toBeDefined();
+        expect(request.enteredByEmail).toBe(vessel?.teamLeadEmail);
+        expect(userByEmail.get(request.enteredByEmail)?.role).toBe('TEAM_LEAD');
       }
     });
 

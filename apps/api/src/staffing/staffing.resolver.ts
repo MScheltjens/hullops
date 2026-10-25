@@ -27,10 +27,10 @@ export class StaffingResolver {
     return this.staffingService.findForWeek(weekStart);
   }
 
-  @Roles('PROJECT_LEAD')
+  @Roles('PROJECT_LEAD', 'TEAM_LEAD')
   @Mutation(() => StaffingRequest, {
     description:
-      'Enter or replace what a foreman asked for, for one vessel and week',
+      "Enter or replace what a vessel's team lead asked for, for one vessel and week. A team lead can only do this for his own vessels.",
   })
   saveStaffingRequest(
     @Args('input') input: SaveStaffingRequestInput,

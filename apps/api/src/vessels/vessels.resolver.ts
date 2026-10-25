@@ -1,5 +1,15 @@
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
+import {
+  Args,
+  ID,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
 import { Roles } from '../auth/auth-context';
+import type { Vessel as VesselRecord } from '../generated/prisma/client';
+import { User } from '../users/user.model';
 import { CreateVesselInput } from './create-vessel.input';
 import { Vessel } from './vessel.model';
 import { VesselsService } from './vessels.service';
@@ -23,5 +33,27 @@ export class VesselsResolver {
   @Mutation(() => Vessel)
   createVessel(@Args('input') input: CreateVesselInput) {
     return this.vesselsService.create(input);
+  }
+
+  @Roles('PROJECT_LEAD')
+  @Mutation(() => Vessel, {
+    description:
+      'Choose the team lead responsible for a vessel, or pass no user to clear it',
+  })
+  setVesselTeamLead(
+    @Args('vesselId', { type: () => ID }) vesselId: string,
+    @Args('userId', { type: () => ID, nullable: true }) userId?: string,
+  ) {
+    return this.vesselsService.setTeamLead(vesselId, userId ?? null);
+  }
+
+  // Loaded together with the vessel in the lists below, but an order's
+  // vessel comes without it, so look it up when it's missing.
+  @ResolveField(() => User, { nullable: true })
+  teamLead(@Parent() vessel: VesselRecord & { teamLead?: User | null }) {
+    if (vessel.teamLead !== undefined) return vessel.teamLead;
+    return vessel.teamLeadId
+      ? this.vesselsService.findTeamLead(vessel.teamLeadId)
+      : null;
   }
 }

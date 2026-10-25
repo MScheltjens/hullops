@@ -19,10 +19,12 @@
     "roles": {
       "PROJECT_LEAD": "Project lead",
       "WORKER": "Worker",
-      "ADMIN": "Administrator"
+      "ADMIN": "Administrator",
+      "TEAM_LEAD": "Team lead"
     },
     "users": "Users",
-    "planning": "Planning"
+    "planning": "Planning",
+    "vessels": "Vessels"
   },
   "orders": {
     "title": "Orders",
@@ -111,7 +113,8 @@
       "incomplete": "Please fill in all required fields.",
       "invalid": "The order could not be created:",
       "unavailable": "The server can't be reached right now. Please try again later."
-    }
+    },
+    "addVessel": "Add a vessel"
   },
   "orderDetail": {
     "back": "All orders",
@@ -171,7 +174,8 @@
     "roles": {
       "ADMIN": "Administrator",
       "PROJECT_LEAD": "Project lead",
-      "WORKER": "Worker"
+      "WORKER": "Worker",
+      "TEAM_LEAD": "Team lead"
     },
     "serviceAreas": "Service areas",
     "serviceTypeNames": {
@@ -210,7 +214,6 @@
     "noRequest": "No request for this week yet",
     "requested": "{count, plural, one {# worker requested} other {# workers requested}}",
     "namedCount": "{count} by name",
-    "foremanIs": "foreman {name}",
     "doubleBooked": "{name} is also requested for {vessels}",
     "onOrders": "{count, plural, one {# person} other {# people}} on the teams of current orders",
     "short": "{count, plural, one {# more needed} other {# more needed}}",
@@ -221,7 +224,6 @@
     "workersNeeded": "Workers needed in total",
     "byName": "Asked for by name",
     "byNameHint": "The foreman can ask for the same people again, so they stay on one vessel. They count towards the total.",
-    "foreman": "Foreman",
     "note": "Note",
     "workersActual": "Actually worked",
     "workersActualHint": "Fill in afterwards, for the invoice.",
@@ -229,10 +231,37 @@
     "saving": "Saving…",
     "saved": "Saved.",
     "errors": {
-      "forbidden": "Only project leads can enter requests.",
+      "forbidden": "Only project leads and the vessel's own team lead can enter requests.",
       "incomplete": "Please fill in how many workers are needed.",
       "invalid": "Please check the fields:",
       "unavailable": "The server can't be reached right now. Please try again later."
-    }
+    },
+    "teamLeadIs": "Team lead: {name}",
+    "noTeamLead": "No team lead yet. A project lead can choose one on the Vessels page."
+  },
+  "vessels": {
+    "title": "Vessels",
+    "subtitle": "The vessels orders are planned for",
+    "add": "Add a vessel",
+    "name": "Name",
+    "imoNumber": "IMO number",
+    "imoHint": "Optional. 7 digits without \"IMO\", e.g. 9074729.",
+    "vesselType": "Type",
+    "vesselTypeHint": "Optional, e.g. yacht or container ship.",
+    "lengthM": "Length (m)",
+    "create": "Add vessel",
+    "creating": "Adding…",
+    "empty": "No vessels yet.",
+    "noDetails": "No further details",
+    "errors": {
+      "forbidden": "Only project leads can add vessels.",
+      "conflict": "A vessel with this IMO number already exists.",
+      "invalid": "Please check the fields:",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    },
+    "teamLead": "Team lead",
+    "teamLeadIs": "Team lead: {name}",
+    "noTeamLead": "No team lead yet",
+    "saveTeamLead": "Save"
   }
 }

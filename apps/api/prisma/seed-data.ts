@@ -30,7 +30,9 @@ export interface SeedVessel {
   name: string;
   imoNumber: string | null;
   vesselType: string;
-  lengthM: number;
+  lengthM: number | null;
+  /** The team lead responsible for the vessel on the yard. */
+  teamLeadEmail?: string;
 }
 
 export interface SeedStatusUpdate {
@@ -77,16 +79,15 @@ export interface SeedProtectionOrder extends SeedOrderBase {
 // orders and protection details on protection orders.
 export type SeedOrder = SeedCleaningOrder | SeedProtectionOrder;
 
-/** What a foreman asked for, for one vessel and one week. */
+/** What a vessel's team lead asked for, for one vessel and one week. */
 export interface SeedStaffingRequest {
   vesselId: string;
   /** Weeks from the current week: -1 is last week, 1 is next week. */
   weekOffset: number;
   workersNeeded: number;
   workersActual: number | null;
-  reportedBy: string;
   note: string | null;
-  /** Workers the foreman asked for by name. */
+  /** Workers the team lead asked for by name. */
   workerEmails: string[];
   enteredByEmail: string;
 }
@@ -117,6 +118,8 @@ const ANNA = 'anna.schulz@hullops.example';
 const TOM = 'tom.dejong@hullops.example';
 const SOFIA = 'sofia.rossi@hullops.example';
 const ADMIN = 'admin@hullops.example';
+const HEINZ = 'heinz.brandt@hullops.example';
+const UTE = 'ute.lange@hullops.example';
 
 /**
  * Builds the demo data with dates relative to `now`, so orders are in
@@ -184,6 +187,22 @@ export function buildSeedData(now: Date): SeedData {
       locale: 'EN',
     },
     {
+      // The on-site team leads (voorarbeider): each is responsible for some
+      // vessels and asks for workers for their coming weeks.
+      email: HEINZ,
+      name: 'Heinz Brandt',
+      role: 'TEAM_LEAD',
+      serviceTypes: ['CLEANING', 'PROTECTION'],
+      locale: 'DE',
+    },
+    {
+      email: UTE,
+      name: 'Ute Lange',
+      role: 'TEAM_LEAD',
+      serviceTypes: ['CLEANING', 'PROTECTION'],
+      locale: 'DE',
+    },
+    {
       // The technical administrator: manages users and reads everything, but
       // is on no team and creates no orders. For a demo it shares the public
       // SEED_PASSWORD like everyone else.
@@ -195,296 +214,273 @@ export function buildSeedData(now: Date): SeedData {
     },
   ];
 
+  // Two made-up vessels that stand for the kinds of projects on a yard: a
+  // yacht in for a refit, and a naval new build. IMO numbers and lengths are
+  // left empty rather than invented.
   const vessels: SeedVessel[] = [
     {
-      id: 'seed-vessel-elbe-trader',
-      name: 'Elbe Trader',
-      imoNumber: '9312456',
-      vesselType: 'Container ship',
-      lengthM: 294,
-    },
-    {
-      id: 'seed-vessel-hanseatic-star',
-      name: 'Hanseatic Star',
-      imoNumber: '9487615',
-      vesselType: 'Cruise ship',
-      lengthM: 230,
-    },
-    {
-      id: 'seed-vessel-nordic-aurora',
-      name: 'Nordic Aurora',
-      imoNumber: '9215830',
-      vesselType: 'Yacht',
-      lengthM: 92,
-    },
-    // Small harbor craft often have no IMO number.
-    {
-      id: 'seed-vessel-hermann',
-      name: 'Hermann',
+      // A yacht in a dry dock for a refit.
+      id: 'seed-vessel-calypso',
+      name: 'Calypso',
       imoNumber: null,
-      vesselType: 'Tug',
-      lengthM: 32,
+      vesselType: 'Yacht (refit)',
+      lengthM: null,
+      teamLeadEmail: UTE,
+    },
+    {
+      // A naval new build, delivered as a steel hull and now in the dry dock
+      // for the hoisting work and the installation of the pipe and machinery
+      // systems.
+      id: 'seed-vessel-naval-n1',
+      name: 'Naval Vessel N1',
+      imoNumber: null,
+      vesselType: 'Naval vessel (new build)',
+      lengthM: null,
+      teamLeadEmail: HEINZ,
     },
   ];
 
   const orders: SeedOrder[] = [
+    // ---- Calypso: yacht refit
     {
-      id: 'seed-order-elbe-hull-cleaning',
+      id: 'seed-order-calypso-hull-cleaning',
       title: 'Hull cleaning before repainting',
       description:
-        'Remove marine growth and loose paint from the underwater hull.',
+        'Remove marine growth and loose paint from the underwater hull while the yacht is in the dry dock.',
       serviceType: 'CLEANING',
       status: 'IN_PROGRESS',
-      shipyard: 'Blohm+Voss',
-      berth: 'Dock 10',
-      areaSqm: 4200,
-      startDate: day(-3),
-      dueDate: day(2),
-      vesselId: 'seed-vessel-elbe-trader',
+      shipyard: 'Lloyd Werft',
+      berth: 'Dry dock 2',
+      areaSqm: 900,
+      startDate: day(-4),
+      dueDate: day(3),
+      vesselId: 'seed-vessel-calypso',
       createdByEmail: LENA,
       teamEmails: [MEHMET, SOFIA],
       cleaning: { method: 'High-pressure water', surface: 'Hull' },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-7) },
+        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-9) },
         {
           status: 'IN_PROGRESS',
-          note: 'Started on the port side.',
+          note: 'Started at the stern, port side first.',
           authorEmail: MEHMET,
-          at: at8(-3),
+          at: at8(-4),
         },
       ],
     },
     {
       // Runs at the same time as the hull cleaning above, on the same vessel.
-      id: 'seed-order-elbe-engine-enclosure',
-      title: 'Enclose main engine during welding work',
+      id: 'seed-order-calypso-deck-protection',
+      title: 'Protect the main deck and corridors during the refit',
       description:
-        'Protect the main engine from sparks while the engine room is being welded.',
+        'Floor protection while trades work on board, so the finished teak and the corridors stay clean and undamaged.',
       serviceType: 'PROTECTION',
       status: 'IN_PROGRESS',
-      shipyard: 'Blohm+Voss',
-      berth: 'Dock 10',
-      areaSqm: null,
-      startDate: day(-3),
-      dueDate: day(5),
-      vesselId: 'seed-vessel-elbe-trader',
-      createdByEmail: JONAS,
-      teamEmails: [ANNA, TOM, PIOTR],
+      shipyard: 'Lloyd Werft',
+      berth: 'Dry dock 2',
+      areaSqm: 420,
+      startDate: day(-4),
+      dueDate: day(14),
+      vesselId: 'seed-vessel-calypso',
+      createdByEmail: LENA,
+      teamEmails: [ANNA, TOM],
       protection: {
-        kind: 'ENCLOSURE',
-        protectedItem: 'Main engine',
-        materials: ['OSB_FIRE_RESISTANT', 'GLASS_FIBER_FABRIC'],
+        kind: 'FLOOR',
+        protectedItem: 'Main deck and corridors',
+        materials: ['PROPLEX_3MM', 'PROPLEX_HD'],
       },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-6) },
+        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-8) },
         {
           status: 'IN_PROGRESS',
-          note: 'Frame built, panels going on today.',
+          note: 'Main deck done; corridors on the lower deck next.',
           authorEmail: ANNA,
           at: at8(-3),
         },
       ],
     },
     {
-      id: 'seed-order-hanseatic-floor',
-      title: 'Floor protection in the atrium',
-      description: null,
+      // No team yet: the project lead still has to staff it.
+      id: 'seed-order-calypso-spark-protection',
+      title: 'Cover interior fittings against welding sparks',
+      description:
+        'Glass fiber fabric over furniture and fittings in the areas where hot work starts next week.',
       serviceType: 'PROTECTION',
       status: 'PLANNED',
       shipyard: 'Lloyd Werft',
-      berth: 'Pier 3',
-      areaSqm: 650,
-      startDate: day(4),
-      dueDate: day(10),
-      vesselId: 'seed-vessel-hanseatic-star',
-      createdByEmail: JONAS,
-      teamEmails: [TOM],
-      protection: {
-        kind: 'FLOOR',
-        protectedItem: 'Atrium marble floor',
-        materials: ['PROPLEX_HD'],
-      },
-      history: [
-        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-1) },
-      ],
-    },
-    {
-      // Overdue: due yesterday and never started.
-      id: 'seed-order-hanseatic-bridge-covering',
-      title: 'Cover navigation equipment on the bridge',
-      description: 'Dust protection while the bridge ceiling is replaced.',
-      serviceType: 'PROTECTION',
-      status: 'PLANNED',
-      shipyard: 'Lloyd Werft',
-      berth: 'Pier 3',
+      berth: 'Dry dock 2',
       areaSqm: null,
-      startDate: day(-4),
-      dueDate: day(-1),
-      vesselId: 'seed-vessel-hanseatic-star',
-      createdByEmail: JONAS,
-      teamEmails: [ANNA],
+      startDate: day(3),
+      dueDate: day(9),
+      vesselId: 'seed-vessel-calypso',
+      createdByEmail: LENA,
+      teamEmails: [],
       protection: {
         kind: 'COVERING',
-        protectedItem: 'Navigation consoles',
-        materials: ['PROPLEX_3MM'],
+        protectedItem: 'Interior furniture and fittings',
+        materials: ['GLASS_FIBER_FABRIC'],
       },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-8) },
+        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-1) },
       ],
     },
     {
-      id: 'seed-order-hanseatic-generator',
-      title: 'Generator enclosure',
+      id: 'seed-order-calypso-aft-deck',
+      title: 'Clean the aft deck after removing the old covering',
       description: null,
-      serviceType: 'PROTECTION',
-      status: 'DONE',
-      shipyard: 'Lloyd Werft',
-      berth: 'Pier 3',
-      areaSqm: null,
-      startDate: day(-12),
-      dueDate: day(-9),
-      vesselId: 'seed-vessel-hanseatic-star',
-      createdByEmail: JONAS,
-      teamEmails: [TOM, PIOTR],
-      protection: {
-        kind: 'ENCLOSURE',
-        protectedItem: 'Auxiliary generator',
-        materials: ['OSB_STANDARD'],
-      },
-      history: [
-        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-15) },
-        { status: 'IN_PROGRESS', note: null, authorEmail: TOM, at: at8(-12) },
-        {
-          status: 'DONE',
-          note: 'Enclosure finished and checked by the yard.',
-          authorEmail: TOM,
-          at: at8(-10),
-        },
-      ],
-    },
-    {
-      id: 'seed-order-aurora-interior',
-      title: 'Interior cleaning after refit',
-      description: 'Final clean of the guest cabins and salon.',
       serviceType: 'CLEANING',
       status: 'DONE',
-      shipyard: 'Lürssen',
-      berth: 'Hall 2',
-      areaSqm: 380,
-      startDate: day(-20),
+      shipyard: 'Lloyd Werft',
+      berth: 'Dry dock 2',
+      areaSqm: 160,
+      startDate: day(-22),
       dueDate: day(-14),
-      vesselId: 'seed-vessel-nordic-aurora',
+      vesselId: 'seed-vessel-calypso',
       createdByEmail: LENA,
-      teamEmails: [SOFIA, PIOTR],
-      cleaning: { method: 'Manual', surface: 'Interior' },
+      teamEmails: [SOFIA],
+      cleaning: { method: 'Manual and industrial vacuum', surface: 'Aft deck' },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-25) },
-        { status: 'IN_PROGRESS', note: null, authorEmail: SOFIA, at: at8(-20) },
+        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-26) },
+        {
+          status: 'IN_PROGRESS',
+          note: null,
+          authorEmail: SOFIA,
+          at: at8(-21),
+        },
         {
           status: 'DONE',
-          note: 'Handed over to the owner’s crew.',
+          note: 'Signed off by the owner’s representative.',
           authorEmail: SOFIA,
           at: at8(-15),
         },
       ],
     },
+
+    // ---- Naval Vessel N1: new build in the dry dock
     {
-      // Overdue: in progress, but the due date has passed.
-      id: 'seed-order-aurora-coating',
-      title: 'Antifouling coating',
-      description: null,
+      id: 'seed-order-naval-hoisting-protection',
+      title: 'Protect finished deck areas during the hoisting work',
+      description:
+        'Heavy components are lifted into the machinery spaces (hoisting work). Protect the finished deck plates and coated surfaces along the lifting route.',
       serviceType: 'PROTECTION',
       status: 'IN_PROGRESS',
-      shipyard: 'Lürssen',
-      berth: 'Hall 2',
-      areaSqm: 900,
-      startDate: day(-10),
-      dueDate: day(-2),
-      vesselId: 'seed-vessel-nordic-aurora',
-      createdByEmail: LENA,
-      teamEmails: [ANNA, PIOTR],
+      shipyard: 'Blohm+Voss',
+      berth: 'Dry dock 1',
+      areaSqm: 300,
+      startDate: day(-6),
+      dueDate: day(8),
+      vesselId: 'seed-vessel-naval-n1',
+      createdByEmail: JONAS,
+      teamEmails: [PIOTR, ANNA],
       protection: {
-        kind: 'COATING',
-        protectedItem: 'Underwater hull',
-        materials: [],
-        coatingProduct: 'Antifouling',
-        layers: 2,
-        targetThicknessUm: 250,
+        kind: 'FLOOR',
+        protectedItem: 'Deck plates along the lifting route',
+        materials: ['OSB_STANDARD'],
       },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-14) },
+        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-10) },
         {
           status: 'IN_PROGRESS',
-          note: 'Second layer delayed by humidity.',
-          authorEmail: ANNA,
-          at: at8(-10),
+          note: 'Boards down from the hatch to the engine room.',
+          authorEmail: PIOTR,
+          at: at8(-5),
         },
       ],
     },
     {
-      // No team yet: still to be staffed.
-      id: 'seed-order-hermann-deck-blasting',
-      title: 'Deck blasting',
-      description: null,
-      serviceType: 'CLEANING',
+      id: 'seed-order-naval-machinery-enclosure',
+      title: 'Enclose machinery and pipework during welding',
+      description:
+        'Fire-resistant enclosures around the installed machinery and pipe runs while the pipe and machinery systems are welded.',
+      serviceType: 'PROTECTION',
       status: 'PLANNED',
       shipyard: 'Blohm+Voss',
-      berth: 'Dock 11',
-      areaSqm: 120,
-      startDate: day(1),
-      dueDate: day(3),
-      vesselId: 'seed-vessel-hermann',
-      createdByEmail: LENA,
-      teamEmails: [],
-      cleaning: { method: 'Abrasive blasting', surface: 'Deck' },
+      berth: 'Dry dock 1',
+      areaSqm: null,
+      startDate: day(2),
+      dueDate: day(20),
+      vesselId: 'seed-vessel-naval-n1',
+      createdByEmail: JONAS,
+      teamEmails: [PIOTR],
+      protection: {
+        kind: 'ENCLOSURE',
+        protectedItem: 'Installed machinery and pipe runs',
+        materials: ['OSB_FIRE_RESISTANT', 'GLASS_FIBER_FABRIC'],
+      },
       history: [
-        { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(0) },
+        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-2) },
+      ],
+    },
+    {
+      // Overdue: the steel work ran longer than planned.
+      id: 'seed-order-naval-machinery-cleaning',
+      title: 'Clean the machinery spaces after the steel work',
+      description:
+        'Remove welding residue, grinding dust and offcuts from the machinery spaces and tanks before the systems are installed.',
+      serviceType: 'CLEANING',
+      status: 'IN_PROGRESS',
+      shipyard: 'Blohm+Voss',
+      berth: 'Dry dock 1',
+      areaSqm: 520,
+      startDate: day(-12),
+      dueDate: day(-2),
+      vesselId: 'seed-vessel-naval-n1',
+      createdByEmail: JONAS,
+      teamEmails: [PIOTR, SOFIA],
+      cleaning: {
+        method: 'Industrial vacuum and manual',
+        surface: 'Machinery spaces and tanks',
+      },
+      history: [
+        { status: 'PLANNED', note: null, authorEmail: JONAS, at: at8(-14) },
+        {
+          status: 'IN_PROGRESS',
+          note: 'Two tanks still blocked by scaffolding.',
+          authorEmail: SOFIA,
+          at: at8(-9),
+        },
       ],
     },
   ];
 
-  // What the foremen asked for. Elbe Trader repeats last week's crew, which
-  // is what asking by name is for; the other vessels have no history yet.
+  // What the team leads asked for. Naval Vessel N1 repeats last week's crew,
+  // which is what asking by name is for.
   const staffingRequests: SeedStaffingRequest[] = [
     {
-      vesselId: 'seed-vessel-elbe-trader',
+      vesselId: 'seed-vessel-naval-n1',
       weekOffset: -1,
-      workersNeeded: 6,
-      workersActual: 6,
-      reportedBy: 'Heinz Brandt',
+      workersNeeded: 8,
+      workersActual: 7,
       note: null,
-      workerEmails: [MEHMET, PIOTR],
-      enteredByEmail: LENA,
+      workerEmails: [PIOTR, SOFIA, MEHMET],
+      enteredByEmail: HEINZ,
     },
     {
-      vesselId: 'seed-vessel-elbe-trader',
+      vesselId: 'seed-vessel-naval-n1',
       weekOffset: 1,
-      workersNeeded: 6,
+      workersNeeded: 10,
       workersActual: null,
-      reportedBy: 'Heinz Brandt',
-      note: 'Same crew as last week, please. Two more for the engine room.',
-      workerEmails: [MEHMET, PIOTR],
-      enteredByEmail: LENA,
+      note: 'Same crew as last week, please. Two more for the pipe and machinery installation.',
+      workerEmails: [PIOTR, SOFIA, MEHMET],
+      enteredByEmail: HEINZ,
     },
     {
-      vesselId: 'seed-vessel-hanseatic-star',
-      weekOffset: 1,
+      vesselId: 'seed-vessel-calypso',
+      weekOffset: -1,
       workersNeeded: 4,
-      workersActual: null,
-      reportedBy: 'Ute Lange',
+      workersActual: 4,
       note: null,
       workerEmails: [ANNA, TOM],
-      enteredByEmail: JONAS,
+      enteredByEmail: UTE,
     },
     {
-      vesselId: 'seed-vessel-nordic-aurora',
+      vesselId: 'seed-vessel-calypso',
       weekOffset: 1,
-      workersNeeded: 2,
+      workersNeeded: 5,
       workersActual: null,
-      reportedBy: 'Ute Lange',
-      note: 'Any two will do.',
-      workerEmails: [],
-      enteredByEmail: LENA,
+      note: 'Interior protection before the joiners start.',
+      workerEmails: [ANNA, TOM],
+      enteredByEmail: UTE,
     },
   ];
 

@@ -21,7 +21,8 @@
       "WORKER": "Worker",
       "ADMIN": "Administrator"
     },
-    "users": "Users"
+    "users": "Users",
+    "planning": "Planning"
   },
   "orders": {
     "title": "Orders",
@@ -198,5 +199,40 @@
     "setPassword": "Set new password",
     "passwordChanged": "Password changed.",
     "yourOwnRole": "You can't change your own role or deactivate yourself."
+  },
+  "planning": {
+    "title": "Planning",
+    "subtitle": "What the foremen asked for, week by week",
+    "week": "Week {number}",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "noVessels": "There are no vessels yet. Add one on the Vessels page.",
+    "noRequest": "No request for this week yet",
+    "requested": "{count, plural, one {# worker requested} other {# workers requested}}",
+    "namedCount": "{count} by name",
+    "foremanIs": "foreman {name}",
+    "doubleBooked": "{name} is also requested for {vessels}",
+    "onOrders": "{count, plural, one {# person} other {# people}} on the teams of current orders",
+    "short": "{count, plural, one {# more needed} other {# more needed}}",
+    "actual": "Actually worked: {count}",
+    "enter": "Enter the request",
+    "edit": "Edit the request",
+    "prefilled": "Filled in from last week's request. Check it, change what differs and save.",
+    "workersNeeded": "Workers needed in total",
+    "byName": "Asked for by name",
+    "byNameHint": "The foreman can ask for the same people again, so they stay on one vessel. They count towards the total.",
+    "foreman": "Foreman",
+    "note": "Note",
+    "workersActual": "Actually worked",
+    "workersActualHint": "Fill in afterwards, for the invoice.",
+    "save": "Save request",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "errors": {
+      "forbidden": "Only project leads can enter requests.",
+      "incomplete": "Please fill in how many workers are needed.",
+      "invalid": "Please check the fields:",
+      "unavailable": "The server can't be reached right now. Please try again later."
+    }
   }
 }

@@ -110,4 +110,5 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Mobile first, installable as a PWA
 - [x] Deployment: web on Vercel, API and PostgreSQL on Railway
 - [ ] Web: vessel management
+- [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the project lead
 - [ ] Status updates with photo uploads

@@ -35,6 +35,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             >
               {t("nav.orders")}
             </Link>
+            <Link
+              href="/planning"
+              className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
+            >
+              {t("nav.planning")}
+            </Link>
             {/* Only administrators manage users; the page and the API check too. */}
             {user.role === "ADMIN" && (
               <Link

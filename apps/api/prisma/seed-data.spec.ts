@@ -1,9 +1,9 @@
 import { isValidImoNumber } from '../src/vessels/imo-number';
-import { buildSeedData, SeedOrder } from './seed-data';
+import { buildSeedData, SeedOrder, weekStartFor } from './seed-data';
 
 const STATUS_ORDER = ['PLANNED', 'IN_PROGRESS', 'DONE'] as const;
 const NOW = new Date('2026-10-04T12:00:00Z');
-const { users, vessels, orders } = buildSeedData(NOW);
+const { users, vessels, orders, staffingRequests } = buildSeedData(NOW);
 
 const userByEmail = new Map(users.map((user) => [user.email, user]));
 const isOverdue = (order: SeedOrder) =>
@@ -25,6 +25,59 @@ describe('seed data', () => {
       expect(order.createdByEmail).not.toBe(admin.email);
       expect(order.teamEmails).not.toContain(admin.email);
     }
+  });
+
+  describe('staffing requests', () => {
+    it('reference existing vessels and users, entered by a project lead', () => {
+      for (const request of staffingRequests) {
+        expect(vessels.some((v) => v.id === request.vesselId)).toBe(true);
+        expect(userByEmail.get(request.enteredByEmail)?.role).toBe(
+          'PROJECT_LEAD',
+        );
+      }
+    });
+
+    it('ask by name only for workers, within the total', () => {
+      for (const request of staffingRequests) {
+        expect(request.workerEmails.length).toBeLessThanOrEqual(
+          request.workersNeeded,
+        );
+        for (const email of request.workerEmails) {
+          expect(userByEmail.get(email)?.role).toBe('WORKER');
+        }
+      }
+    });
+
+    it('have one request per vessel and week', () => {
+      const keys = staffingRequests.map((r) => `${r.vesselId}|${r.weekOffset}`);
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    it('never ask for the same worker on two vessels in one week', () => {
+      const seen = new Set<string>();
+      for (const request of staffingRequests) {
+        for (const email of request.workerEmails) {
+          const key = `${request.weekOffset}|${email}`;
+          expect(seen.has(key)).toBe(false);
+          seen.add(key);
+        }
+      }
+    });
+  });
+
+  describe('weekStartFor', () => {
+    it('gives the Monday of the current, previous and next week', () => {
+      // NOW is a Sunday (2026-10-04); its week began on Monday 2026-09-28.
+      expect(weekStartFor(NOW, 0).toISOString()).toBe(
+        '2026-09-28T00:00:00.000Z',
+      );
+      expect(weekStartFor(NOW, -1).toISOString()).toBe(
+        '2026-09-21T00:00:00.000Z',
+      );
+      expect(weekStartFor(NOW, 1).toISOString()).toBe(
+        '2026-10-05T00:00:00.000Z',
+      );
+    });
   });
 
   it('uses only valid IMO numbers', () => {

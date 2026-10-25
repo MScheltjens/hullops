@@ -21,7 +21,8 @@
       "WORKER": "Fachkraft",
       "ADMIN": "Administrator"
     },
-    "users": "Benutzer"
+    "users": "Benutzer",
+    "planning": "Planung"
   },
   "orders": {
     "title": "Aufträge",
@@ -198,5 +199,40 @@
     "setPassword": "Neues Passwort setzen",
     "passwordChanged": "Passwort geändert.",
     "yourOwnRole": "Sie können Ihre eigene Rolle nicht ändern und sich nicht selbst deaktivieren."
+  },
+  "planning": {
+    "title": "Planung",
+    "subtitle": "Was die Vorarbeiter angefordert haben, Woche für Woche",
+    "week": "Woche {number}",
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
+    "noVessels": "Es gibt noch keine Schiffe. Fügen Sie eines auf der Seite Schiffe hinzu.",
+    "noRequest": "Noch keine Anforderung für diese Woche",
+    "requested": "{count, plural, one {# Arbeiter angefordert} other {# Arbeiter angefordert}}",
+    "namedCount": "{count} namentlich",
+    "foremanIs": "Vorarbeiter {name}",
+    "doubleBooked": "{name} ist auch für {vessels} angefordert",
+    "onOrders": "{count, plural, one {# Person} other {# Personen}} in den Teams laufender Aufträge",
+    "short": "{count, plural, one {# weiterer nötig} other {# weitere nötig}}",
+    "actual": "Tatsächlich gearbeitet: {count}",
+    "enter": "Anforderung eintragen",
+    "edit": "Anforderung bearbeiten",
+    "prefilled": "Aus der Anforderung der Vorwoche übernommen. Prüfen, Abweichungen ändern und speichern.",
+    "workersNeeded": "Arbeiter insgesamt benötigt",
+    "byName": "Namentlich angefordert",
+    "byNameHint": "Der Vorarbeiter kann dieselben Leute wieder anfordern, damit sie auf einem Schiff bleiben. Sie zählen zur Gesamtzahl.",
+    "foreman": "Vorarbeiter",
+    "note": "Notiz",
+    "workersActual": "Tatsächlich gearbeitet",
+    "workersActualHint": "Nachträglich für die Rechnung ausfüllen.",
+    "save": "Anforderung speichern",
+    "saving": "Wird gespeichert…",
+    "saved": "Gespeichert.",
+    "errors": {
+      "forbidden": "Nur Projektleiter können Anforderungen eintragen.",
+      "incomplete": "Bitte angeben, wie viele Arbeiter benötigt werden.",
+      "invalid": "Bitte prüfen Sie die Felder:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    }
   }
 }

@@ -77,10 +77,36 @@ export interface SeedProtectionOrder extends SeedOrderBase {
 // orders and protection details on protection orders.
 export type SeedOrder = SeedCleaningOrder | SeedProtectionOrder;
 
+/** What a foreman asked for, for one vessel and one week. */
+export interface SeedStaffingRequest {
+  vesselId: string;
+  /** Weeks from the current week: -1 is last week, 1 is next week. */
+  weekOffset: number;
+  workersNeeded: number;
+  workersActual: number | null;
+  reportedBy: string;
+  note: string | null;
+  /** Workers the foreman asked for by name. */
+  workerEmails: string[];
+  enteredByEmail: string;
+}
+
 export interface SeedData {
   users: SeedUser[];
   vessels: SeedVessel[];
   orders: SeedOrder[];
+  staffingRequests: SeedStaffingRequest[];
+}
+
+/** Midnight UTC on the Monday `weekOffset` weeks from the week of `now`. */
+export function weekStartFor(now: Date, weekOffset: number): Date {
+  const midnight = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  const sinceMonday = (new Date(midnight).getUTCDay() + 6) % 7;
+  return new Date(midnight + (weekOffset * 7 - sinceMonday) * 86_400_000);
 }
 
 const LENA = 'lena.hoffmann@hullops.example';
@@ -417,5 +443,50 @@ export function buildSeedData(now: Date): SeedData {
     },
   ];
 
-  return { users, vessels, orders };
+  // What the foremen asked for. Elbe Trader repeats last week's crew, which
+  // is what asking by name is for; the other vessels have no history yet.
+  const staffingRequests: SeedStaffingRequest[] = [
+    {
+      vesselId: 'seed-vessel-elbe-trader',
+      weekOffset: -1,
+      workersNeeded: 6,
+      workersActual: 6,
+      reportedBy: 'Heinz Brandt',
+      note: null,
+      workerEmails: [MEHMET, PIOTR],
+      enteredByEmail: LENA,
+    },
+    {
+      vesselId: 'seed-vessel-elbe-trader',
+      weekOffset: 1,
+      workersNeeded: 6,
+      workersActual: null,
+      reportedBy: 'Heinz Brandt',
+      note: 'Same crew as last week, please. Two more for the engine room.',
+      workerEmails: [MEHMET, PIOTR],
+      enteredByEmail: LENA,
+    },
+    {
+      vesselId: 'seed-vessel-hanseatic-star',
+      weekOffset: 1,
+      workersNeeded: 4,
+      workersActual: null,
+      reportedBy: 'Ute Lange',
+      note: null,
+      workerEmails: [ANNA, TOM],
+      enteredByEmail: JONAS,
+    },
+    {
+      vesselId: 'seed-vessel-nordic-aurora',
+      weekOffset: 1,
+      workersNeeded: 2,
+      workersActual: null,
+      reportedBy: 'Ute Lange',
+      note: 'Any two will do.',
+      workerEmails: [],
+      enteredByEmail: LENA,
+    },
+  ];
+
+  return { users, vessels, orders, staffingRequests };
 }

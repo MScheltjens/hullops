@@ -1,0 +1,105 @@
+<!-- cspell:ignore Arbeiter Vorarbeiter Crewmeister -->
+# UX and flows
+
+HullOps is meant for people who work on a shipyard, not for people who like software. This page is the thinking behind how it should feel: who uses it, what they do, and what "simple enough" means. It also marks what is built and what is still a plan.
+
+## Where it starts
+
+Today planning and communication on the yard run through WhatsApp, and working hours and leave live in Crewmeister. Chat is fast but it loses things: which crew is on which vessel next week, who asked for what, whether the office said yes. The goal is to move the **planning** into one place and keep chat for what is live.
+
+## Who uses it, and on what
+
+These are assumptions to check with real users, not facts.
+
+| Role | Does what | Mostly on |
+|---|---|---|
+| Team lead (*Vorarbeiter*) | Asks for workers for his vessel for the coming week, follows his vessel's orders | A PC in the container office, sometimes a phone |
+| Project lead (office) | Plans orders, staffs them, answers the team leads, invoices the customer | A PC |
+| Worker (*Arbeiter*) | Sees today's orders and reports their status | A phone, on the yard |
+| Administrator | Manages accounts | A PC |
+
+## The bar: explainable in an hour
+
+The test for every screen: **a new team lead can use it after one hour of explanation on his first day**, without being "a phone and PC wizard". That leads to these rules:
+
+1. **Choose, don't type.** Work, vessel, method, surface, dates, crew: everything that can be categorized is a button. Free text is for real exceptions ("Other…" or an optional note).
+2. **One pattern everywhere.** Big labelled buttons, and one clearly marked button at the bottom to save. No hidden menus, no swipes, no long presses. If you understand one screen you understand them all.
+3. **Each role sees only its own work.** A worker's start page is "my orders today"; a team lead's is "my vessel". Not one menu with everything for everyone.
+4. **Everything visible, top to bottom.** A form shows all its steps from the start, numbered, with sensible choices already made (today, one week, last order's yard, last week's crew). Nothing pops up unexpectedly.
+5. **Use the yard's words**, in the user's language (German by default for the yard).
+6. **Forgiving.** A mistake can be corrected or cancelled; only finishing an order asks "sure?".
+7. **Safe to practice.** A practice account with made-up data, and a short "how it works" page.
+
+## The three moments that matter
+
+### 1. Team lead: next week's request (PC)
+
+```
+ Good morning Heinz                                      Naval Vessel N1
+ ───────────────────────────────────────────────────────────────────
+  Request for next week (26 Oct - 1 Nov)
+  Not filled in yet                           [ Fill in now ]
+
+  Orders on your vessel:  3 running · 1 late
+```
+```
+ How many people do you need?           [ - ]   10   [ + ]
+
+ Who would you like to keep?   (as last week)
+  [x] Piotr    [x] Sofia    [x] Mehmet    [ ] Anna    [ ] Tom
+                       Anna: already requested for another vessel
+
+ Note (only if needed)  [                                    ]
+
+                                   [ Send to the office ]
+```
+He keeps the same people on the same vessel by default, and only changes what differs.
+
+### 2. Project lead: a new order (PC)
+
+```
+ 1  Which vessel?     [ Calypso ]  [ Naval Vessel N1 ]
+ 2  What kind?        [ Cleaning ]  [ Protection ]
+ 3  What exactly?     [ High-pressure ] [ Blasting ] [ Manual ] [ Other… ]
+                      Where?  [ Hull ] [ Deck ] [ Interior ] [ Other… ]
+ 4  When?             [ Today ] [ Tomorrow ] [ Next Monday ]
+                      How long?  [ 1 day ] [ 3 days ] [ 1 week ] [ 2 weeks ]
+ 5  Who?              [ Mehmet ] [ Sofia ] [ Piotr ]        (can be later)
+
+ Summary: High-pressure, hull · Calypso · 26 Oct - 1 Nov
+                                              [ Create order ]
+```
+The yard and berth come from the last order on that vessel; nobody invents a title.
+
+### 3. Worker: reporting status (phone)
+
+```
+ My orders today
+ ┌──────────────────────────────────────┐
+ │ High-pressure, hull        Calypso   │
+ │ Started                              │
+ │             [   DONE   ]             │
+ └──────────────────────────────────────┘
+```
+One big button per order.
+
+## How to know it works
+
+- **Three tasks per role**, each doable by a new user after ten minutes of explanation. Team lead: fill in next week's request, look at his vessel's orders, report a status. Project lead: create an order, see the week's staffing and where it falls short, answer a request. Worker: find today's orders, report a status.
+- **One real team lead tries it** while someone watches and says nothing. Where he hesitates is where the screen is wrong.
+- Count taps and typed characters per task, and aim to shrink both.
+
+## Open questions
+
+- **Confirmation.** Today the office answers "ok" in WhatsApp. Should a request show as *confirmed* (possibly with a changed number) so the team lead doesn't have to ask?
+- **Reminders.** Who nudges when a request is missing on Friday? A "who is missing" list for the office is the cheap answer.
+- **Availability.** Seeing who is on leave while choosing the crew needs Crewmeister (see the README).
+
+## Where we are
+
+| Built | Planned |
+|---|---|
+| Status buttons for workers and team members; comments; team management | A start page and menu per role |
+| Weekly request per vessel with workers by name, a team lead per vessel, a warning for double-booked workers | Number stepper and last week's crew pre-ticked as shown above |
+| Order form with a vessel list and choices for service, protection kind and materials | The full choice-based order form shown above (method, surface, dates and crew as buttons) |
+| Mobile first layout, installable as a PWA, English and German | Editing and cancelling orders; confirmation; practice account |

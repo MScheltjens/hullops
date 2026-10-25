@@ -5,14 +5,19 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { createUserAndLogin, graphql, TEST_PASSWORD } from './auth-helpers';
+import {
+  TEST_PASSWORD,
+  createUserAndLogin,
+  graphql,
+  runId,
+} from './auth-helpers';
 
 /**
  * Login, tokens and roles, through the real app and test database.
  */
 describe('Authentication (e2e)', () => {
   let app: INestApplication<App>;
-  const run = Date.now().toString(36);
+  const run = runId();
   const workerId = `e2e-${run}-auth-worker`;
   const workerEmail = `${workerId}@hullops.example`;
   let workerToken: string;

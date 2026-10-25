@@ -41,6 +41,16 @@ export type OrderWithRelations = Prisma.OrderGetPayload<{
   include: typeof ORDER_INCLUDE;
 }>;
 
+/**
+ * An order as the queries load it: the order itself, plus only the relations
+ * the query asked for (see order-selection.ts). The resolver fields that read
+ * a relation check that it was loaded.
+ */
+export type LoadedOrder = Prisma.OrderGetPayload<object> &
+  Partial<Omit<OrderWithRelations, keyof Prisma.OrderGetPayload<object>>> & {
+    _count?: { comments: number };
+  };
+
 /** Translates the `orders` query filters into a Prisma `where`. */
 export function buildOrdersWhere(
   args: Omit<OrdersArgs, 'skip' | 'take'>,
@@ -65,22 +75,31 @@ export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Sorted by due date, so the most urgent orders come first. */
-  findAll(args: OrdersArgs, now = new Date()) {
+  findAll(
+    args: OrdersArgs,
+    now = new Date(),
+    include: Prisma.OrderInclude = ORDER_INCLUDE,
+  ): Promise<LoadedOrder[]> {
     const { skip, take, ...filters } = args;
+    // The include is built from the query at run time, so Prisma can't type
+    // the result; LoadedOrder describes it (see there).
     return this.prisma.order.findMany({
       where: buildOrdersWhere(filters, now),
-      include: ORDER_INCLUDE,
+      include,
       orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
       skip,
       take,
-    });
+    }) as unknown as Promise<LoadedOrder[]>;
   }
 
-  findOne(id: string) {
+  findOne(
+    id: string,
+    include: Prisma.OrderInclude = ORDER_INCLUDE,
+  ): Promise<LoadedOrder | null> {
     return this.prisma.order.findUnique({
       where: { id },
-      include: ORDER_INCLUDE,
-    });
+      include,
+    }) as unknown as Promise<LoadedOrder | null>;
   }
 
   /** `creator` is the logged-in user. */

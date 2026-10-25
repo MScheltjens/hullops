@@ -4,7 +4,12 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { createUserAndLogin, graphql, TEST_PASSWORD } from './auth-helpers';
+import {
+  TEST_PASSWORD,
+  createUserAndLogin,
+  graphql,
+  runId,
+} from './auth-helpers';
 
 /**
  * Runs the real app against the test database. The suite creates its own
@@ -15,7 +20,7 @@ describe('User management (e2e)', () => {
   let prisma: PrismaService;
 
   // Unique per run, so leftovers from an aborted run can't collide.
-  const run = Date.now().toString(36);
+  const run = runId();
   const ids = {
     admin: `e2e-${run}-admin`,
     lead: `e2e-${run}-lead`,

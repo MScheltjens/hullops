@@ -4,7 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { createUserAndLogin, graphql } from './auth-helpers';
+import { createUserAndLogin, graphql, runId } from './auth-helpers';
 
 /**
  * Runs the real app against the test database (see test-database.ts).
@@ -16,7 +16,7 @@ describe('Orders GraphQL API (e2e)', () => {
   let prisma: PrismaService;
 
   // Unique per run, so leftovers from an aborted run can't collide.
-  const run = Date.now().toString(36);
+  const run = runId();
   const ids = {
     lead: `e2e-${run}-lead`,
     cleaner: `e2e-${run}-cleaner`,

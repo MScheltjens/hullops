@@ -7,6 +7,16 @@ import { PrismaService } from './../src/prisma/prisma.service';
 
 export const TEST_PASSWORD = 'e2e-test-password';
 
+/**
+ * A short id that is unique to one test file's run, for naming the records it
+ * creates. The test files run in parallel against one database and clean up
+ * after themselves by these ids, so two files must never share one. The time
+ * alone isn't enough: files that start in the same millisecond got the same
+ * id, and one deleted the other's users. The random part prevents that.
+ */
+export const runId = () =>
+  `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
 // scrypt is slow on purpose, so hash the shared test password once and reuse
 // it for every test user instead of once per user.
 let testPasswordHash: Promise<string> | undefined;

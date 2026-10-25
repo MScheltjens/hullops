@@ -7,7 +7,7 @@ import { createUser, type CreateUserState } from "./actions";
 const inputClass =
   "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
-const ROLES = ["WORKER", "PROJECT_LEAD", "ADMIN"] as const;
+const ROLES = ["WORKER", "TEAM_LEAD", "PROJECT_LEAD", "ADMIN"] as const;
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
 export function CreateUserForm() {

@@ -146,6 +146,8 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Web: create orders, order details with comments, status updates and team assignment
 - [x] Mobile first, installable as a PWA
 - [x] Deployment: web on Vercel, API and PostgreSQL on Railway
+- [ ] Web: vessel management
+- [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the project lead
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
 - [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source
 - [ ] Status updates with photo uploads

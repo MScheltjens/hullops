@@ -116,11 +116,21 @@ type Mutation {
   removeTeamMember(orderId: ID!, userId: ID!): Order!
   resetUserPassword(input: ResetPasswordInput!): User!
 
+  """
+  Enter or replace what a vessel's team lead asked for, for one vessel and week. A team lead can only do this for his own vessels.
+  """
+  saveStaffingRequest(input: SaveStaffingRequestInput!): StaffingRequest!
+
   """Language for text the server sends you, such as emails"""
   setMyLocale(locale: Locale!): User!
 
   """Deactivate or reactivate a user. Not yourself."""
   setUserActive(active: Boolean!, userId: ID!): User!
+
+  """
+  Choose the team lead responsible for a vessel, or pass no user to clear it
+  """
+  setVesselTeamLead(userId: ID, vesselId: ID!): Vessel!
 
   """Change a name, role or service areas. Not your own role."""
   updateUser(input: UpdateUserInput!): User!
@@ -253,6 +263,9 @@ type Query {
     vesselId: ID
   ): [Order!]!
 
+  """The staffing requests of one week, given as its Monday"""
+  staffingRequests(weekStart: String!): [StaffingRequest!]!
+
   """Active users. Administrators can include deactivated ones."""
   users(includeInactive: Boolean! = false, role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
@@ -267,13 +280,52 @@ input ResetPasswordInput {
 enum Role {
   ADMIN
   PROJECT_LEAD
+  TEAM_LEAD
   WORKER
+}
+
+input SaveStaffingRequestInput {
+  note: String
+
+  """Workers the foreman asked for by name"""
+  requestedWorkerIds: [ID!]! = []
+  vesselId: ID!
+
+  """The Monday of the week, as 2026-10-26"""
+  weekStart: String!
+
+  """How many actually worked, filled in afterwards"""
+  workersActual: Int
+
+  """Workers needed in total, including those asked for by name"""
+  workersNeeded: Int!
 }
 
 """Cleaning or protection. Both can run on a vessel at once."""
 enum ServiceType {
   CLEANING
   PROTECTION
+}
+
+type StaffingRequest {
+  """The team lead or project lead who entered or last changed it"""
+  enteredBy: User!
+  id: ID!
+  note: String
+
+  """Asked for by name"""
+  requestedWorkers: [User!]!
+  updatedAt: DateTime!
+  vessel: Vessel!
+
+  """The Monday of the week, as 2026-10-26"""
+  weekStart: String!
+
+  """How many actually worked, filled in afterwards"""
+  workersActual: Int
+
+  """Workers needed in total, including those asked for by name"""
+  workersNeeded: Int!
 }
 
 """An entry in an order’s history"""
@@ -317,6 +369,9 @@ type Vessel {
   """Length in meters"""
   lengthM: Float
   name: String!
+
+  """The team lead responsible for this vessel on the yard"""
+  teamLead: User
   updatedAt: DateTime!
 
   """Free text, e.g. yacht or container ship"""

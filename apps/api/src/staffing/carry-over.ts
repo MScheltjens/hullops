@@ -37,7 +37,14 @@ export interface CarryOverInput {
 }
 
 export function carryOver(input: CarryOverInput): PlannedRequest[] {
-  // Step 1 of the exercise: write the tests first, then replace this line.
-  void input;
-  throw new Error('Not implemented yet');
+  return input.previousWeek
+    .filter((request) => !input.vesselsWithRequest.has(request.vesselId))
+    .map((request) => ({
+      vesselId: request.vesselId,
+      // The total stays the same, so a missing worker shows up as "1 more needed".
+      workersNeeded: request.workersNeeded,
+      workerIds: request.workerIds.filter((id) =>
+        input.availableWorkerIds.has(id),
+      ),
+    }));
 }

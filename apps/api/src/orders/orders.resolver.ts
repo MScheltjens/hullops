@@ -1,6 +1,7 @@
 import {
   Args,
   ID,
+  Info,
   Int,
   Mutation,
   Parent,
@@ -8,6 +9,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import type { GraphQLResolveInfo } from 'graphql';
 import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
 import { User } from '../users/user.model';
 import {
@@ -18,7 +20,8 @@ import {
 } from './order.inputs';
 import { Order, OrderComment, StatusUpdate } from './order.model';
 import { isOverdue } from './order-rules';
-import { OrdersService, type OrderWithRelations } from './orders.service';
+import { orderIncludeFor, requestedFields } from './order-selection';
+import { OrdersService, type LoadedOrder } from './orders.service';
 
 @Resolver(() => Order)
 export class OrdersResolver {
@@ -27,14 +30,22 @@ export class OrdersResolver {
   @Query(() => [Order], {
     description: 'Sorted by due date, most urgent first',
   })
-  orders(@Args() args: OrdersArgs) {
-    return this.ordersService.findAll(args);
+  orders(@Args() args: OrdersArgs, @Info() info: GraphQLResolveInfo) {
+    // Load only the relations the query asks for; see order-selection.ts.
+    const include = orderIncludeFor(requestedFields(info));
+    return this.ordersService.findAll(args, new Date(), include);
   }
 
   // Returns null rather than an error when the id is unknown.
   @Query(() => Order, { nullable: true })
-  order(@Args('id', { type: () => ID }) id: string) {
-    return this.ordersService.findOne(id);
+  order(
+    @Args('id', { type: () => ID }) id: string,
+    @Info() info: GraphQLResolveInfo,
+  ) {
+    return this.ordersService.findOne(
+      id,
+      orderIncludeFor(requestedFields(info)),
+    );
   }
 
   @Roles('PROJECT_LEAD')
@@ -59,7 +70,8 @@ export class OrdersResolver {
 
   @Roles('PROJECT_LEAD')
   @Mutation(() => Order, {
-    description: 'Add information from the shipyard that has no field of its own',
+    description:
+      'Add information from the shipyard that has no field of its own',
   })
   addOrderComment(
     @Args('input') input: AddOrderCommentInput,
@@ -90,31 +102,50 @@ export class OrdersResolver {
   // loaded record (see ORDER_INCLUDE), so they cost no extra queries.
 
   @ResolveField(() => [User], { description: 'People working on the order' })
-  team(@Parent() order: OrderWithRelations) {
-    return order.assignments.map((assignment) => assignment.user);
+  team(@Parent() order: LoadedOrder) {
+    return loaded(order.assignments, 'team').map(
+      (assignment) => assignment.user,
+    );
   }
 
   @ResolveField(() => [StatusUpdate], { description: 'Oldest first' })
-  history(@Parent() order: OrderWithRelations) {
-    return order.statusUpdates;
+  history(@Parent() order: LoadedOrder) {
+    return loaded(order.statusUpdates, 'history');
   }
 
   @ResolveField(() => [OrderComment], { description: 'Oldest first' })
-  comments(@Parent() order: OrderWithRelations) {
-    return order.comments;
+  comments(@Parent() order: LoadedOrder) {
+    return loaded(order.comments, 'comments');
   }
 
   @ResolveField(() => Int, {
-    description: 'Number of comments, so lists can show it without loading them',
+    description:
+      'Number of comments, so lists can show it without loading them',
   })
-  commentCount(@Parent() order: OrderWithRelations) {
-    return order.comments.length;
+  commentCount(@Parent() order: LoadedOrder) {
+    // Counted by the database when only the number was asked for; otherwise
+    // the comments are loaded anyway and can be counted here.
+    return (
+      order.comments?.length ?? loaded(order._count, 'commentCount').comments
+    );
   }
 
   @ResolveField(() => Boolean, {
     description: 'Due date has passed and the order is not done',
   })
-  overdue(@Parent() order: OrderWithRelations) {
+  overdue(@Parent() order: LoadedOrder) {
     return isOverdue(order);
   }
+}
+
+/**
+ * The relation a field needs, which the query was meant to load (see
+ * order-selection.ts). If it is missing the loading and the fields have got
+ * out of step; failing loudly beats returning an empty list that looks right.
+ */
+function loaded<T>(value: T | undefined, field: string): T {
+  if (value === undefined) {
+    throw new Error(`Order.${field} was asked for but not loaded`);
+  }
+  return value;
 }

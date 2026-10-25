@@ -25,6 +25,7 @@ describe('User management (e2e)', () => {
     admin: `e2e-${run}-admin`,
     lead: `e2e-${run}-lead`,
     worker: `e2e-${run}-worker`,
+    hr: `e2e-${run}-hr`,
   };
   const newEmail = `e2e-${run}-new@hullops.example`;
   const newPassword = 'a-brand-new-password-1';
@@ -33,6 +34,7 @@ describe('User management (e2e)', () => {
   let asAdmin: Gql;
   let asLead: Gql;
   let asWorker: Gql;
+  let asHr: Gql;
 
   const USER_FIELDS = 'id name email role serviceTypes locale active';
   const createUser = (input: Record<string, unknown>, as = asAdmin) =>
@@ -65,7 +67,7 @@ describe('User management (e2e)', () => {
 
     const make = async (
       id: string,
-      role: 'ADMIN' | 'PROJECT_LEAD' | 'WORKER',
+      role: 'ADMIN' | 'PROJECT_LEAD' | 'WORKER' | 'HR',
     ) =>
       graphql(
         app,
@@ -74,6 +76,7 @@ describe('User management (e2e)', () => {
     asAdmin = await make(ids.admin, 'ADMIN');
     asLead = await make(ids.lead, 'PROJECT_LEAD');
     asWorker = await make(ids.worker, 'WORKER');
+    asHr = await make(ids.hr, 'HR');
   });
 
   afterAll(async () => {
@@ -102,7 +105,7 @@ describe('User management (e2e)', () => {
     expect(response.body.data.login.accessToken).toEqual(expect.any(String));
   });
 
-  it('keeps user management to administrators', async () => {
+  it('keeps user management to administrators and HR', async () => {
     for (const as of [asLead, asWorker]) {
       const response = await createUser(
         newUser({ email: `x-${run}@h.example` }),
@@ -254,6 +257,79 @@ describe('User management (e2e)', () => {
     // …but can read them.
     const read = await asAdmin('{ orders(take: 1) { id } vessels { id } }');
     expect(read.body.errors).toBeUndefined();
+  });
+
+  describe('HR', () => {
+    const code = (response: { body: { errors?: any[] } }) =>
+      response.body.errors?.[0]?.extensions.code;
+
+    it('creates workers, team leads and project leads', async () => {
+      for (const role of ['WORKER', 'TEAM_LEAD', 'PROJECT_LEAD']) {
+        const created = await createUser(
+          newUser({ email: `hr-${role}-${run}@h.example`, role }),
+          asHr,
+        );
+        expect(created.body.data.createUser.role).toBe(role);
+      }
+    });
+
+    it('cannot make an admin or another HR user', async () => {
+      for (const role of ['ADMIN', 'HR']) {
+        const response = await createUser(
+          newUser({ email: `hr-no-${role}-${run}@h.example`, role }),
+          asHr,
+        );
+        expect(code(response)).toBe('FORBIDDEN');
+      }
+    });
+
+    it('cannot promote someone to admin or HR', async () => {
+      const response = await asHr(
+        `mutation ($input: UpdateUserInput!) { updateUser(input: $input) { id } }`,
+        { input: { userId: ids.worker, role: 'ADMIN' } },
+      );
+      expect(code(response)).toBe('FORBIDDEN');
+    });
+
+    // Resetting a password would hand over the account.
+    it('cannot change, deactivate or reset an admin', async () => {
+      const update = await asHr(
+        `mutation ($input: UpdateUserInput!) { updateUser(input: $input) { id } }`,
+        { input: { userId: ids.admin, name: 'Taken over' } },
+      );
+      const deactivate = await asHr(
+        `mutation { setUserActive(userId: "${ids.admin}", active: false) { id } }`,
+      );
+      const reset = await asHr(
+        `mutation ($input: ResetPasswordInput!) { resetUserPassword(input: $input) { id } }`,
+        { input: { userId: ids.admin, password: 'a-hijacking-password' } },
+      );
+      for (const response of [update, deactivate, reset]) {
+        expect(code(response)).toBe('FORBIDDEN');
+      }
+      const stillAdmin = await login(
+        `${ids.admin}@hullops.example`,
+        TEST_PASSWORD,
+      );
+      expect(stillAdmin.body.data.login.accessToken).toEqual(
+        expect.any(String),
+      );
+    });
+
+    it("doesn't see orders, vessels or staffing", async () => {
+      for (const query of [
+        '{ orders { id } }',
+        `{ order(id: "x") { id } }`,
+        '{ vessels { id } }',
+        `{ vessel(id: "x") { id } }`,
+        `{ staffingRequests(weekStart: "2026-10-26") { id } }`,
+      ]) {
+        expect(code(await asHr(query))).toBe('FORBIDDEN');
+      }
+      // …but can look up people, which is what HR works with.
+      const people = await asHr('{ users { id name } }');
+      expect(people.body.errors).toBeUndefined();
+    });
   });
 
   it('never exposes password hashes', async () => {

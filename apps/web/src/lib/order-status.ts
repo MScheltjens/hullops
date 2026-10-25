@@ -1,3 +1,5 @@
+import type { Role } from "./user-roles";
+
 /**
  * Rules about an order's status that the web app needs to decide what to
  * show. The API enforces the real rules (see order-rules.ts there); these
@@ -24,7 +26,7 @@ export function nextStatus(status: Status): ForwardStatus | undefined {
  * leads, like the API's rule for status updates.
  */
 export function canUpdateOrder(
-  user: { id: string; role: "PROJECT_LEAD" | "WORKER" | "ADMIN" | "TEAM_LEAD" },
+  user: { id: string; role: Role },
   team: readonly { id: string }[],
 ): boolean {
   return user.role === "PROJECT_LEAD" || team.some((m) => m.id === user.id);

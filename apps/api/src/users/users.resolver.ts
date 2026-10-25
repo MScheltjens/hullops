@@ -14,7 +14,8 @@ export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
   @Query(() => [User], {
-    description: 'Active users. Administrators can include deactivated ones.',
+    description:
+      'Active users. Administrators and HR can include deactivated ones.',
   })
   users(
     @CurrentUser() actor: AuthUser,
@@ -30,7 +31,7 @@ export class UsersResolver {
     );
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'HR')
   @Mutation(() => User)
   createUser(
     @Args('input') input: CreateUserInput,
@@ -39,7 +40,7 @@ export class UsersResolver {
     return this.usersService.create(input, actor);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'HR')
   @Mutation(() => User, {
     description: 'Change a name, role or service areas. Not your own role.',
   })
@@ -50,7 +51,7 @@ export class UsersResolver {
     return this.usersService.update(input, actor);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'HR')
   @Mutation(() => User, {
     description: 'Deactivate or reactivate a user. Not yourself.',
   })
@@ -62,7 +63,7 @@ export class UsersResolver {
     return this.usersService.setActive(userId, active, actor);
   }
 
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'HR')
   @Mutation(() => User)
   resetUserPassword(
     @Args('input') input: ResetPasswordInput,

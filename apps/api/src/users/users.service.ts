@@ -19,16 +19,26 @@ import type {
   ResetPasswordInput,
   UpdateUserInput,
 } from './user.inputs';
-import { validateUserChange } from './user-rules';
+import { canManageRole, validateUserChange } from './user-rules';
 
 /**
- * Managing users is for administrators. The resolver already restricts it to
- * them; the service checks too, like OrdersService does for creating orders,
- * so the rule holds if the service is ever called from elsewhere.
+ * Managing users is for administrators and HR. The resolver already
+ * restricts it to them; the service checks too, like OrdersService does for
+ * creating orders, so the rule holds if the service is ever called from
+ * elsewhere.
  */
-function requireAdmin(actor: AuthUser): void {
-  if (actor.role !== 'ADMIN') {
-    throw new ForbiddenException('Only administrators can manage users');
+function requireUserManager(actor: AuthUser): void {
+  if (actor.role !== 'ADMIN' && actor.role !== 'HR') {
+    throw new ForbiddenException('Only administrators and HR can manage users');
+  }
+}
+
+/** HR only manages some roles (see canManageRole); admins manage all. */
+function requireMayManage(actor: AuthUser, ...roles: (Role | undefined)[]) {
+  for (const role of roles) {
+    if (role !== undefined && !canManageRole(actor.role, role)) {
+      throw new ForbiddenException(`Your role cannot manage ${role} users`);
+    }
   }
 }
 
@@ -50,7 +60,7 @@ export class UsersService {
   ) {
     if (filter.includeInactive) {
       if (!actor) throw new ForbiddenException('Log in to use this');
-      requireAdmin(actor);
+      requireUserManager(actor);
     }
     return this.prisma.user.findMany({
       where: {
@@ -69,7 +79,8 @@ export class UsersService {
   }
 
   async create(input: CreateUserInput, actor: AuthUser) {
-    requireAdmin(actor);
+    requireUserManager(actor);
+    requireMayManage(actor, input.role);
     // @IsNotEmpty accepts "   ", so check for a blank name here.
     const name = input.name.trim();
     if (!name) throw new BadRequestException('A name cannot be empty');
@@ -100,8 +111,9 @@ export class UsersService {
   }
 
   async update(input: UpdateUserInput, actor: AuthUser) {
-    requireAdmin(actor);
+    requireUserManager(actor);
     const target = await this.findTarget(input.userId);
+    requireMayManage(actor, target.role, input.role);
     this.checkChange(actor, target, { role: input.role });
 
     const name = input.name?.trim();
@@ -115,8 +127,9 @@ export class UsersService {
   }
 
   async setActive(userId: string, active: boolean, actor: AuthUser) {
-    requireAdmin(actor);
+    requireUserManager(actor);
     const target = await this.findTarget(userId);
+    requireMayManage(actor, target.role);
     this.checkChange(actor, target, { active });
     return this.prisma.user.update({
       where: { id: target.id },
@@ -125,8 +138,9 @@ export class UsersService {
   }
 
   async resetPassword(input: ResetPasswordInput, actor: AuthUser) {
-    requireAdmin(actor);
+    requireUserManager(actor);
     const target = await this.findTarget(input.userId);
+    requireMayManage(actor, target.role);
     return this.prisma.user.update({
       where: { id: target.id },
       data: { passwordHash: await hashPassword(input.password) },

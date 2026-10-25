@@ -7,7 +7,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { Roles } from '../auth/auth-context';
+import { Roles, WORK_ROLES } from '../auth/auth-context';
 import type { Vessel as VesselRecord } from '../generated/prisma/client';
 import { User } from '../users/user.model';
 import { CreateVesselInput } from './create-vessel.input';
@@ -18,11 +18,13 @@ import { VesselsService } from './vessels.service';
 export class VesselsResolver {
   constructor(private readonly vesselsService: VesselsService) {}
 
+  @Roles(...WORK_ROLES)
   @Query(() => [Vessel])
   vessels() {
     return this.vesselsService.findAll();
   }
 
+  @Roles(...WORK_ROLES)
   // Returns null rather than an error when the id is unknown.
   @Query(() => Vessel, { nullable: true })
   vessel(@Args('id', { type: () => ID }) id: string) {

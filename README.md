@@ -34,6 +34,7 @@ HullOps comes from a real way of working. On the yard, planning and all communic
 | Project lead | The office | Plans orders, passes on what the shipyard tells them, manages teams, and invoices the customer. |
 | Team lead (*Vorarbeiter*) | On the yard, one per vessel | Knows what his vessel needs, so he asks for workers for the coming week himself, including by name. |
 | Worker | On the yard | Reads the plan and updates the status of his orders. |
+| HR | Office | Hires people, so creates workers, team leads and project leads (recording absence is planned). Cannot create or touch administrators or other HR, and sees no orders, vessels or staffing. |
 | Administrator | Technical | Manages accounts. Reads everything but doesn't run the work, so responsibilities stay separate. |
 
 The shipyard's own people (the customer's side) have **no login**. The project lead enters what they say as free-text comments, so the app doesn't need accounts for other companies and stays single-tenant.

@@ -6,7 +6,12 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
+import {
+  CurrentUser,
+  Roles,
+  WORK_ROLES,
+  type AuthUser,
+} from '../auth/auth-context';
 import { User } from '../users/user.model';
 import { SaveStaffingRequestInput } from './staffing.inputs';
 import { StaffingRequest } from './staffing.model';
@@ -20,6 +25,7 @@ import { formatDateOnly } from './week';
 export class StaffingResolver {
   constructor(private readonly staffingService: StaffingService) {}
 
+  @Roles(...WORK_ROLES)
   @Query(() => [StaffingRequest], {
     description: 'The staffing requests of one week, given as its Monday',
   })

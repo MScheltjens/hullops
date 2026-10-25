@@ -20,7 +20,8 @@
       "PROJECT_LEAD": "Projektleitung",
       "WORKER": "Fachkraft",
       "ADMIN": "Administrator",
-      "TEAM_LEAD": "Vorarbeiter"
+      "TEAM_LEAD": "Vorarbeiter",
+      "HR": "Personalabteilung"
     },
     "users": "Benutzer",
     "planning": "Planung",
@@ -175,7 +176,8 @@
       "ADMIN": "Administrator",
       "PROJECT_LEAD": "Projektleiter",
       "WORKER": "Mitarbeiter",
-      "TEAM_LEAD": "Vorarbeiter"
+      "TEAM_LEAD": "Vorarbeiter",
+      "HR": "Personalabteilung"
     },
     "serviceAreas": "Leistungsbereiche",
     "serviceTypeNames": {

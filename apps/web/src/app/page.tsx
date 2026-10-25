@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/dal";
+import { homePath } from "@/lib/user-roles";
 
-// The order overview is the home page for now.
-export default function Home() {
-  redirect("/orders");
+// Everyone starts at the page their role works in.
+export default async function Home() {
+  const user = await requireUser();
+  redirect(homePath(user.role));
 }

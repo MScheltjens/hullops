@@ -10,7 +10,12 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import type { GraphQLResolveInfo } from 'graphql';
-import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
+import {
+  CurrentUser,
+  Roles,
+  WORK_ROLES,
+  type AuthUser,
+} from '../auth/auth-context';
 import { User } from '../users/user.model';
 import {
   AddOrderCommentInput,
@@ -27,6 +32,7 @@ import { OrdersService, type LoadedOrder } from './orders.service';
 export class OrdersResolver {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @Roles(...WORK_ROLES)
   @Query(() => [Order], {
     description: 'Sorted by due date, most urgent first',
   })
@@ -36,6 +42,7 @@ export class OrdersResolver {
     return this.ordersService.findAll(args, new Date(), include);
   }
 
+  @Roles(...WORK_ROLES)
   // Returns null rather than an error when the id is unknown.
   @Query(() => Order, { nullable: true })
   order(

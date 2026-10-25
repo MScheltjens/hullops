@@ -2,15 +2,16 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import type { Role } from "@/lib/user-roles";
 import { createUser, type CreateUserState } from "./actions";
 
 const inputClass =
   "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 
-const ROLES = ["WORKER", "TEAM_LEAD", "PROJECT_LEAD", "ADMIN"] as const;
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
-export function CreateUserForm() {
+/** `roles`: the roles the logged-in user may create (HR gets fewer than admins). */
+export function CreateUserForm({ roles }: { roles: readonly Role[] }) {
   const t = useTranslations("admin");
   const [state, formAction, pending] = useActionState<
     CreateUserState,
@@ -71,7 +72,7 @@ export function CreateUserForm() {
           defaultValue={value("role") ?? "WORKER"}
           className={inputClass}
         >
-          {ROLES.map((role) => (
+          {roles.map((role) => (
             <option key={role} value={role}>
               {t(`roles.${role}`)}
             </option>

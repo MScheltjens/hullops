@@ -17,6 +17,7 @@ enum Role {
   WORKER
   ADMIN // technical administrator: manages users, reads everything, doesn't run the work
   TEAM_LEAD // the on-site lead (voorarbeider) of a vessel: asks for workers for his vessel's coming weeks
+  HR // hires people and records their absence; manages users, but not admins or other HR; sees no orders
 }
 
 // Language for text the server sends a user (e.g. emails). The web app

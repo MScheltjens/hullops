@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { apiAsUser, requireUser } from "@/lib/dal";
+import {
+  canManageUsers,
+  homePath,
+  manageableRoles,
+  type Role,
+} from "@/lib/user-roles";
 import { setActive } from "./actions";
 import { CreateUserForm } from "./create-user-form";
 import { EditUserForm, ResetPasswordForm } from "./manage-user";
@@ -10,7 +16,7 @@ interface UserRow {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "PROJECT_LEAD" | "TEAM_LEAD" | "WORKER";
+  role: Role;
   serviceTypes: ("CLEANING" | "PROTECTION")[];
   active: boolean;
 }
@@ -22,9 +28,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function UsersPage() {
   const me = await requireUser();
-  // Only administrators manage users. This just keeps others off a page that
-  // would fail: the Server Actions and the API enforce the rule.
-  if (me.role !== "ADMIN") redirect("/orders");
+  // Only administrators and HR manage users. This just keeps others off a
+  // page that would fail: the Server Actions and the API enforce the rule.
+  if (!canManageUsers(me.role)) redirect(homePath(me.role));
+  const myRoles = manageableRoles(me.role);
 
   const { users } = await apiAsUser<{ users: UserRow[] }>(
     "{ users(includeInactive: true) { id name email role serviceTypes active } }",
@@ -42,12 +49,15 @@ export default async function UsersPage() {
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">{t("addUser")}</h2>
-        <CreateUserForm />
+        <CreateUserForm roles={myRoles} />
       </section>
 
       <ul className="flex flex-col gap-3">
         {users.map((user) => {
           const isMe = user.id === me.id;
+          // HR sees admins and other HR, but can't change them (the API
+          // refuses it too), so they get no buttons.
+          const canManage = myRoles.includes(user.role);
           return (
             <li
               key={user.id}
@@ -81,7 +91,7 @@ export default async function UsersPage() {
                   </div>
                 </div>
                 {/* You can't deactivate yourself; the API refuses it too. */}
-                {!isMe && (
+                {!isMe && canManage && (
                   <form action={setActive.bind(null, user.id, !user.active)}>
                     <button
                       type="submit"
@@ -94,6 +104,7 @@ export default async function UsersPage() {
               </div>
 
               {/* Collapsed by default, so the list stays short on a phone. */}
+              {canManage && (
               <details className="mt-3">
                 <summary className="flex min-h-11 cursor-pointer items-center text-sm font-medium text-sky-700 dark:text-sky-400">
                   {t("manage")}
@@ -110,6 +121,7 @@ export default async function UsersPage() {
                     role={user.role}
                     serviceTypes={user.serviceTypes}
                     isMe={isMe}
+                    roles={myRoles}
                   />
                   <div className="flex flex-col gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
                     <h3 className="text-sm font-semibold">
@@ -119,6 +131,7 @@ export default async function UsersPage() {
                   </div>
                 </div>
               </details>
+              )}
             </li>
           );
         })}

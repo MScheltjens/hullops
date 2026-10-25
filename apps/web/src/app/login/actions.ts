@@ -43,7 +43,8 @@ export async function login(
 
   // Outside the try: redirect() works by throwing, which the catch above
   // would otherwise swallow.
-  redirect("/orders");
+  // The home page sends each role to its own start page.
+  redirect("/");
 }
 
 export async function logout() {

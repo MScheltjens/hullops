@@ -34,6 +34,7 @@ const makeUser = (id: string, role: AuthUser['role']): AuthUser => ({
   updatedAt: new Date(0),
 });
 const lead = makeUser('lead-1', 'PROJECT_LEAD');
+const teamLead = makeUser('team-lead-1', 'TEAM_LEAD');
 const worker = (id: string, active = true) => ({
   ...makeUser(id, 'WORKER'),
   active,
@@ -58,7 +59,10 @@ describe('StaffingService', () => {
     db.$transaction.mockImplementation((callback: (tx: typeof db) => unknown) =>
       callback(db),
     );
-    db.vessel.findUnique.mockResolvedValue({ id: 'vessel-1' });
+    db.vessel.findUnique.mockResolvedValue({
+      id: 'vessel-1',
+      teamLeadId: 'team-lead-1',
+    });
     db.staffingRequest.upsert.mockResolvedValue({ id: 'request-1' });
     const moduleRef = await Test.createTestingModule({
       providers: [StaffingService, { provide: PrismaService, useValue: db }],
@@ -85,12 +89,48 @@ describe('StaffingService', () => {
   });
 
   describe('save', () => {
-    it('only lets project leads enter requests', async () => {
-      await expect(
-        service.save(makeInput(), makeUser('admin-1', 'ADMIN')),
-      ).rejects.toBeInstanceOf(ForbiddenException);
-      expect(db.$transaction).not.toHaveBeenCalled();
+    it('lets project leads enter a request for any vessel', async () => {
+      await service.save(makeInput(), lead);
+      expect(db.staffingRequest.upsert).toHaveBeenCalled();
     });
+
+    it('lets the team lead of the vessel enter a request, as himself', async () => {
+      await service.save(makeInput(), teamLead);
+      expect(db.staffingRequest.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({
+            enteredBy: { connect: { id: 'team-lead-1' } },
+          }),
+        }),
+      );
+    });
+
+    it("refuses a team lead for a vessel that isn't his", async () => {
+      await expect(
+        service.save(makeInput(), makeUser('team-lead-2', 'TEAM_LEAD')),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      expect(db.staffingRequest.upsert).not.toHaveBeenCalled();
+    });
+
+    it('refuses a team lead when the vessel has no team lead', async () => {
+      db.vessel.findUnique.mockResolvedValue({
+        id: 'vessel-1',
+        teamLeadId: null,
+      });
+      await expect(service.save(makeInput(), teamLead)).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
+    });
+
+    it.each(['ADMIN', 'WORKER'] as const)(
+      'refuses a %s before touching the database',
+      async (role) => {
+        await expect(
+          service.save(makeInput(), makeUser('someone', role)),
+        ).rejects.toBeInstanceOf(ForbiddenException);
+        expect(db.$transaction).not.toHaveBeenCalled();
+      },
+    );
 
     it('rejects input that breaks a rule before touching the database', async () => {
       await expect(
@@ -141,7 +181,6 @@ describe('StaffingService', () => {
       await service.save(
         makeInput({
           requestedWorkerIds: ['w-1', 'w-2', 'w-1'],
-          reportedBy: '  Heinz  ',
           note: '   ',
           workersActual: 5,
         }),
@@ -159,7 +198,6 @@ describe('StaffingService', () => {
           create: expect.objectContaining({
             workersNeeded: 6,
             workersActual: 5,
-            reportedBy: 'Heinz',
             note: null,
           }),
         }),

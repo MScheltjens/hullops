@@ -19,10 +19,12 @@
     "roles": {
       "PROJECT_LEAD": "Projektleitung",
       "WORKER": "Fachkraft",
-      "ADMIN": "Administrator"
+      "ADMIN": "Administrator",
+      "TEAM_LEAD": "Vorarbeiter"
     },
     "users": "Benutzer",
-    "planning": "Planung"
+    "planning": "Planung",
+    "vessels": "Schiffe"
   },
   "orders": {
     "title": "Aufträge",
@@ -111,7 +113,8 @@
       "incomplete": "Bitte füllen Sie alle Pflichtfelder aus.",
       "invalid": "Der Auftrag konnte nicht angelegt werden:",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
-    }
+    },
+    "addVessel": "Schiff hinzufügen"
   },
   "orderDetail": {
     "back": "Alle Aufträge",
@@ -171,7 +174,8 @@
     "roles": {
       "ADMIN": "Administrator",
       "PROJECT_LEAD": "Projektleiter",
-      "WORKER": "Mitarbeiter"
+      "WORKER": "Mitarbeiter",
+      "TEAM_LEAD": "Vorarbeiter"
     },
     "serviceAreas": "Leistungsbereiche",
     "serviceTypeNames": {
@@ -210,7 +214,6 @@
     "noRequest": "Noch keine Anforderung für diese Woche",
     "requested": "{count, plural, one {# Arbeiter angefordert} other {# Arbeiter angefordert}}",
     "namedCount": "{count} namentlich",
-    "foremanIs": "Vorarbeiter {name}",
     "doubleBooked": "{name} ist auch für {vessels} angefordert",
     "onOrders": "{count, plural, one {# Person} other {# Personen}} in den Teams laufender Aufträge",
     "short": "{count, plural, one {# weiterer nötig} other {# weitere nötig}}",
@@ -221,7 +224,6 @@
     "workersNeeded": "Arbeiter insgesamt benötigt",
     "byName": "Namentlich angefordert",
     "byNameHint": "Der Vorarbeiter kann dieselben Leute wieder anfordern, damit sie auf einem Schiff bleiben. Sie zählen zur Gesamtzahl.",
-    "foreman": "Vorarbeiter",
     "note": "Notiz",
     "workersActual": "Tatsächlich gearbeitet",
     "workersActualHint": "Nachträglich für die Rechnung ausfüllen.",
@@ -229,10 +231,37 @@
     "saving": "Wird gespeichert…",
     "saved": "Gespeichert.",
     "errors": {
-      "forbidden": "Nur Projektleiter können Anforderungen eintragen.",
+      "forbidden": "Nur Projektleiter und der Vorarbeiter des Schiffes können Anforderungen eintragen.",
       "incomplete": "Bitte angeben, wie viele Arbeiter benötigt werden.",
       "invalid": "Bitte prüfen Sie die Felder:",
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
-    }
+    },
+    "teamLeadIs": "Vorarbeiter: {name}",
+    "noTeamLead": "Noch kein Vorarbeiter. Ein Projektleiter kann auf der Seite Schiffe einen wählen."
+  },
+  "vessels": {
+    "title": "Schiffe",
+    "subtitle": "Die Schiffe, für die Aufträge geplant werden",
+    "add": "Schiff hinzufügen",
+    "name": "Name",
+    "imoNumber": "IMO-Nummer",
+    "imoHint": "Optional. 7 Ziffern ohne „IMO“, z. B. 9074729.",
+    "vesselType": "Typ",
+    "vesselTypeHint": "Optional, z. B. Yacht oder Containerschiff.",
+    "lengthM": "Länge (m)",
+    "create": "Schiff hinzufügen",
+    "creating": "Wird hinzugefügt…",
+    "empty": "Noch keine Schiffe.",
+    "noDetails": "Keine weiteren Angaben",
+    "errors": {
+      "forbidden": "Nur Projektleiter können Schiffe hinzufügen.",
+      "conflict": "Ein Schiff mit dieser IMO-Nummer existiert bereits.",
+      "invalid": "Bitte prüfen Sie die Felder:",
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+    },
+    "teamLead": "Vorarbeiter",
+    "teamLeadIs": "Vorarbeiter: {name}",
+    "noTeamLead": "Noch kein Vorarbeiter",
+    "saveTeamLead": "Speichern"
   }
 }

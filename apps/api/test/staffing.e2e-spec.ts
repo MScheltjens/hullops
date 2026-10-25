@@ -21,6 +21,8 @@ describe('Staffing requests (e2e)', () => {
     admin: `e2e-${run}-admin`,
     worker1: `e2e-${run}-w1`,
     worker2: `e2e-${run}-w2`,
+    teamLead: `e2e-${run}-tl`,
+    otherTeamLead: `e2e-${run}-tl2`,
     vesselA: `e2e-${run}-vessel-a`,
     vesselB: `e2e-${run}-vessel-b`,
   };
@@ -30,8 +32,10 @@ describe('Staffing requests (e2e)', () => {
   let asLead: Gql;
   let asAdmin: Gql;
   let asWorker: Gql;
+  let asTeamLead: Gql;
+  let asOtherTeamLead: Gql;
 
-  const FIELDS = `weekStart workersNeeded workersActual reportedBy note
+  const FIELDS = `weekStart workersNeeded workersActual note
     vessel { id } requestedWorkers { id } enteredBy { id }`;
   const save = (input: Record<string, unknown>, as = asLead) =>
     as(
@@ -55,7 +59,7 @@ describe('Staffing requests (e2e)', () => {
 
     const make = async (
       id: string,
-      role: 'ADMIN' | 'PROJECT_LEAD' | 'WORKER',
+      role: 'ADMIN' | 'PROJECT_LEAD' | 'WORKER' | 'TEAM_LEAD',
     ) =>
       graphql(
         app,
@@ -65,9 +69,19 @@ describe('Staffing requests (e2e)', () => {
     asAdmin = await make(ids.admin, 'ADMIN');
     asWorker = await make(ids.worker1, 'WORKER');
     await make(ids.worker2, 'WORKER');
-    for (const id of [ids.vesselA, ids.vesselB]) {
-      await prisma.vessel.create({ data: { id, name: `e2e ${id}` } });
-    }
+    asTeamLead = await make(ids.teamLead, 'TEAM_LEAD');
+    asOtherTeamLead = await make(ids.otherTeamLead, 'TEAM_LEAD');
+    // Vessel A has a team lead; vessel B doesn't.
+    await prisma.vessel.create({
+      data: {
+        id: ids.vesselA,
+        name: `e2e ${ids.vesselA}`,
+        teamLeadId: ids.teamLead,
+      },
+    });
+    await prisma.vessel.create({
+      data: { id: ids.vesselB, name: `e2e ${ids.vesselB}` },
+    });
   });
 
   afterAll(async () => {
@@ -80,7 +94,16 @@ describe('Staffing requests (e2e)', () => {
     });
     await prisma.user.deleteMany({
       where: {
-        id: { in: [ids.lead, ids.admin, ids.worker1, ids.worker2] },
+        id: {
+          in: [
+            ids.lead,
+            ids.admin,
+            ids.worker1,
+            ids.worker2,
+            ids.teamLead,
+            ids.otherTeamLead,
+          ],
+        },
       },
     });
     await app.close();
@@ -92,14 +115,12 @@ describe('Staffing requests (e2e)', () => {
       weekStart: WEEK,
       workersNeeded: 6,
       requestedWorkerIds: [ids.worker1, ids.worker2],
-      reportedBy: 'Heinz',
       note: 'Same crew as last week, please',
     });
     expect(saved.body.data.saveStaffingRequest).toMatchObject({
       weekStart: WEEK,
       workersNeeded: 6,
       workersActual: null,
-      reportedBy: 'Heinz',
       vessel: { id: ids.vesselA },
       enteredBy: { id: ids.lead },
     });
@@ -191,7 +212,35 @@ describe('Staffing requests (e2e)', () => {
     expect(response.body.errors[0].extensions.code).toBe('NOT_FOUND');
   });
 
-  it('keeps entering requests to project leads', async () => {
+  it('lets a team lead enter requests for his own vessel only', async () => {
+    const own = await save(
+      {
+        vesselId: ids.vesselA,
+        weekStart: '2026-11-02',
+        workersNeeded: 4,
+        requestedWorkerIds: [ids.worker1],
+      },
+      asTeamLead,
+    );
+    expect(own.body.errors).toBeUndefined();
+    expect(own.body.data.saveStaffingRequest.enteredBy).toEqual({
+      id: ids.teamLead,
+    });
+
+    // Vessel B has no team lead, and vessel A is not the other team lead's.
+    const notHis = await save(
+      { vesselId: ids.vesselB, weekStart: '2026-11-02', workersNeeded: 1 },
+      asTeamLead,
+    );
+    expect(notHis.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    const otherLead = await save(
+      { vesselId: ids.vesselA, weekStart: '2026-11-02', workersNeeded: 1 },
+      asOtherTeamLead,
+    );
+    expect(otherLead.body.errors[0].extensions.code).toBe('FORBIDDEN');
+  });
+
+  it('keeps workers and administrators from entering requests', async () => {
     for (const as of [asWorker, asAdmin]) {
       const response = await save(
         { vesselId: ids.vesselA, weekStart: WEEK, workersNeeded: 1 },
@@ -199,5 +248,34 @@ describe('Staffing requests (e2e)', () => {
       );
       expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
     }
+  });
+
+  it('lets a project lead choose the team lead of a vessel', async () => {
+    const setLead = (userId: string | null, as = asLead) =>
+      as(
+        `mutation ($vesselId: ID!, $userId: ID) { setVesselTeamLead(vesselId: $vesselId, userId: $userId) { teamLead { id } } }`,
+        { vesselId: ids.vesselB, userId },
+      );
+
+    const chosen = await setLead(ids.otherTeamLead);
+    expect(chosen.body.data.setVesselTeamLead.teamLead).toEqual({
+      id: ids.otherTeamLead,
+    });
+    // The new team lead can enter requests for it now.
+    const now = await save(
+      { vesselId: ids.vesselB, weekStart: '2026-11-09', workersNeeded: 2 },
+      asOtherTeamLead,
+    );
+    expect(now.body.errors).toBeUndefined();
+
+    // Only team leads can be chosen, only project leads can choose.
+    const worker = await setLead(ids.worker1);
+    expect(worker.body.errors[0].extensions.code).toBe('BAD_REQUEST');
+    const byTeamLead = await setLead(null, asTeamLead);
+    expect(byTeamLead.body.errors[0].extensions.code).toBe('FORBIDDEN');
+
+    // And the choice can be cleared.
+    const cleared = await setLead(null);
+    expect(cleared.body.data.setVesselTeamLead.teamLead).toBeNull();
   });
 });

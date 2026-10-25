@@ -13,7 +13,7 @@ const inputClass =
 const buttonClass =
   "min-h-11 self-start rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60";
 
-const ROLES = ["WORKER", "PROJECT_LEAD", "ADMIN"] as const;
+const ROLES = ["WORKER", "TEAM_LEAD", "PROJECT_LEAD", "ADMIN"] as const;
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
 /** The result line under a form: an error with the API's messages, or "done". */

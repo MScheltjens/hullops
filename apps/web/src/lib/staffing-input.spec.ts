@@ -58,17 +58,19 @@ describe("buildSaveStaffingInput", () => {
     ).toEqual([]);
   });
 
-  it("trims the foreman's name and the note, and drops empty ones", () => {
-    const input = buildSaveStaffingInput(
+  it("trims the note and drops an empty one", () => {
+    const filled = buildSaveStaffingInput(
       "v",
       "2026-10-26",
-      form([
-        ["reportedBy", "  Heinz "],
-        ["note", "   "],
-      ]),
+      form([["note", "  Same crew "]]),
+    );
+    const empty = buildSaveStaffingInput(
+      "v",
+      "2026-10-26",
+      form([["note", "   "]]),
     );
 
-    expect(input.reportedBy).toBe("Heinz");
-    expect(input.note).toBeUndefined();
+    expect(filled.note).toBe("Same crew");
+    expect(empty.note).toBeUndefined();
   });
 });

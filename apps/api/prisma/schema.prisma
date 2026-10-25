@@ -16,6 +16,7 @@ enum Role {
   PROJECT_LEAD
   WORKER
   ADMIN // technical administrator: manages users, reads everything, doesn't run the work
+  TEAM_LEAD // the on-site lead (voorarbeider) of a vessel: asks for workers for his vessel's coming weeks
 }
 
 // Language for text the server sends a user (e.g. emails). The web app
@@ -57,6 +58,7 @@ model User {
   orderComments     OrderComment[]
   staffingEntered   StaffingRequest[]       @relation("StaffingEnteredBy")
   staffingRequested StaffingRequestWorker[]
+  ledVessels        Vessel[]                @relation("VesselTeamLead")
 }
 
 model Vessel {
@@ -67,6 +69,10 @@ model Vessel {
   lengthM    Float?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  // The one team lead responsible for this vessel on the yard.
+  teamLeadId String?
+  teamLead   User?   @relation("VesselTeamLead", fields: [teamLeadId], references: [id], onDelete: SetNull)
 
   orders           Order[]
   staffingRequests StaffingRequest[]
@@ -172,22 +178,21 @@ model StatusUpdate {
   @@index([orderId, createdAt])
 }
 
-// What a shipyard foreman (voorarbeider) asked for, for one vessel and one week:
-// how many workers, and which ones by name so the same people can stay on the
-// same vessel. The foreman has no login; the project lead enters it.
+// What a vessel's team lead (voorarbeider) asked for, for one vessel and one
+// week: how many workers, and which ones by name so the same people can stay
+// on the same vessel. The team lead enters it himself; a project lead can too.
 model StaffingRequest {
   id            String   @id @default(cuid())
   weekStart     DateTime @db.Date // the Monday of the ISO week
   workersNeeded Int // the total, including the workers requested by name
   workersActual Int? // filled in afterwards, for invoicing
-  reportedBy    String? // the foreman's name
   note          String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   vesselId    String
   vessel      Vessel @relation(fields: [vesselId], references: [id], onDelete: Restrict)
-  enteredById String
+  enteredById String // the team lead or project lead who entered or last changed it
   enteredBy   User   @relation("StaffingEnteredBy", fields: [enteredById], references: [id])
 
   requestedWorkers StaffingRequestWorker[]

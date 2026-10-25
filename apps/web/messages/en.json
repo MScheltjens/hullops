@@ -20,7 +20,8 @@
       "PROJECT_LEAD": "Project lead",
       "WORKER": "Worker",
       "ADMIN": "Administrator",
-      "TEAM_LEAD": "Team lead"
+      "TEAM_LEAD": "Team lead",
+      "HR": "Human resources"
     },
     "users": "Users",
     "planning": "Planning",
@@ -175,7 +176,8 @@
       "ADMIN": "Administrator",
       "PROJECT_LEAD": "Project lead",
       "WORKER": "Worker",
-      "TEAM_LEAD": "Team lead"
+      "TEAM_LEAD": "Team lead",
+      "HR": "Human resources"
     },
     "serviceAreas": "Service areas",
     "serviceTypeNames": {

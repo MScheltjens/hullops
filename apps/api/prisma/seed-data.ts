@@ -120,6 +120,7 @@ const SOFIA = 'sofia.rossi@hullops.example';
 const ADMIN = 'admin@hullops.example';
 const HEINZ = 'heinz.brandt@hullops.example';
 const UTE = 'ute.lange@hullops.example';
+const PETRA = 'petra.neumann@hullops.example';
 
 /**
  * Builds the demo data with dates relative to `now`, so orders are in
@@ -200,6 +201,15 @@ export function buildSeedData(now: Date): SeedData {
       name: 'Ute Lange',
       role: 'TEAM_LEAD',
       serviceTypes: ['CLEANING', 'PROTECTION'],
+      locale: 'DE',
+    },
+    {
+      // HR hires people and records absence. Manages users (but not admins or
+      // other HR) and doesn't see orders.
+      email: PETRA,
+      name: 'Petra Neumann',
+      role: 'HR',
+      serviceTypes: [],
       locale: 'DE',
     },
     {

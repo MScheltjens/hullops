@@ -16,6 +16,7 @@ These are assumptions to check with real users, not facts.
 | Team lead (*Vorarbeiter*) | Asks for workers for his vessel for the coming week, follows his vessel's orders | A PC in the container office, sometimes a phone |
 | Project lead (office) | Plans orders, staffs them, answers the team leads, invoices the customer | A PC |
 | Worker (*Arbeiter*) | Sees today's orders and reports their status | A phone, on the yard |
+| HR (office) | Hires people, so creates their accounts (not admins or other HR); recording who is away is planned | A PC |
 | Administrator | Manages accounts | A PC |
 
 ## The bar: explainable in an hour

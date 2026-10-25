@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Planning for cleaning and protection work on shipyards",
     // Open on the work, not on a landing page. Without a session the proxy
     // sends the user on to the login page.
-    start_url: "/orders",
+    start_url: "/",
     // No browser bars: it looks and behaves like an app.
     display: "standalone",
     background_color: "#ffffff",

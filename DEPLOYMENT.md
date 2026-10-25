@@ -52,7 +52,7 @@ and then starts the API. Point the host's health check at `GET /health`
 
 ### The first administrator
 
-Only an administrator can create users, so a new database needs one. There
+Only administrators and HR can create users, and only an administrator can create the first of them, so a new database needs one. There
 are two ways:
 
 - **Seed it** (see below): the demo data includes `admin@hullops.example`

@@ -1,3 +1,4 @@
+import type { Role } from "./user-roles";
 import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
@@ -16,7 +17,7 @@ export interface CurrentUser {
   id: string;
   name: string;
   email: string;
-  role: "PROJECT_LEAD" | "WORKER" | "ADMIN" | "TEAM_LEAD";
+  role: Role;
   locale: Locale;
 }
 

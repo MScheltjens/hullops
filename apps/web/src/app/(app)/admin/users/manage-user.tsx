@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import type { Role } from "@/lib/user-roles";
 import {
   resetPassword,
   updateUser,
@@ -13,7 +14,6 @@ const inputClass =
 const buttonClass =
   "min-h-11 self-start rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60";
 
-const ROLES = ["WORKER", "TEAM_LEAD", "PROJECT_LEAD", "ADMIN"] as const;
 const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
 /** The result line under a form: an error with the API's messages, or "done". */
@@ -60,13 +60,16 @@ export function EditUserForm({
   role,
   serviceTypes,
   isMe,
+  roles,
 }: {
   userId: string;
   name: string;
-  role: (typeof ROLES)[number];
+  role: Role;
   serviceTypes: string[];
   /** You can't change your own role, so the role field is left out. */
   isMe: boolean;
+  /** The roles the logged-in user may give. */
+  roles: readonly Role[];
 }) {
   const t = useTranslations("admin");
   const [state, formAction, pending] = useActionState<
@@ -94,7 +97,7 @@ export function EditUserForm({
         <label className="flex flex-col gap-1 text-sm font-medium">
           {t("role")}
           <select name="role" defaultValue={role} className={inputClass}>
-            {ROLES.map((r) => (
+            {roles.map((r) => (
               <option key={r} value={r}>
                 {t(`roles.${r}`)}
               </option>

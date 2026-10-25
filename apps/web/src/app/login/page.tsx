@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function LoginPage() {
   // Already logged in (with a valid session): nothing to do here.
-  if (await getCurrentUser()) redirect("/orders");
+  if (await getCurrentUser()) redirect("/");
 
   const t = await getTranslations();
   return (

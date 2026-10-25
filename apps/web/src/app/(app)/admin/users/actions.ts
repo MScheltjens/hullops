@@ -9,6 +9,7 @@ import {
   buildResetPasswordInput,
   buildUpdateUserInput,
 } from "@/lib/user-input";
+import { canManageUsers } from "@/lib/user-roles";
 
 export interface CreateUserState {
   error?: "forbidden" | "conflict" | "invalid" | "unavailable";
@@ -30,7 +31,7 @@ export async function createUser(
   // A Server Action is a public endpoint: check the role here, even though
   // the page already hides the form. (The API checks it again.)
   const user = await requireUser();
-  if (user.role !== "ADMIN") return { error: "forbidden" };
+  if (!canManageUsers(user.role)) return { error: "forbidden" };
 
   // Never send a password back to the browser, not even to refill the form.
   const values = echoValues(formData);
@@ -73,7 +74,7 @@ const SET_ACTIVE = `
 /** Bound in the page: `setActive.bind(null, user.id, !user.active)`. */
 export async function setActive(userId: string, active: boolean) {
   const user = await requireUser();
-  if (user.role !== "ADMIN") return;
+  if (!canManageUsers(user.role)) return;
   await apiAsUser(SET_ACTIVE, { userId, active });
   revalidatePath("/admin/users");
 }
@@ -104,7 +105,7 @@ async function runManage(
   input: Record<string, unknown>,
 ): Promise<ManageUserState> {
   const user = await requireUser();
-  if (user.role !== "ADMIN") return { error: "forbidden" };
+  if (!canManageUsers(user.role)) return { error: "forbidden" };
   try {
     await apiAsUser(mutation, { input });
   } catch (error) {

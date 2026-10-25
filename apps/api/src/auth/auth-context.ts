@@ -31,6 +31,18 @@ export const Public = () => SetMetadata(IS_PUBLIC, true);
 /** Restricts an endpoint to users with one of these roles. */
 export const Roles = (...roles: Role[]) => SetMetadata(ROLES, roles);
 
+/**
+ * The roles that see the work: orders, vessels and staffing. HR is left out
+ * on purpose. It hires people and records absence, so it has no need to read
+ * what the yards are being cleaned or protected.
+ */
+export const WORK_ROLES: Role[] = [
+  'ADMIN',
+  'PROJECT_LEAD',
+  'TEAM_LEAD',
+  'WORKER',
+];
+
 /** Injects the logged-in user into a resolver or controller method. */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthUser => {

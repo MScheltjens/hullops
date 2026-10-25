@@ -266,7 +266,7 @@ type Query {
   """The staffing requests of one week, given as its Monday"""
   staffingRequests(weekStart: String!): [StaffingRequest!]!
 
-  """Active users. Administrators can include deactivated ones."""
+  """Active users. Administrators and HR can include deactivated ones."""
   users(includeInactive: Boolean! = false, role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
   vessels: [Vessel!]!
@@ -279,6 +279,7 @@ input ResetPasswordInput {
 
 enum Role {
   ADMIN
+  HR
   PROJECT_LEAD
   TEAM_LEAD
   WORKER

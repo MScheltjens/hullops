@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { requireUser, type Locale } from "@/lib/dal";
+import { canManageUsers, homePath, seesWork } from "@/lib/user-roles";
 import { logout } from "../login/actions";
 import { setLocale } from "./actions";
 
@@ -23,12 +24,15 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <header className="border-b border-zinc-200 bg-white pt-[env(safe-area-inset-top)] dark:border-zinc-800 dark:bg-zinc-950">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 px-4">
           <Link
-            href="/orders"
+            href={homePath(user.role)}
             className="flex min-h-11 items-center text-lg font-semibold tracking-tight"
           >
             {t("common.appName")}
           </Link>
           <nav className="flex flex-1 gap-5">
+            {/* HR doesn't see the work; the API refuses it too. */}
+            {seesWork(user.role) && (
+              <>
             <Link
               href="/orders"
               className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
@@ -47,8 +51,10 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             >
               {t("nav.planning")}
             </Link>
-            {/* Only administrators manage users; the page and the API check too. */}
-            {user.role === "ADMIN" && (
+              </>
+            )}
+            {/* Administrators and HR manage users; the page and the API check too. */}
+            {canManageUsers(user.role) && (
               <Link
                 href="/admin/users"
                 className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"

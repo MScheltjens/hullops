@@ -1,4 +1,5 @@
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
+import { User } from '../users/user.model';
 
 @ObjectType()
 export class Vessel {
@@ -19,6 +20,12 @@ export class Vessel {
 
   @Field(() => Float, { nullable: true, description: 'Length in meters' })
   lengthM: number | null;
+
+  @Field(() => User, {
+    nullable: true,
+    description: 'The team lead responsible for this vessel on the yard',
+  })
+  teamLead: User | null;
 
   @Field()
   createdAt: Date;

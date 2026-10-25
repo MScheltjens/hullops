@@ -10,7 +10,7 @@ interface UserRow {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "PROJECT_LEAD" | "WORKER";
+  role: "ADMIN" | "PROJECT_LEAD" | "TEAM_LEAD" | "WORKER";
   serviceTypes: ("CLEANING" | "PROTECTION")[];
   active: boolean;
 }

@@ -4,7 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { createUserAndLogin, graphql } from './auth-helpers';
+import { createUserAndLogin, graphql, runId } from './auth-helpers';
 
 /**
  * Runs the real app against the test database (see test-database.ts).
@@ -15,7 +15,7 @@ describe('Vessels GraphQL API (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
   const createdIds: string[] = [];
-  const leadId = `e2e-${Date.now().toString(36)}-vessel-lead`;
+  const leadId = `e2e-${runId()}-vessel-lead`;
   let gql: ReturnType<typeof graphql>;
 
   const createVessel = `

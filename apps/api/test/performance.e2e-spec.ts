@@ -4,7 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { createUserAndLogin, graphql } from './auth-helpers';
+import { createUserAndLogin, graphql, runId } from './auth-helpers';
 import { countQueries } from './query-counter';
 
 /**
@@ -23,7 +23,11 @@ describe('Performance: database queries per request (e2e)', () => {
   let prisma: PrismaService;
   let asLead: ReturnType<typeof graphql>;
 
-  const run = Date.now().toString(36);
+  // Unique per run, and different from the other suites' ids: they also build
+  // ids from the time in milliseconds, and suites run in parallel against the
+  // same database, so two suites starting in the same millisecond must not
+  // end up with the same user ids (or delete each other's users).
+  const run = `perf${runId()}`;
   const id = (name: string) => `e2e-${run}-${name}`;
   const WORKERS = ['w1', 'w2', 'w3', 'w4'].map(id);
 

@@ -55,3 +55,21 @@ export async function createVessel(
   revalidatePath("/vessels");
   return {};
 }
+
+const SET_TEAM_LEAD = `
+  mutation ($vesselId: ID!, $userId: ID) {
+    setVesselTeamLead(vesselId: $vesselId, userId: $userId) { id }
+  }`;
+
+/**
+ * Chooses the team lead responsible for a vessel; an empty choice clears it.
+ * Bound in the page: `setTeamLead.bind(null, vessel.id)`.
+ */
+export async function setTeamLead(vesselId: string, formData: FormData) {
+  const user = await requireUser();
+  if (user.role !== "PROJECT_LEAD") return;
+  const userId = String(formData.get("userId") ?? "");
+  await apiAsUser(SET_TEAM_LEAD, { vesselId, userId: userId || null });
+  revalidatePath("/vessels");
+  revalidatePath("/planning");
+}

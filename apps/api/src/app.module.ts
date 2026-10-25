@@ -9,6 +9,7 @@ import { formatGraphqlError } from './graphql/format-graphql-error';
 import { HealthModule } from './health/health.module';
 import { OrdersModule } from './orders/orders.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StaffingModule } from './staffing/staffing.module';
 import { UsersModule } from './users/users.module';
 import { VesselsModule } from './vessels/vessels.module';
 
@@ -49,6 +50,7 @@ import { VesselsModule } from './vessels/vessels.module';
     VesselsModule,
     UsersModule,
     OrdersModule,
+    StaffingModule,
   ],
 })
 export class AppModule {}

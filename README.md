@@ -49,6 +49,8 @@ The shipyard's own people (the customer's side) have **no login**. The project l
 - **Computed, not stored:** "overdue" is worked out when needed, so it can't go stale.
 - **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (re-seeding restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
 
+**More detail:** [docs/ux.md](docs/ux.md) describes who uses the app, the bar it is held to (any new user can use it after an hour of explanation) and the main flows with sketches. [docs/caching.md](docs/caching.md) says what is cached, what is not and why.
+
 **Planned: leave and sickness from Crewmeister**
 
 Workers have a profile in both systems, and you can't plan someone who is on leave. The plan is a small "availability" model in HullOps that the planning page uses (unavailable workers are marked, and a request by name for someone absent gives a warning), fed by interchangeable sources behind one interface: a demo source with sample data, and a Crewmeister source using its V3 absence API.

@@ -1,6 +1,6 @@
 import { getRequestConfig } from "next-intl/server";
 import { headers } from "next/headers";
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser } from "@/lib/server/dal";
 import { type AppLocale, localeFromAcceptLanguage } from "./locales";
 
 /**
@@ -12,7 +12,10 @@ import { type AppLocale, localeFromAcceptLanguage } from "./locales";
  * browser's preferred language is used.
  */
 export default getRequestConfig(async () => {
-  const user = await getCurrentUser();
+  // Without the API there's no user to read the language from. Falling back
+  // to the browser's language keeps the root layout working, so the error
+  // comes up in the app's translated error page instead of global-error.tsx.
+  const user = await getCurrentUser().catch(() => null);
   const locale: AppLocale = user
     ? (user.locale.toLowerCase() as AppLocale)
     : localeFromAcceptLanguage((await headers()).get("accept-language"));

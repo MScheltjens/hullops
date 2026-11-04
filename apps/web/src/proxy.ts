@@ -6,7 +6,7 @@ import { SESSION_COOKIE } from "./lib/session-cookie";
  * cookie go straight to the login page.
  *
  * This only checks that a cookie exists, not that it's valid; that happens
- * in the data access layer (src/lib/dal.ts), which asks the API. The Next.js
+ * in the data access layer (src/lib/server/dal.ts), which asks the API. The Next.js
  * docs recommend exactly this split: proxy for cheap, optimistic redirects,
  * the DAL for real authorization.
  */

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import { StatusBadge, type Status } from "./status-badge";
 
 const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const satisfies readonly Status[];
@@ -52,7 +52,7 @@ export default async function OrdersPage({
 }: PageProps<"/orders">) {
   // Filters live in the URL (?status=PLANNED&overdue=true), so a filtered
   // view can be bookmarked or shared, and the page needs no client state.
-  const user = await requireUser();
+  const user = await requireWorkUser();
   const params = await searchParams;
   const status = pick(params.status, STATUSES);
   const serviceType = pick(params.serviceType, SERVICE_TYPES);

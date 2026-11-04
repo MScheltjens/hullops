@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/dal";
+import { requireUser } from "@/lib/server/dal";
 import { homePath } from "@/lib/user-roles";
 
 // Everyone starts at the page their role works in.

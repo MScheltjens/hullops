@@ -1,9 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { requireUser, type Locale } from "@/lib/dal";
+import { requireUser, type Locale } from "@/lib/server/dal";
 import { canManageUsers, homePath, seesWork } from "@/lib/user-roles";
-import { logout } from "../login/actions";
-import { setLocale } from "./actions";
+import { logout, setLocale } from "./actions";
 
 /**
  * The shell around every page that needs login. The "(app)" folder is a

@@ -68,8 +68,9 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 
 ## Web (`apps/web/`)
 
-- Pages are Server Components that call the API on the server via `src/lib/dal.ts` (`requireUser()`, `apiAsUser()`); the token stays in an httpOnly cookie and never reaches the browser.
+- Pages are Server Components that call the API on the server via `src/lib/server/dal.ts` (`requireUser()`, `apiAsUser()`); the token stays in an httpOnly cookie and never reaches the browser.
 - `src/proxy.ts` is Next.js 16's middleware: an optimistic cookie check only. Real auth is in the DAL.
+- Error screens: `not-found.tsx` and `error.tsx` exist at `src/app` (full page, also catches `(app)/layout.tsx` failing) and in `(app)` (inside the header, same component). `global-error.tsx` is the last resort, without translations.
 - i18n with next-intl, no locale in the URL: the language comes from `User.locale` (or Accept-Language before login). Add every UI string to both `messages/en.json` and `messages/de.json`; `pnpm typecheck` fails if German misses a key. Client Components only get the namespaces passed in `src/app/layout.tsx`.
 
 ## Data model (`apps/api/prisma/schema.prisma`)

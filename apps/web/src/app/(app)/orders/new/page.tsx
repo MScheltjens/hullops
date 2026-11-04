@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireUser } from "@/lib/server/dal";
 import { OrderForm, type VesselOption } from "./order-form";
 
 export async function generateMetadata(): Promise<Metadata> {

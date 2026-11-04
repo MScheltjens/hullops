@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import {
   assignedFor,
   canEnterRequest,
@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function PlanningPage({
   searchParams,
 }: PageProps<"/planning">) {
-  const user = await requireUser();
+  const user = await requireWorkUser();
   const params = await searchParams;
   const week = parseWeekParam(params.week, new Date());
   const weekStart = toDateOnly(week);

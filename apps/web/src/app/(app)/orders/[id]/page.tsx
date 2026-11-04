@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import { canUpdateOrder, nextStatus } from "@/lib/order-status";
 import { StatusBadge, type Status } from "../status-badge";
 import { assignMember, removeMember } from "./actions";
@@ -69,18 +69,21 @@ export async function generateMetadata({
   params,
 }: PageProps<"/orders/[id]">): Promise<Metadata> {
   const { id } = await params;
+  // Metadata runs alongside the page, so it needs the page's checks too.
+  await requireWorkUser();
   const { order } = await apiAsUser<{ order: { title: string } | null }>(
     "query ($id: ID!) { order(id: $id) { title } }",
     { id },
   );
-  return { title: order?.title };
+  if (!order) notFound();
+  return { title: order.title };
 }
 
 export default async function OrderDetailPage({
   params,
 }: PageProps<"/orders/[id]">) {
   const { id } = await params;
-  const user = await requireUser();
+  const user = await requireWorkUser();
   const { order } = await apiAsUser<{ order: OrderDetail | null }>(ORDER, {
     id,
   });

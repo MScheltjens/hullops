@@ -1,7 +1,14 @@
 "use server";
 
 import { refresh } from "next/cache";
-import { apiAsUser, type Locale } from "@/lib/dal";
+import { redirect } from "next/navigation";
+import { apiAsUser, type Locale } from "@/lib/server/dal";
+import { clearSession } from "@/lib/server/session";
+
+export async function logout() {
+  await clearSession();
+  redirect("/login");
+}
 
 /**
  * Saves the user's language in the API (User.locale) and re-renders the

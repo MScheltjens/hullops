@@ -28,13 +28,13 @@ Log in with a demo user from the API seed, e.g. `lena.hoffmann@hullops.example` 
 
 - **Login** is a Server Action ([`src/app/login/actions.ts`](src/app/login/actions.ts)). It calls the API's `login` mutation and stores the token in an **httpOnly cookie**: the browser sends it automatically, but JavaScript in the page can't read it, so an injected script can't steal it.
 - **[`src/proxy.ts`](src/proxy.ts)** (Next.js 16's name for middleware) sends visitors without a session cookie to `/login`. It only checks that the cookie exists.
-- **[`src/lib/dal.ts`](src/lib/dal.ts)**, the data access layer, does the real check: `getCurrentUser()` asks the API who the token belongs to, at most once per request. Pages call `requireUser()`, and API requests go through `apiAsUser()`. An expired or invalid session leads back to the login page.
+- **[`src/lib/server/dal.ts`](src/lib/server/dal.ts)**, the data access layer, does the real check: `getCurrentUser()` asks the API who the token belongs to, at most once per request. Pages call `requireUser()`, and API requests go through `apiAsUser()`. An expired or invalid session leads back to the login page.
 
 This split follows the Next.js authentication guide: a cheap optimistic check in the proxy, and real authorization in the DAL.
 
 ### Data
 
-Pages are Server Components that fetch from the API on the server ([`src/lib/api.ts`](src/lib/api.ts)), with the user's token. The browser never sees the token or talks to the API directly. Nothing is cached, because data is per user and changes constantly.
+Pages are Server Components that fetch from the API on the server ([`src/lib/server/api.ts`](src/lib/server/api.ts)), with the user's token. The browser never sees the token or talks to the API directly. Nothing is cached, because data is per user and changes constantly.
 
 Filters on the order overview live in the URL (`/orders?status=PLANNED&overdue=true`), so filtered views can be bookmarked and shared.
 

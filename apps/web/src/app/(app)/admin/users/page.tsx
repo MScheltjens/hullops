@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireUser } from "@/lib/server/dal";
 import {
   canManageUsers,
   homePath,

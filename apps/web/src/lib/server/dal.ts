@@ -1,9 +1,10 @@
-import type { Role } from "./user-roles";
+import type { Role } from "../user-roles";
 import "server-only";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import { ApiError, graphqlRequest } from "./api";
 import { getSessionToken } from "./session";
+import { homePath, seesWork } from "../user-roles";
 
 /**
  * Data access layer: the one place that decides who is logged in. Pages and
@@ -48,6 +49,17 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  return user;
+}
+
+/**
+ * For the pages about the work (orders, vessels, planning). The API refuses
+ * HR there, so without this check a typed-in URL would crash into the error
+ * page; this sends them to their own start page instead.
+ */
+export async function requireWorkUser(): Promise<CurrentUser> {
+  const user = await requireUser();
+  if (!seesWork(user.role)) redirect(homePath(user.role));
   return user;
 }
 

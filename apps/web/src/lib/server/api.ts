@@ -1,5 +1,5 @@
 import "server-only";
-import { parseApiUrl } from "./api-url";
+import { parseApiUrl } from "../api-url";
 
 /**
  * Talks to the HullOps GraphQL API. Server-only: requests carry the user's

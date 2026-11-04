@@ -3,6 +3,15 @@
     "appName": "HullOps",
     "tagline": "Planung von Reinigungs- und Schutzarbeiten auf Werften"
   },
+  "status": {
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundMessage": "Diese Seite gibt es nicht oder sie ist nicht mehr verfügbar.",
+    "errorTitle": "Etwas ist schiefgelaufen",
+    "errorMessage": "Die Seite konnte nicht geladen werden. Bitte prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "home": "Zur Startseite",
+    "loading": "Wird geladen…"
+  },
   "login": {
     "title": "Anmelden",
     "email": "E-Mail",

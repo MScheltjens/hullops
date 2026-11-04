@@ -54,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         */}
         <NextIntlClientProvider
           messages={{
+            status: messages.status,
             login: messages.login,
             orderForm: messages.orderForm,
             comments: messages.comments,

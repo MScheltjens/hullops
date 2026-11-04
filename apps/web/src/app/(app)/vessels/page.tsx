@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { apiAsUser, requireUser } from "@/lib/dal";
+import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import { setTeamLead } from "./actions";
 import { CreateVesselForm } from "./create-vessel-form";
 
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function VesselsPage() {
-  const user = await requireUser();
+  const user = await requireWorkUser();
   const { vessels } = await apiAsUser<{ vessels: VesselRow[] }>(
     "{ vessels { id name imoNumber vesselType lengthM teamLead { id name } } }",
   );

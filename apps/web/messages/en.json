@@ -3,6 +3,15 @@
     "appName": "HullOps",
     "tagline": "Planning for cleaning and protection work on shipyards"
   },
+  "status": {
+    "notFoundTitle": "Page not found",
+    "notFoundMessage": "This page doesn't exist or is no longer available.",
+    "errorTitle": "Something went wrong",
+    "errorMessage": "This page couldn't be loaded. Check your connection and try again.",
+    "retry": "Try again",
+    "home": "Back to start",
+    "loading": "Loading…"
+  },
   "login": {
     "title": "Log in",
     "email": "Email",

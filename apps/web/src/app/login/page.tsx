@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/dal";
+import { getCurrentUser } from "@/lib/server/dal";
 import { LoginForm } from "./login-form";
 
 export async function generateMetadata(): Promise<Metadata> {

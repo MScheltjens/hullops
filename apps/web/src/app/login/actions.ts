@@ -1,8 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { ApiError, graphqlRequest } from "@/lib/api";
-import { clearSession, saveSession } from "@/lib/session";
+import { ApiError, graphqlRequest } from "@/lib/server/api";
+import { saveSession } from "@/lib/server/session";
 
 export interface LoginState {
   error?: "invalid" | "unavailable";
@@ -45,9 +45,4 @@ export async function login(
   // would otherwise swallow.
   // The home page sends each role to its own start page.
   redirect("/");
-}
-
-export async function logout() {
-  await clearSession();
-  redirect("/login");
 }

@@ -1,6 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE } from "./session-cookie";
+import { SESSION_COOKIE } from "../session-cookie";
 
 /**
  * The login token lives in an httpOnly cookie: the browser sends it with

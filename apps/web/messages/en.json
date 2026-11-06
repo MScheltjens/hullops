@@ -19,7 +19,9 @@
     "submit": "Log in",
     "submitting": "Logging in…",
     "invalid": "Invalid email or password.",
-    "unavailable": "The server can't be reached right now. Please try again later."
+    "unavailable": "The server can't be reached right now. Please try again later.",
+    "demoTitle": "Try the demo",
+    "demoHint": "Pick a role and look around. All data is fictional and is reset every night."
   },
   "nav": {
     "orders": "Orders",

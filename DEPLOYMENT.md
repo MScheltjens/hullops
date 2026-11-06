@@ -68,7 +68,7 @@ Log in, open **Users** in the menu, and add your project leads and workers.
 
 On a public demo the seeded administrator has a public password, so anyone
 can log in as it and lock the other demo users out. That is acceptable for a
-demo; re-running the seed restores the demo users. For anything real, don't
+demo; [the nightly reset](#nightly-demo-reset) restores the demo users. For anything real, don't
 seed, and use `ADMIN_EMAIL` and `ADMIN_PASSWORD` with a password of your own.
 
 ### Demo data (optional)
@@ -84,12 +84,33 @@ cd apps/api
 DATABASE_URL="<public connection string>" pnpm exec prisma db seed
 ```
 
-It is safe to run again: it only replaces its own `seed-…` records. Don't
-commit the connection string, and don't paste it into chats or issues.
+It is safe to run again: it only replaces its own `seed-…` records and
+restores the seeded users (password, role, language, active). Don't commit the
+connection string, and don't paste it into chats or issues.
 
 Every seeded user has the password `hullops-dev`, which is public in this
 repository. Only seed a database that holds no real data, and never reuse
 those accounts for anything else.
+
+### Nightly demo reset
+
+Visitors can change everything on a public demo, and the seeded dates age, so
+[`.github/workflows/demo-reset.yml`](.github/workflows/demo-reset.yml) restores
+it every night. It runs the seed with `SEED_RESET=true`, which **deletes every
+order, staffing request, vessel and user that isn't part of the seed**. Only
+ever point it at the demo database.
+
+It does nothing until you give it the database's public connection string as a
+repository secret. This prompts for the value, so it stays out of your shell
+history:
+
+```bash
+gh secret set DEMO_DATABASE_URL
+```
+
+Then try it once: `gh workflow run demo-reset.yml`. GitHub pauses scheduled
+workflows after 60 days without activity in a repository; it emails you, and
+one click in the Actions tab turns it back on.
 
 ## 3. Web
 
@@ -98,6 +119,7 @@ On Vercel: import the repository, set the root directory to `apps/web`, and add:
 | Variable | Value |
 |---|---|
 | `API_URL` | the API's public GraphQL URL, e.g. `https://hullops-api.example.com/graphql` |
+| `DEMO_MODE` | `true` on the public demo only: shows one-tap logins as the seeded users on the login page |
 
 Write the full URL, starting with `https://`. A value without it (or any value that isn't an http(s) URL) fails the build with a message that names `API_URL`, so you see the mistake when deploying instead of as "server can't be reached" at login. After changing the variable, redeploy.
 

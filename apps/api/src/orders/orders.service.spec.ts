@@ -17,6 +17,7 @@ import {
 const db = {
   order: {
     findMany: jest.fn(),
+    count: jest.fn(),
     findUnique: jest.fn(),
     findUniqueOrThrow: jest.fn(),
     create: jest.fn(),
@@ -91,15 +92,31 @@ describe('OrdersService', () => {
   });
 
   describe('findAll', () => {
-    it('loads the relations, sorts by due date and pages', async () => {
-      db.order.findMany.mockResolvedValue([]);
-      await service.findAll({ skip: 10, take: 5 });
-      expect(db.order.findMany).toHaveBeenCalledWith(
+    it('lists open orders first and pages across both groups', async () => {
+      // Three open orders: skipping 2 of 4 leaves one open and three done.
+      db.order.count.mockResolvedValue(3);
+      db.order.findMany
+        .mockResolvedValueOnce([{ id: 'open' }])
+        .mockResolvedValueOnce([{ id: 'done' }]);
+
+      const orders = await service.findAll({ skip: 2, take: 4 });
+
+      expect(orders).toEqual([{ id: 'open' }, { id: 'done' }]);
+      expect(db.order.findMany).toHaveBeenNthCalledWith(
+        1,
         expect.objectContaining({
           include: ORDER_INCLUDE,
           orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
-          skip: 10,
-          take: 5,
+          skip: 2,
+          take: 1,
+        }),
+      );
+      expect(db.order.findMany).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          orderBy: [{ dueDate: 'desc' }, { createdAt: 'desc' }],
+          skip: 0,
+          take: 3,
         }),
       );
     });

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
+import { DEMO_ROLES, isDemoMode } from "@/lib/demo-login";
 import { getCurrentUser } from "@/lib/server/dal";
+import { DemoLogin } from "./demo-login";
 import { LoginForm } from "./login-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -23,6 +25,7 @@ export default async function LoginPage() {
         <p className="mt-1 mb-8 text-sm text-zinc-600 dark:text-zinc-400">
           {t("common.tagline")}
         </p>
+        {isDemoMode(process.env.DEMO_MODE) && <DemoLogin roles={DEMO_ROLES} />}
         <h2 className="mb-4 text-lg font-medium">{t("login.title")}</h2>
         <LoginForm />
       </div>

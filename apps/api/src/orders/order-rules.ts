@@ -105,3 +105,25 @@ export function validateOrderInput(input: OrderInputToValidate): string[] {
 
   return errors;
 }
+
+export interface PageRange {
+  skip: number;
+  take: number;
+}
+
+/**
+ * Lists show open orders first and done orders after them. Prisma can't sort
+ * on "is this order done", so those are two queries, and one page of the list
+ * can span both. This works out which part of each group the page covers.
+ */
+export function splitOrderPage(
+  skip: number,
+  take: number,
+  openCount: number,
+): { open: PageRange; done: PageRange } {
+  const openTake = Math.min(take, Math.max(openCount - skip, 0));
+  return {
+    open: { skip, take: openTake },
+    done: { skip: Math.max(skip - openCount, 0), take: take - openTake },
+  };
+}

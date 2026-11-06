@@ -19,7 +19,9 @@
     "submit": "Anmelden",
     "submitting": "Anmeldung läuft…",
     "invalid": "E-Mail oder Passwort ist falsch.",
-    "unavailable": "Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut."
+    "unavailable": "Der Server ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut.",
+    "demoTitle": "Demo ausprobieren",
+    "demoHint": "Wähle eine Rolle und schau dich um. Alle Daten sind fiktiv und werden jede Nacht zurückgesetzt."
   },
   "nav": {
     "orders": "Aufträge",

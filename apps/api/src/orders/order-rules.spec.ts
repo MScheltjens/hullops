@@ -2,6 +2,7 @@ import {
   canWorkOn,
   isAllowedStatusChange,
   isOverdue,
+  splitOrderPage,
   validateOrderInput,
 } from './order-rules';
 
@@ -203,5 +204,42 @@ describe('validateOrderInput', () => {
         dueDate: dates.startDate,
       }),
     ).toHaveLength(2);
+  });
+});
+
+describe('splitOrderPage', () => {
+  it('stays in the open orders while the page fits', () => {
+    expect(splitOrderPage(0, 5, 10)).toEqual({
+      open: { skip: 0, take: 5 },
+      done: { skip: 0, take: 0 },
+    });
+  });
+
+  it('fills the rest of the page with done orders', () => {
+    expect(splitOrderPage(8, 5, 10)).toEqual({
+      open: { skip: 8, take: 2 },
+      done: { skip: 0, take: 3 },
+    });
+  });
+
+  it('skips into the done orders once past the open ones', () => {
+    expect(splitOrderPage(12, 5, 10)).toEqual({
+      open: { skip: 12, take: 0 },
+      done: { skip: 2, take: 5 },
+    });
+  });
+
+  it('handles a page ending exactly at the last open order', () => {
+    expect(splitOrderPage(5, 5, 10)).toEqual({
+      open: { skip: 5, take: 5 },
+      done: { skip: 0, take: 0 },
+    });
+  });
+
+  it('goes straight to done orders when nothing is open', () => {
+    expect(splitOrderPage(0, 5, 0)).toEqual({
+      open: { skip: 0, take: 0 },
+      done: { skip: 0, take: 5 },
+    });
   });
 });

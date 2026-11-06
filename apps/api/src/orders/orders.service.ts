@@ -16,6 +16,7 @@ import {
 import {
   canWorkOn,
   isAllowedStatusChange,
+  splitOrderPage,
   validateOrderInput,
 } from './order-rules';
 
@@ -74,22 +75,41 @@ export function buildOrdersWhere(
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Sorted by due date, so the most urgent orders come first. */
-  findAll(
+  /**
+   * Open orders first, soonest due date first, so the most urgent ones lead
+   * the list. Done orders follow, latest first, because the recent ones are
+   * the ones people still look up.
+   */
+  async findAll(
     args: OrdersArgs,
     now = new Date(),
     include: Prisma.OrderInclude = ORDER_INCLUDE,
   ): Promise<LoadedOrder[]> {
     const { skip, take, ...filters } = args;
+    const where = buildOrdersWhere(filters, now);
+    const openWhere = { AND: [where, { status: { not: 'DONE' as const } }] };
+    const doneWhere = { AND: [where, { status: 'DONE' as const }] };
+
+    const openCount = await this.prisma.order.count({ where: openWhere });
+    const page = splitOrderPage(skip, take, openCount);
+
+    const [open, done] = await Promise.all([
+      this.prisma.order.findMany({
+        where: openWhere,
+        include,
+        orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
+        ...page.open,
+      }),
+      this.prisma.order.findMany({
+        where: doneWhere,
+        include,
+        orderBy: [{ dueDate: 'desc' }, { createdAt: 'desc' }],
+        ...page.done,
+      }),
+    ]);
     // The include is built from the query at run time, so Prisma can't type
     // the result; LoadedOrder describes it (see there).
-    return this.prisma.order.findMany({
-      where: buildOrdersWhere(filters, now),
-      include,
-      orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
-      skip,
-      take,
-    }) as unknown as Promise<LoadedOrder[]>;
+    return [...open, ...done] as unknown as LoadedOrder[];
   }
 
   findOne(

@@ -4,9 +4,16 @@
 
 HullOps is a planning tool for subcontractors who work on shipyards. Project leads plan cleaning and protection jobs on vessels, put a team on each job, and follow its progress until it's done.
 
-**Live demo:** https://hullops.vercel.app (demo data only; log in with a seeded demo user, see [Getting started](#getting-started)). Meant for a phone: open it there and add it to the home screen.
+**Live demo:** https://hullops.vercel.app (fictional data, reset every night). Pick a role on the login page to try it in one tap. Meant for a phone: open it there and add it to the home screen.
 
-> **Status:** in development. The API covers vessels, orders, teams, comments and login with roles. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, and creating orders. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
+<p>
+  <img src="docs/screenshots/login.png" alt="Login page with one-tap demo logins per role" width="24%">
+  <img src="docs/screenshots/orders.png" alt="Order overview on a phone, with status and overdue badges" width="24%">
+  <img src="docs/screenshots/order-detail.png" alt="Order details with a status update form" width="24%">
+  <img src="docs/screenshots/planning.png" alt="Weekly planning per vessel with workers requested by name" width="24%">
+</p>
+
+> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing, and login with roles. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, creating orders, weekly planning, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -27,13 +34,13 @@ Each job is an **order** for one vessel. An order moves from `PLANNED` to `IN_PR
 
 HullOps comes from a real way of working. On the yard, planning and all communication run through WhatsApp, and Crewmeister holds working hours and leave. The goal is to move the **planning** out of chat threads into one place, and keep WhatsApp for what is genuinely live. The choices below follow from that.
 
-**Who uses it, and why there are four roles**
+**Who uses it, and why there are five roles**
 
 | Role | Who | Why it exists |
 |---|---|---|
 | Project lead | The office | Plans orders, passes on what the shipyard tells them, manages teams, and invoices the customer. |
-| Team lead (*Vorarbeiter*) | On the yard, one per vessel | Knows what his vessel needs, so he asks for workers for the coming week himself, including by name. |
-| Worker | On the yard | Reads the plan and updates the status of his orders. |
+| Team lead (*Vorarbeiter*) | On the yard, one per vessel | Knows what the vessel needs, so they ask for workers for the coming week themselves, including by name. |
+| Worker | On the yard | Reads the plan and updates the status of their orders. |
 | HR | Office | Hires people, so creates workers, team leads and project leads (recording absence is planned). Cannot create or touch administrators or other HR, and sees no orders, vessels or staffing. |
 | Administrator | Technical | Manages accounts. Reads everything but doesn't run the work, so responsibilities stay separate. |
 
@@ -48,7 +55,7 @@ The shipyard's own people (the customer's side) have **no login**. The project l
 - **The login token never reaches the browser.** Pages render on the server and call the API with the token from an httpOnly cookie.
 - **Rights are checked where the data is.** The pages hide what you may not do, but the API and the Server Actions enforce it. Deactivating a user cuts off their existing token at once.
 - **Computed, not stored:** "overdue" is worked out when needed, so it can't go stale.
-- **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (re-seeding restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
+- **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (a nightly reset restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
 
 **More detail:** [docs/ux.md](docs/ux.md) describes who uses the app, the bar it is held to (any new user can use it after an hour of explanation) and the main flows with sketches. [docs/caching.md](docs/caching.md) says what is cached, what is not and why.
 
@@ -143,13 +150,12 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Prisma + GraphQL setup, vessel management
 - [x] Orders: create with cleaning or protection details, status flow, team assignment, overdue flag
 - [x] Seed data for demos
-- [x] Authentication and roles (project lead / worker / administrator)
+- [x] Authentication and roles (project lead, team lead, worker, HR, administrator)
 - [x] Administrator: add users, change names, roles and service areas, reset passwords, deactivate and reactivate (`admin@hullops.example` in the demo data)
 - [x] Web: login, order overview, English and German
 - [x] Web: create orders, order details with comments, status updates and team assignment
 - [x] Mobile first, installable as a PWA
 - [x] Deployment: web on Vercel, API and PostgreSQL on Railway
-- [ ] Web: vessel management
 - [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the project lead
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
 - [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source

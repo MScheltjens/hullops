@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { hashPassword } from '../src/auth/password';
 import { PrismaClient } from '../src/generated/prisma/client';
+import { removeNonSeedRecords } from './demo-reset';
 import { buildSeedData, SEED_PASSWORD, weekStartFor } from './seed-data';
 
 /**
@@ -10,6 +11,9 @@ import { buildSeedData, SEED_PASSWORD, weekStartFor } from './seed-data';
  * Safe to run repeatedly: users are matched by email and vessels and orders
  * by their fixed `seed-…` ids, so only seeded records are replaced and any
  * data you created yourself is left alone.
+ *
+ * With SEED_RESET=true it first deletes everything else as well, which is how
+ * the public demo is restored every night (.github/workflows/demo-reset.yml).
  */
 async function main() {
   if (process.env.NODE_ENV === 'production') {
@@ -30,9 +34,21 @@ async function main() {
 
     await prisma.$transaction(
       async (tx) => {
+        if (process.env.SEED_RESET === 'true') {
+          await removeNonSeedRecords(
+            tx,
+            users.map((user) => user.email),
+          );
+        }
+
         const userIds = new Map<string, string>();
         for (const [i, user] of users.entries()) {
-          const data = { ...user, passwordHash: passwordHashes[i] };
+          // `active` is set explicitly so a deactivated demo user comes back.
+          const data = {
+            ...user,
+            passwordHash: passwordHashes[i],
+            active: true,
+          };
           const saved = await tx.user.upsert({
             where: { email: user.email },
             create: data,

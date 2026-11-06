@@ -1,0 +1,46 @@
+name: Reset demo
+
+# Restores the public demo every night; see "Nightly demo reset" in
+# DEPLOYMENT.md. Deletes everything that isn't seed data, so the secret must
+# only ever hold the demo database's connection string.
+on:
+  schedule:
+    - cron: "0 3 * * *" # UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+      SEED_RESET: "true"
+
+    steps:
+      # Without the secret (e.g. on a fork) there is nothing to reset.
+      - name: Check for the demo database
+        id: check
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "DEMO_DATABASE_URL is not set; skipping."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.configured == 'true'
+      # pnpm version comes from "packageManager" in the root package.json
+      - uses: pnpm/action-setup@v4
+        if: steps.check.outputs.configured == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.check.outputs.configured == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.check.outputs.configured == 'true'
+        run: pnpm install --frozen-lockfile --filter api...
+      - if: steps.check.outputs.configured == 'true'
+        run: pnpm --filter api exec prisma generate
+      - if: steps.check.outputs.configured == 'true'
+        run: pnpm --filter api exec prisma db seed

@@ -250,7 +250,9 @@ type Query {
   me: User!
   order(id: ID!): Order
 
-  """Sorted by due date, most urgent first"""
+  """
+  Open orders first, soonest due date first; then done orders, latest first
+  """
   orders(
     """true: only overdue orders; false: only orders on time"""
     overdue: Boolean

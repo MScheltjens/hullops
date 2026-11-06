@@ -274,6 +274,49 @@ describe('Orders GraphQL API (e2e)', () => {
     expect(overdue.body.data.orders).toEqual([{ id: lateId, overdue: true }]);
   });
 
+  it('lists open orders before done ones, even when those are older', async () => {
+    const { id: vesselId } = await prisma.vessel.create({
+      data: { name: 'E2E sorting vessel' },
+    });
+    const orderDue = (daysAhead: number, status: 'PLANNED' | 'DONE') =>
+      prisma.order.create({
+        data: {
+          title: `E2E sorted ${daysAhead}`,
+          status,
+          serviceType: 'CLEANING',
+          shipyard: 'E2E yard',
+          startDate: daysFromNow(-30),
+          dueDate: daysFromNow(daysAhead),
+          vesselId,
+          createdById: ids.lead,
+        },
+      });
+    const oldDone = await orderDue(-20, 'DONE');
+    const recentDone = await orderDue(-10, 'DONE');
+    const soon = await orderDue(1, 'PLANNED');
+    const later = await orderDue(5, 'PLANNED');
+
+    const list = async (skip: number, take: number) => {
+      const response = await asLead(
+        'query ($vesselId: ID, $skip: Int, $take: Int) { orders(vesselId: $vesselId, skip: $skip, take: $take) { id } }',
+        { vesselId, skip, take },
+      );
+      return response.body.data.orders.map((order: { id: string }) => order.id);
+    };
+
+    expect(await list(0, 10)).toEqual([
+      soon.id,
+      later.id,
+      recentDone.id,
+      oldDone.id,
+    ]);
+    // A page that spans both groups repeats and loses nothing.
+    expect(await list(1, 2)).toEqual([later.id, recentDone.id]);
+
+    await prisma.order.deleteMany({ where: { vesselId } });
+    await prisma.vessel.delete({ where: { id: vesselId } });
+  });
+
   it('lets project leads add comments that the team can read', async () => {
     const created = await createOrder(cleaningOrder());
     const orderId = created.body.data.createOrder.id;

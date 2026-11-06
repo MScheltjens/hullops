@@ -34,7 +34,8 @@ export class OrdersResolver {
 
   @Roles(...WORK_ROLES)
   @Query(() => [Order], {
-    description: 'Sorted by due date, most urgent first',
+    description:
+      'Open orders first, soonest due date first; then done orders, latest first',
   })
   orders(@Args() args: OrdersArgs, @Info() info: GraphQLResolveInfo) {
     // Load only the relations the query asks for; see order-selection.ts.

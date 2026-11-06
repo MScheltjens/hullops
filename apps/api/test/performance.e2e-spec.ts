@@ -39,7 +39,8 @@ describe('Performance: database queries per request (e2e)', () => {
   const OPERATIONS: Record<string, { query: string; budget: number }> = {
     'orders list (web: /orders)': {
       query: `{ orders(take: 100) { ${ORDER_FIELDS} } }`,
-      budget: 6,
+      // A count, then open and done orders each with their own relations.
+      budget: 10,
     },
     'order detail (web: /orders/[id])': {
       query: `{ order(id: "${id('order-0')}") { ${ORDER_FIELDS} description areaSqm

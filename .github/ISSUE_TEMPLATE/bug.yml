@@ -1,0 +1,40 @@
+name: Bug
+description: Something that doesn't work as it should
+title: "[Bug] "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happens
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the role you were logged in as (e.g. demo team lead).
+      placeholder: |
+        1. Log in as ...
+        2. Go to ...
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where
+      options:
+        - Live demo (hullops.vercel.app)
+        - Local
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Browser/device, screenshots, logs.

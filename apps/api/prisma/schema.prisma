@@ -85,7 +85,7 @@ model Order {
   description String?
   status      OrderStatus @default(PLANNED)
   serviceType ServiceType // cleaning or protection
-  shipyard    String // e.g. Blohm+Voss
+  shipyard    String // e.g. Elbe Werft
   berth       String? // berth / dock
   areaSqm     Float? // area to clean, in m²
   startDate   DateTime
@@ -220,7 +220,7 @@ model StaffingRequestWorker {
 model OrderComment {
   id        String   @id @default(cuid())
   text      String
-  source    String? // where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  source    String? // where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"
   createdAt DateTime @default(now())
 
   orderId  String

@@ -225,46 +225,46 @@ export function buildSeedData(now: Date): SeedData {
   ];
 
   // Two made-up vessels that stand for the kinds of projects on a yard: a
-  // yacht in for a refit, and a naval new build. IMO numbers and lengths are
+  // yacht in for a refit, and a ferry new build. IMO numbers and lengths are
   // left empty rather than invented.
   const vessels: SeedVessel[] = [
     {
       // A yacht in a dry dock for a refit.
-      id: 'seed-vessel-calypso',
-      name: 'Calypso',
+      id: 'seed-vessel-sea-breeze',
+      name: 'Sea Breeze',
       imoNumber: null,
       vesselType: 'Yacht (refit)',
       lengthM: null,
       teamLeadEmail: UTE,
     },
     {
-      // A naval new build, delivered as a steel hull and now in the dry dock
+      // A ferry new build, delivered as a steel hull and now in the dry dock
       // for the hoisting work and the installation of the pipe and machinery
       // systems.
-      id: 'seed-vessel-naval-n1',
-      name: 'Naval Vessel N1',
+      id: 'seed-vessel-nordlicht',
+      name: 'Nordlicht',
       imoNumber: null,
-      vesselType: 'Naval vessel (new build)',
+      vesselType: 'Ferry (new build)',
       lengthM: null,
       teamLeadEmail: HEINZ,
     },
   ];
 
   const orders: SeedOrder[] = [
-    // ---- Calypso: yacht refit
+    // ---- Sea Breeze: yacht refit
     {
-      id: 'seed-order-calypso-hull-cleaning',
+      id: 'seed-order-sea-breeze-hull-cleaning',
       title: 'Hull cleaning before repainting',
       description:
         'Remove marine growth and loose paint from the underwater hull while the yacht is in the dry dock.',
       serviceType: 'CLEANING',
       status: 'IN_PROGRESS',
-      shipyard: 'Nordhafen Werft',
+      shipyard: 'Hafenwerft Nord',
       berth: 'Dry dock 2',
       areaSqm: 900,
       startDate: day(-4),
       dueDate: day(3),
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       createdByEmail: LENA,
       teamEmails: [MEHMET, SOFIA],
       cleaning: { method: 'High-pressure water', surface: 'Hull' },
@@ -280,18 +280,18 @@ export function buildSeedData(now: Date): SeedData {
     },
     {
       // Runs at the same time as the hull cleaning above, on the same vessel.
-      id: 'seed-order-calypso-deck-protection',
+      id: 'seed-order-sea-breeze-deck-protection',
       title: 'Protect the main deck and corridors during the refit',
       description:
         'Floor protection while trades work on board, so the finished teak and the corridors stay clean and undamaged.',
       serviceType: 'PROTECTION',
       status: 'IN_PROGRESS',
-      shipyard: 'Nordhafen Werft',
+      shipyard: 'Hafenwerft Nord',
       berth: 'Dry dock 2',
       areaSqm: 420,
       startDate: day(-4),
       dueDate: day(14),
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       createdByEmail: LENA,
       teamEmails: [ANNA, TOM],
       protection: {
@@ -311,18 +311,18 @@ export function buildSeedData(now: Date): SeedData {
     },
     {
       // No team yet: the project lead still has to staff it.
-      id: 'seed-order-calypso-spark-protection',
+      id: 'seed-order-sea-breeze-spark-protection',
       title: 'Cover interior fittings against welding sparks',
       description:
         'Glass fiber fabric over furniture and fittings in the areas where hot work starts next week.',
       serviceType: 'PROTECTION',
       status: 'PLANNED',
-      shipyard: 'Nordhafen Werft',
+      shipyard: 'Hafenwerft Nord',
       berth: 'Dry dock 2',
       areaSqm: null,
       startDate: day(3),
       dueDate: day(9),
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       createdByEmail: LENA,
       teamEmails: [],
       protection: {
@@ -335,17 +335,17 @@ export function buildSeedData(now: Date): SeedData {
       ],
     },
     {
-      id: 'seed-order-calypso-aft-deck',
+      id: 'seed-order-sea-breeze-aft-deck',
       title: 'Clean the aft deck after removing the old covering',
       description: null,
       serviceType: 'CLEANING',
       status: 'DONE',
-      shipyard: 'Nordhafen Werft',
+      shipyard: 'Hafenwerft Nord',
       berth: 'Dry dock 2',
       areaSqm: 160,
       startDate: day(-22),
       dueDate: day(-14),
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       createdByEmail: LENA,
       teamEmails: [SOFIA],
       cleaning: { method: 'Manual and industrial vacuum', surface: 'Aft deck' },
@@ -366,20 +366,20 @@ export function buildSeedData(now: Date): SeedData {
       ],
     },
 
-    // ---- Naval Vessel N1: new build in the dry dock
+    // ---- Nordlicht: ferry new build in the dry dock
     {
-      id: 'seed-order-naval-hoisting-protection',
+      id: 'seed-order-nordlicht-hoisting-protection',
       title: 'Protect finished deck areas during the hoisting work',
       description:
         'Heavy components are lifted into the machinery spaces (hoisting work). Protect the finished deck plates and coated surfaces along the lifting route.',
       serviceType: 'PROTECTION',
       status: 'IN_PROGRESS',
-      shipyard: 'Elbkai Werft',
+      shipyard: 'Elbe Werft',
       berth: 'Dry dock 1',
       areaSqm: 300,
       startDate: day(-6),
       dueDate: day(8),
-      vesselId: 'seed-vessel-naval-n1',
+      vesselId: 'seed-vessel-nordlicht',
       createdByEmail: JONAS,
       teamEmails: [PIOTR, ANNA],
       protection: {
@@ -398,18 +398,18 @@ export function buildSeedData(now: Date): SeedData {
       ],
     },
     {
-      id: 'seed-order-naval-machinery-enclosure',
+      id: 'seed-order-nordlicht-machinery-enclosure',
       title: 'Enclose machinery and pipework during welding',
       description:
         'Fire-resistant enclosures around the installed machinery and pipe runs while the pipe and machinery systems are welded.',
       serviceType: 'PROTECTION',
       status: 'PLANNED',
-      shipyard: 'Elbkai Werft',
+      shipyard: 'Elbe Werft',
       berth: 'Dry dock 1',
       areaSqm: null,
       startDate: day(2),
       dueDate: day(20),
-      vesselId: 'seed-vessel-naval-n1',
+      vesselId: 'seed-vessel-nordlicht',
       createdByEmail: JONAS,
       teamEmails: [PIOTR],
       protection: {
@@ -423,18 +423,18 @@ export function buildSeedData(now: Date): SeedData {
     },
     {
       // Overdue: the steel work ran longer than planned.
-      id: 'seed-order-naval-machinery-cleaning',
+      id: 'seed-order-nordlicht-machinery-cleaning',
       title: 'Clean the machinery spaces after the steel work',
       description:
         'Remove welding residue, grinding dust and offcuts from the machinery spaces and tanks before the systems are installed.',
       serviceType: 'CLEANING',
       status: 'IN_PROGRESS',
-      shipyard: 'Elbkai Werft',
+      shipyard: 'Elbe Werft',
       berth: 'Dry dock 1',
       areaSqm: 520,
       startDate: day(-12),
       dueDate: day(-2),
-      vesselId: 'seed-vessel-naval-n1',
+      vesselId: 'seed-vessel-nordlicht',
       createdByEmail: JONAS,
       teamEmails: [PIOTR, SOFIA],
       cleaning: {
@@ -453,11 +453,11 @@ export function buildSeedData(now: Date): SeedData {
     },
   ];
 
-  // What the team leads asked for. Naval Vessel N1 repeats last week's crew,
+  // What the team leads asked for. Nordlicht repeats last week's crew,
   // which is what asking by name is for.
   const staffingRequests: SeedStaffingRequest[] = [
     {
-      vesselId: 'seed-vessel-naval-n1',
+      vesselId: 'seed-vessel-nordlicht',
       weekOffset: -1,
       workersNeeded: 8,
       workersActual: 7,
@@ -466,7 +466,7 @@ export function buildSeedData(now: Date): SeedData {
       enteredByEmail: HEINZ,
     },
     {
-      vesselId: 'seed-vessel-naval-n1',
+      vesselId: 'seed-vessel-nordlicht',
       weekOffset: 1,
       workersNeeded: 10,
       workersActual: null,
@@ -475,7 +475,7 @@ export function buildSeedData(now: Date): SeedData {
       enteredByEmail: HEINZ,
     },
     {
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       weekOffset: -1,
       workersNeeded: 4,
       workersActual: 4,
@@ -484,7 +484,7 @@ export function buildSeedData(now: Date): SeedData {
       enteredByEmail: UTE,
     },
     {
-      vesselId: 'seed-vessel-calypso',
+      vesselId: 'seed-vessel-sea-breeze',
       weekOffset: 1,
       workersNeeded: 5,
       workersActual: null,

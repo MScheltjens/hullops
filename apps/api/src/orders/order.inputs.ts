@@ -193,7 +193,7 @@ export class AddOrderCommentInput {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Where it came from, e.g. "Lürssen, J. Meyer, by mail"',
+    description: 'Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"',
   })
   @IsOptional()
   @IsString()

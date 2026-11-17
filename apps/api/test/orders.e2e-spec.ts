@@ -59,7 +59,7 @@ describe('Orders GraphQL API (e2e)', () => {
   const cleaningOrder = (overrides: Record<string, unknown> = {}) => ({
     title: 'E2E hull cleaning',
     serviceType: 'CLEANING',
-    shipyard: 'Blohm+Voss',
+    shipyard: 'Elbe Werft',
     startDate: daysFromNow(-1),
     dueDate: daysFromNow(3),
     vesselId: ids.vessel,
@@ -138,7 +138,7 @@ describe('Orders GraphQL API (e2e)', () => {
     const response = await createOrder({
       title: 'E2E antifouling',
       serviceType: 'PROTECTION',
-      shipyard: 'Lürssen',
+      shipyard: 'Hafenwerft Nord',
       startDate: daysFromNow(0),
       dueDate: daysFromNow(5),
       vesselId: ids.vessel,
@@ -330,7 +330,7 @@ describe('Orders GraphQL API (e2e)', () => {
     const second = await addComment({
       orderId,
       text: 'Access via gate 3',
-      source: 'Lürssen, by mail',
+      source: 'Hafenwerft Nord, by mail',
     });
     // Oldest first.
     expect(second.body.data.addOrderComment.comments).toEqual([
@@ -341,7 +341,7 @@ describe('Orders GraphQL API (e2e)', () => {
       },
       {
         text: 'Access via gate 3',
-        source: 'Lürssen, by mail',
+        source: 'Hafenwerft Nord, by mail',
         author: { id: ids.lead },
       },
     ]);

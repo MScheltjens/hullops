@@ -6,7 +6,7 @@ input AddOrderCommentInput {
   orderId: ID!
 
   """
-  Where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"
   """
   source: String
   text: String!
@@ -167,7 +167,7 @@ type Order {
   protectionDetails: ProtectionDetails
   serviceType: ServiceType!
 
-  """e.g. Blohm+Voss"""
+  """e.g. Elbe Werft"""
   shipyard: String!
   startDate: DateTime!
   status: OrderStatus!
@@ -186,7 +186,7 @@ type OrderComment {
   id: ID!
 
   """
-  Where it came from, e.g. "Lürssen, J. Meyer, by mail"
+  Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"
   """
   source: String
   text: String!

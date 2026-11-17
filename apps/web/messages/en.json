@@ -148,7 +148,7 @@
   "comments": {
     "text": "Comment",
     "source": "Source",
-    "sourceHint": "Optional: who it came from, e.g. Lürssen, J. Meyer, by mail",
+    "sourceHint": "Optional: who it came from, e.g. Hafenwerft Nord, J. Meyer, by mail",
     "submit": "Add comment",
     "submitting": "Adding…",
     "errors": {

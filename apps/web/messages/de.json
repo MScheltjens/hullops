@@ -148,7 +148,7 @@
   "comments": {
     "text": "Kommentar",
     "source": "Quelle",
-    "sourceHint": "Optional: von wem die Information stammt, z. B. Lürssen, J. Meyer, per E-Mail",
+    "sourceHint": "Optional: von wem die Information stammt, z. B. Hafenwerft Nord, J. Meyer, per E-Mail",
     "submit": "Kommentar hinzufügen",
     "submitting": "Wird hinzugefügt…",
     "errors": {

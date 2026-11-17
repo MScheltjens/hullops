@@ -66,7 +66,7 @@ const cleaningInput = (
 ): CreateOrderInput => ({
   title: 'Hull cleaning',
   serviceType: 'CLEANING',
-  shipyard: 'Blohm+Voss',
+  shipyard: 'Elbe Werft',
   startDate: new Date('2026-10-05'),
   dueDate: new Date('2026-10-08'),
   vesselId: 'vessel-1',
@@ -315,7 +315,7 @@ describe('OrdersService', () => {
         {
           orderId: 'order-1',
           text: '  Crane is booked until 10:00 ',
-          source: ' Lürssen, by mail ',
+          source: ' Hafenwerft Nord, by mail ',
         },
         lead,
       );
@@ -323,7 +323,7 @@ describe('OrdersService', () => {
       expect(db.orderComment.create).toHaveBeenCalledWith({
         data: {
           text: 'Crane is booked until 10:00',
-          source: 'Lürssen, by mail',
+          source: 'Hafenwerft Nord, by mail',
           order: { connect: { id: 'order-1' } },
           author: { connect: { id: lead.id } },
         },

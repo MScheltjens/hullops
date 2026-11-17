@@ -38,7 +38,7 @@ The test for every screen: **any new user, whatever the role, can use it after o
 With automatic planning (below) this screen is what opens when he chooses **Change**; most weeks he only checks and presses OK.
 
 ```
- Good morning Heinz                                      Naval Vessel N1
+ Good morning Heinz                                      Nordlicht
  ───────────────────────────────────────────────────────────────────
   Request for next week (26 Oct - 1 Nov)
   Not filled in yet                           [ Fill in now ]
@@ -61,7 +61,7 @@ He keeps the same people on the same vessel by default, and only changes what di
 ### 2. Project lead: a new order (PC)
 
 ```
- 1  Which vessel?     [ Calypso ]  [ Naval Vessel N1 ]
+ 1  Which vessel?     [ Sea Breeze ]  [ Nordlicht ]
  2  What kind?        [ Cleaning ]  [ Protection ]
  3  What exactly?     [ High-pressure ] [ Blasting ] [ Manual ] [ Other… ]
                       Where?  [ Hull ] [ Deck ] [ Interior ] [ Other… ]
@@ -69,7 +69,7 @@ He keeps the same people on the same vessel by default, and only changes what di
                       How long?  [ 1 day ] [ 3 days ] [ 1 week ] [ 2 weeks ]
  5  Who?              [ Mehmet ] [ Sofia ] [ Piotr ]        (can be later)
 
- Summary: High-pressure, hull · Calypso · 26 Oct - 1 Nov
+ Summary: High-pressure, hull · Sea Breeze · 26 Oct - 1 Nov
                                               [ Create order ]
 ```
 The yard and berth come from the last order on that vessel; nobody invents a title.
@@ -79,7 +79,7 @@ The yard and berth come from the last order on that vessel; nobody invents a tit
 ```
  My orders today
  ┌──────────────────────────────────────┐
- │ High-pressure, hull        Calypso   │
+ │ High-pressure, hull        Sea Breeze   │
  │ Started                              │
  │             [   DONE   ]             │
  └──────────────────────────────────────┘

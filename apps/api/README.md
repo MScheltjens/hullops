@@ -183,7 +183,7 @@ mutation {
   createOrder(input: {
     title: "Hull cleaning before repainting"
     serviceType: CLEANING
-    shipyard: "Blohm+Voss"
+    shipyard: "Elbe Werft"
     startDate: "2026-10-05T07:00:00Z"
     dueDate: "2026-10-08T16:00:00Z"
     vesselId: "…"

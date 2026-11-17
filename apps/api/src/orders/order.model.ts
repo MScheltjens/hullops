@@ -77,7 +77,7 @@ export class OrderComment {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Where it came from, e.g. "Lürssen, J. Meyer, by mail"',
+    description: 'Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"',
   })
   source: string | null;
 
@@ -110,7 +110,7 @@ export class Order {
   @Field(() => ServiceType)
   serviceType: ServiceType;
 
-  @Field({ description: 'e.g. Blohm+Voss' })
+  @Field({ description: 'e.g. Elbe Werft' })
   shipyard: string;
 
   @Field(() => String, { nullable: true, description: 'Berth or dock' })

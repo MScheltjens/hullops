@@ -24,7 +24,8 @@ async function main() {
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
   });
   const now = new Date();
-  const { users, vessels, orders, staffingRequests } = buildSeedData(now);
+  const { users, vessels, orders, staffingRequests, crewPlan } =
+    buildSeedData(now);
 
   try {
     // Hash outside the transaction; scrypt is slow on purpose.
@@ -88,11 +89,15 @@ async function main() {
         await tx.staffingRequest.deleteMany({
           where: { vesselId: { startsWith: 'seed-', notIn: vesselIds } },
         });
+        await tx.crewAssignment.deleteMany({
+          where: { vesselId: { startsWith: 'seed-', notIn: vesselIds } },
+        });
         await tx.vessel.deleteMany({
           where: {
             id: { startsWith: 'seed-', notIn: vesselIds },
             orders: { none: {} },
             staffingRequests: { none: {} },
+            crewAssignments: { none: {} },
           },
         });
 
@@ -171,6 +176,31 @@ async function main() {
             },
           });
         }
+
+        // The seed's crew plan replaces whatever its vessels and workers had
+        // in those weeks. A worker is planned once per week, so a seed worker
+        // planned on another vessel by hand is moved back too.
+        const crewWeeks = [
+          ...new Set(crewPlan.map((entry) => entry.weekOffset)),
+        ].map((offset) => weekStartFor(now, offset));
+        await tx.crewAssignment.deleteMany({
+          where: {
+            weekStart: { in: crewWeeks },
+            OR: [
+              { vesselId: { in: vesselIds } },
+              { userId: { in: [...userIds.values()] } },
+            ],
+          },
+        });
+        await tx.crewAssignment.createMany({
+          data: crewPlan.flatMap((entry) =>
+            entry.workerEmails.map((email) => ({
+              weekStart: weekStartFor(now, entry.weekOffset),
+              vesselId: entry.vesselId,
+              userId: userId(email),
+            })),
+          ),
+        });
       },
       // Prisma ends an interactive transaction after 5 seconds by default. The
       // seed makes dozens of queries; against a remote database (about 300 ms
@@ -179,7 +209,7 @@ async function main() {
     );
 
     console.log(
-      `Seeded ${users.length} users, ${vessels.length} vessels, ${orders.length} orders and ${staffingRequests.length} staffing requests.`,
+      `Seeded ${users.length} users, ${vessels.length} vessels, ${orders.length} orders and ${staffingRequests.length} staffing requests and a crew plan for ${crewPlan.length} vessel-weeks.`,
     );
     console.log(
       `All seeded users can log in with the password "${SEED_PASSWORD}".`,

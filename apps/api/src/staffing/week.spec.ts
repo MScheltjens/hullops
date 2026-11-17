@@ -1,4 +1,10 @@
-import { formatDateOnly, isMonday, parseDateOnly } from './week';
+import {
+  addWeeks,
+  formatDateOnly,
+  isMonday,
+  parseDateOnly,
+  weekStartOf,
+} from './week';
 
 describe('parseDateOnly', () => {
   it('parses a date as midnight UTC', () => {
@@ -38,5 +44,24 @@ describe('isMonday', () => {
 describe('formatDateOnly', () => {
   it('writes the date as YYYY-MM-DD', () => {
     expect(formatDateOnly(new Date('2026-10-26T00:00:00Z'))).toBe('2026-10-26');
+  });
+});
+
+describe('weekStartOf', () => {
+  it.each([
+    ['2026-11-16T00:00:00Z', '2026-11-16'], // Monday itself
+    ['2026-11-18T15:30:00Z', '2026-11-16'], // Wednesday afternoon
+    ['2026-11-22T23:59:59Z', '2026-11-16'], // last second of Sunday
+    ['2026-11-01T12:00:00Z', '2026-10-26'], // Sunday, back into October
+  ])('puts %s in the week of %s', (date, monday) => {
+    expect(formatDateOnly(weekStartOf(new Date(date)))).toBe(monday);
+  });
+});
+
+describe('addWeeks', () => {
+  it('moves whole weeks in both directions', () => {
+    const monday = new Date('2026-12-28T00:00:00Z');
+    expect(formatDateOnly(addWeeks(monday, 1))).toBe('2027-01-04');
+    expect(formatDateOnly(addWeeks(monday, -1))).toBe('2026-12-21');
   });
 });

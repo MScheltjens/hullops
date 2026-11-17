@@ -6,12 +6,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import {
-  CurrentUser,
-  Roles,
-  WORK_ROLES,
-  type AuthUser,
-} from '../auth/auth-context';
+import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
 import { User } from '../users/user.model';
 import { SaveStaffingRequestInput } from './staffing.inputs';
 import { StaffingRequest } from './staffing.model';
@@ -25,12 +20,17 @@ import { formatDateOnly } from './week';
 export class StaffingResolver {
   constructor(private readonly staffingService: StaffingService) {}
 
-  @Roles(...WORK_ROLES)
+  // Not for workers: who was asked for by name is between the leads.
+  @Roles('ADMIN', 'PROJECT_LEAD', 'TEAM_LEAD')
   @Query(() => [StaffingRequest], {
-    description: 'The staffing requests of one week, given as its Monday',
+    description:
+      'The staffing requests of one week, given as its Monday. A team lead sees only his own vessels.',
   })
-  staffingRequests(@Args('weekStart') weekStart: string) {
-    return this.staffingService.findForWeek(weekStart);
+  staffingRequests(
+    @Args('weekStart') weekStart: string,
+    @CurrentUser() actor: AuthUser,
+  ) {
+    return this.staffingService.findForWeek(weekStart, actor);
   }
 
   @Roles('PROJECT_LEAD', 'TEAM_LEAD')

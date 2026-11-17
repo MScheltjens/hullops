@@ -92,11 +92,20 @@ export interface SeedStaffingRequest {
   enteredByEmail: string;
 }
 
+/** What the project lead decided: these workers on this vessel that week. */
+export interface SeedCrewAssignment {
+  vesselId: string;
+  /** Weeks from the current week, like SeedStaffingRequest. */
+  weekOffset: number;
+  workerEmails: string[];
+}
+
 export interface SeedData {
   users: SeedUser[];
   vessels: SeedVessel[];
   orders: SeedOrder[];
   staffingRequests: SeedStaffingRequest[];
+  crewPlan: SeedCrewAssignment[];
 }
 
 /** Midnight UTC on the Monday `weekOffset` weeks from the week of `now`. */
@@ -266,7 +275,7 @@ export function buildSeedData(now: Date): SeedData {
       dueDate: day(3),
       vesselId: 'seed-vessel-sea-breeze',
       createdByEmail: LENA,
-      teamEmails: [MEHMET, SOFIA],
+      teamEmails: [MEHMET],
       cleaning: { method: 'High-pressure water', surface: 'Hull' },
       history: [
         { status: 'PLANNED', note: null, authorEmail: LENA, at: at8(-9) },
@@ -381,7 +390,7 @@ export function buildSeedData(now: Date): SeedData {
       dueDate: day(8),
       vesselId: 'seed-vessel-nordlicht',
       createdByEmail: JONAS,
-      teamEmails: [PIOTR, ANNA],
+      teamEmails: [PIOTR],
       protection: {
         kind: 'FLOOR',
         protectedItem: 'Deck plates along the lifting route',
@@ -494,5 +503,31 @@ export function buildSeedData(now: Date): SeedData {
     },
   ];
 
-  return { users, vessels, orders, staffingRequests };
+  // What the project lead decided. This week Mehmet is moved to Sea Breeze
+  // for the hull cleaning, although Nordlicht asked for him; next week
+  // follows the requests. Workers see the vessels they're planned on.
+  const crewPlan: SeedCrewAssignment[] = [
+    {
+      vesselId: 'seed-vessel-sea-breeze',
+      weekOffset: 0,
+      workerEmails: [MEHMET, ANNA, TOM],
+    },
+    {
+      vesselId: 'seed-vessel-nordlicht',
+      weekOffset: 0,
+      workerEmails: [PIOTR, SOFIA],
+    },
+    {
+      vesselId: 'seed-vessel-nordlicht',
+      weekOffset: 1,
+      workerEmails: [PIOTR, SOFIA, MEHMET],
+    },
+    {
+      vesselId: 'seed-vessel-sea-breeze',
+      weekOffset: 1,
+      workerEmails: [ANNA, TOM],
+    },
+  ];
+
+  return { users, vessels, orders, staffingRequests, crewPlan };
 }

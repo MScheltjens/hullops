@@ -37,10 +37,14 @@ export class OrdersResolver {
     description:
       'Open orders first, soonest due date first; then done orders, latest first',
   })
-  orders(@Args() args: OrdersArgs, @Info() info: GraphQLResolveInfo) {
+  orders(
+    @Args() args: OrdersArgs,
+    @CurrentUser() user: AuthUser,
+    @Info() info: GraphQLResolveInfo,
+  ) {
     // Load only the relations the query asks for; see order-selection.ts.
     const include = orderIncludeFor(requestedFields(info));
-    return this.ordersService.findAll(args, new Date(), include);
+    return this.ordersService.findAll(args, user, new Date(), include);
   }
 
   @Roles(...WORK_ROLES)
@@ -48,10 +52,13 @@ export class OrdersResolver {
   @Query(() => Order, { nullable: true })
   order(
     @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthUser,
     @Info() info: GraphQLResolveInfo,
   ) {
     return this.ordersService.findOne(
       id,
+      user,
+      new Date(),
       orderIncludeFor(requestedFields(info)),
     );
   }
@@ -88,22 +95,30 @@ export class OrdersResolver {
     return this.ordersService.addComment(input, user);
   }
 
-  @Roles('PROJECT_LEAD')
-  @Mutation(() => Order)
+  @Roles('PROJECT_LEAD', 'TEAM_LEAD')
+  @Mutation(() => Order, {
+    description:
+      "Add someone to the order's team. A team lead can do this on his own vessels, for workers planned there this week or next week.",
+  })
   assignTeamMember(
     @Args('orderId', { type: () => ID }) orderId: string,
     @Args('userId', { type: () => ID }) userId: string,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.ordersService.assignTeamMember(orderId, userId);
+    return this.ordersService.assignTeamMember(orderId, userId, user);
   }
 
-  @Roles('PROJECT_LEAD')
-  @Mutation(() => Order)
+  @Roles('PROJECT_LEAD', 'TEAM_LEAD')
+  @Mutation(() => Order, {
+    description:
+      "Remove someone from the order's team. A team lead can do this on his own vessels.",
+  })
   removeTeamMember(
     @Args('orderId', { type: () => ID }) orderId: string,
     @Args('userId', { type: () => ID }) userId: string,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.ordersService.removeTeamMember(orderId, userId);
+    return this.ordersService.removeTeamMember(orderId, userId, user);
   }
 
   // The fields below aren't columns on the order; they're derived from the

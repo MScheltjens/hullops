@@ -109,7 +109,7 @@ describe('Staffing requests (e2e)', () => {
     await app.close();
   });
 
-  it('saves a request with named workers, and everyone can read it', async () => {
+  it('saves a request with named workers, which the leads can read', async () => {
     const saved = await save({
       vesselId: ids.vesselA,
       weekStart: WEEK,
@@ -130,8 +130,8 @@ describe('Staffing requests (e2e)', () => {
       ),
     ).toEqual(expect.arrayContaining([ids.worker1, ids.worker2]));
 
-    // A worker and an administrator can read it.
-    for (const as of [asWorker, asAdmin]) {
+    // An administrator and the vessel's team lead can read it…
+    for (const as of [asAdmin, asTeamLead]) {
       const read = await forWeek(WEEK, as);
       expect(read.body.errors).toBeUndefined();
       expect(
@@ -140,6 +140,11 @@ describe('Staffing requests (e2e)', () => {
         ),
       ).toContain(ids.vesselA);
     }
+    // …the other team lead doesn't see it, and workers can't ask at all.
+    const other = await forWeek(WEEK, asOtherTeamLead);
+    expect(other.body.data.staffingRequests).toEqual([]);
+    const byWorker = await forWeek(WEEK, asWorker);
+    expect(byWorker.body.errors[0].extensions.code).toBe('FORBIDDEN');
   });
 
   it('replaces the request when it is saved again (one per vessel and week)', async () => {

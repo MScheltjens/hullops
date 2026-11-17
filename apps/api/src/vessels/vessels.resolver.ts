@@ -7,7 +7,12 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
-import { Roles, WORK_ROLES } from '../auth/auth-context';
+import {
+  CurrentUser,
+  Roles,
+  WORK_ROLES,
+  type AuthUser,
+} from '../auth/auth-context';
 import type { Vessel as VesselRecord } from '../generated/prisma/client';
 import { User } from '../users/user.model';
 import { CreateVesselInput } from './create-vessel.input';
@@ -20,15 +25,19 @@ export class VesselsResolver {
 
   @Roles(...WORK_ROLES)
   @Query(() => [Vessel])
-  vessels() {
-    return this.vesselsService.findAll();
+  vessels(@CurrentUser() user: AuthUser) {
+    return this.vesselsService.findAll(user);
   }
 
   @Roles(...WORK_ROLES)
-  // Returns null rather than an error when the id is unknown.
+  // Returns null rather than an error when the id is unknown or the vessel
+  // isn't one this user may see.
   @Query(() => Vessel, { nullable: true })
-  vessel(@Args('id', { type: () => ID }) id: string) {
-    return this.vesselsService.findOne(id);
+  vessel(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.vesselsService.findOne(id, user);
   }
 
   @Roles('PROJECT_LEAD')

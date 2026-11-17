@@ -11,16 +11,18 @@ describe('removeNonSeedRecords', () => {
   const tx = {
     order: model('order'),
     staffingRequest: model('staffingRequest'),
+    crewAssignment: model('crewAssignment'),
     vessel: model('vessel'),
     user: model('user'),
   } as unknown as Parameters<typeof removeNonSeedRecords>[0];
 
   beforeAll(() => removeNonSeedRecords(tx, ['lena@hullops.example']));
 
-  it('deletes orders and requests before the users and vessels they use', () => {
+  it('deletes orders, requests and the crew plan before the users and vessels they use', () => {
     expect(calls.map((call) => call.model)).toEqual([
       'order',
       'staffingRequest',
+      'crewAssignment',
       'vessel',
       'user',
     ]);

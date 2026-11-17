@@ -4,24 +4,29 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { AuthUser } from '../auth/auth-context';
 import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateVesselInput } from './create-vessel.input';
+import { visibleVesselsWhere } from './vessel-scope';
 
 @Injectable()
 export class VesselsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
+  /** The vessels this user may see (see vessel-scope.ts), by name. */
+  findAll(actor: AuthUser, now = new Date()) {
     return this.prisma.vessel.findMany({
+      where: visibleVesselsWhere(actor, now),
       include: { teamLead: true },
       orderBy: { name: 'asc' },
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.vessel.findUnique({
-      where: { id },
+  /** One vessel, or null when it doesn't exist or the user may not see it. */
+  findOne(id: string, actor: AuthUser, now = new Date()) {
+    return this.prisma.vessel.findFirst({
+      where: { AND: [{ id }, visibleVesselsWhere(actor, now)] },
       include: { teamLead: true },
     });
   }

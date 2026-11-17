@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
+import { homePath, seesPlanning } from "@/lib/user-roles";
 import {
   assignedFor,
   canEnterRequest,
@@ -44,6 +46,9 @@ export default async function PlanningPage({
   searchParams,
 }: PageProps<"/planning">) {
   const user = await requireWorkUser();
+  // The API refuses workers the staffing requests, so send a typed-in URL
+  // back to their start page instead of the error page.
+  if (!seesPlanning(user.role)) redirect(homePath(user.role));
   const params = await searchParams;
   const week = parseWeekParam(params.week, new Date());
   const weekStart = toDateOnly(week);

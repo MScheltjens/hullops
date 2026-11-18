@@ -36,7 +36,9 @@
     },
     "users": "Users",
     "planning": "Planning",
-    "vessels": "Vessels"
+    "vessels": "Vessels",
+    "preferences": "Settings",
+    "close": "Close"
   },
   "orders": {
     "title": "Orders",

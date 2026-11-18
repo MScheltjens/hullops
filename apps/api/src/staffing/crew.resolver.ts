@@ -8,7 +8,7 @@ import {
   Resolver,
 } from '@nestjs/graphql';
 import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
-import { PlanCrewMemberInput } from './crew.inputs';
+import { PlanCrewMembersInput } from './crew.inputs';
 import { CrewAssignment } from './crew.model';
 import { CrewService, type CrewAssignmentWithRelations } from './crew.service';
 import { formatDateOnly } from './week';
@@ -30,12 +30,12 @@ export class CrewResolver {
   }
 
   @Roles('PROJECT_LEAD')
-  @Mutation(() => CrewAssignment, {
+  @Mutation(() => [CrewAssignment], {
     description:
-      'Put a worker on a vessel for one week. A worker already planned that week is moved.',
+      'Put workers on a vessel for one week, all or none. A worker already planned that week is moved.',
   })
-  planCrewMember(
-    @Args('input') input: PlanCrewMemberInput,
+  planCrewMembers(
+    @Args('input') input: PlanCrewMembersInput,
     @CurrentUser() actor: AuthUser,
   ) {
     return this.crewService.plan(input, actor);

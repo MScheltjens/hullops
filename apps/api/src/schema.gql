@@ -127,9 +127,9 @@ type Mutation {
   login(input: LoginInput!): AuthPayload!
 
   """
-  Put a worker on a vessel for one week. A worker already planned that week is moved.
+  Put workers on a vessel for one week, all or none. A worker already planned that week is moved.
   """
-  planCrewMember(input: PlanCrewMemberInput!): CrewAssignment!
+  planCrewMembers(input: PlanCrewMembersInput!): [CrewAssignment!]!
 
   """
   Remove someone from the order's team. A team lead can do this on his own vessels.
@@ -223,8 +223,9 @@ enum OrderStatus {
   PLANNED
 }
 
-input PlanCrewMemberInput {
-  userId: ID!
+input PlanCrewMembersInput {
+  """The workers to put on the vessel; one tap can plan several"""
+  userIds: [ID!]!
   vesselId: ID!
 
   """The Monday of the week, as 2026-10-26"""

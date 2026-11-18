@@ -19,12 +19,14 @@ const db = {
     findMany: jest.fn(),
     count: jest.fn(),
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     findUniqueOrThrow: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
   },
   vessel: { findUnique: jest.fn() },
   user: { findMany: jest.fn() },
+  crewAssignment: { findFirst: jest.fn() },
   statusUpdate: { create: jest.fn() },
   orderComment: { create: jest.fn() },
   orderAssignment: { upsert: jest.fn(), deleteMany: jest.fn() },
@@ -59,6 +61,13 @@ const protector = makeUser({
   name: 'Anna Schulz',
   role: 'WORKER',
   serviceTypes: ['PROTECTION'],
+});
+
+const teamLead = makeUser({
+  id: 'team-lead-1',
+  name: 'Heinz Brandt',
+  role: 'TEAM_LEAD',
+  serviceTypes: [],
 });
 
 const cleaningInput = (
@@ -99,7 +108,7 @@ describe('OrdersService', () => {
         .mockResolvedValueOnce([{ id: 'open' }])
         .mockResolvedValueOnce([{ id: 'done' }]);
 
-      const orders = await service.findAll({ skip: 2, take: 4 });
+      const orders = await service.findAll({ skip: 2, take: 4 }, lead);
 
       expect(orders).toEqual([{ id: 'open' }, { id: 'done' }]);
       expect(db.order.findMany).toHaveBeenNthCalledWith(
@@ -117,6 +126,31 @@ describe('OrdersService', () => {
           orderBy: [{ dueDate: 'desc' }, { createdAt: 'desc' }],
           skip: 0,
           take: 3,
+        }),
+      );
+    });
+
+    it("only lists orders on the user's visible vessels", async () => {
+      db.order.count.mockResolvedValue(0);
+      db.order.findMany.mockResolvedValue([]);
+      await service.findAll({ skip: 0, take: 10 }, teamLead);
+      const visible = { vessel: { teamLeadId: teamLead.id } };
+      // The count decides the paging, so it must be scoped as well.
+      expect(db.order.count).toHaveBeenCalledWith({
+        where: {
+          AND: [{ AND: [expect.anything(), visible] }, expect.anything()],
+        },
+      });
+    });
+  });
+
+  describe('findOne', () => {
+    it('finds the order only on a visible vessel', async () => {
+      db.order.findFirst.mockResolvedValue(null);
+      expect(await service.findOne('order-1', teamLead)).toBeNull();
+      expect(db.order.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'order-1', vessel: { teamLeadId: teamLead.id } },
         }),
       );
     });
@@ -366,16 +400,21 @@ describe('OrdersService', () => {
   });
 
   describe('team', () => {
+    // A Wednesday: "this week" is the Monday two days earlier.
+    const NOW = new Date('2026-11-18T10:00:00Z');
+
     beforeEach(() => {
       db.order.findUnique.mockResolvedValue({
         id: 'order-1',
         serviceType: 'PROTECTION',
+        vesselId: 'vessel-1',
+        vessel: { id: 'vessel-1', teamLeadId: teamLead.id },
       });
     });
 
     it('adds a qualified member, without duplicating an existing one', async () => {
       db.user.findMany.mockResolvedValue([protector]);
-      await service.assignTeamMember('order-1', protector.id);
+      await service.assignTeamMember('order-1', protector.id, lead);
       // upsert with an empty update: adding an existing member is a no-op.
       expect(db.orderAssignment.upsert).toHaveBeenCalledWith({
         where: { orderId_userId: { orderId: 'order-1', userId: protector.id } },
@@ -387,13 +426,64 @@ describe('OrdersService', () => {
     it('refuses someone from another service area', async () => {
       db.user.findMany.mockResolvedValue([cleaner]);
       await expect(
-        service.assignTeamMember('order-1', cleaner.id),
+        service.assignTeamMember('order-1', cleaner.id, lead),
       ).rejects.toBeInstanceOf(BadRequestException);
       expect(db.orderAssignment.upsert).not.toHaveBeenCalled();
     });
 
+    it('lets a team lead add a worker planned on his vessel', async () => {
+      db.user.findMany.mockResolvedValue([protector]);
+      db.crewAssignment.findFirst.mockResolvedValue({ userId: protector.id });
+
+      await service.assignTeamMember('order-1', protector.id, teamLead, NOW);
+
+      expect(db.crewAssignment.findFirst).toHaveBeenCalledWith({
+        where: {
+          userId: protector.id,
+          vesselId: 'vessel-1',
+          weekStart: {
+            in: [
+              new Date('2026-11-16T00:00:00Z'),
+              new Date('2026-11-23T00:00:00Z'),
+            ],
+          },
+        },
+      });
+      expect(db.orderAssignment.upsert).toHaveBeenCalled();
+    });
+
+    it('refuses a team lead a worker who is not planned on his vessel', async () => {
+      db.user.findMany.mockResolvedValue([protector]);
+      db.crewAssignment.findFirst.mockResolvedValue(null);
+      await expect(
+        service.assignTeamMember('order-1', protector.id, teamLead, NOW),
+      ).rejects.toBeInstanceOf(BadRequestException);
+      expect(db.orderAssignment.upsert).not.toHaveBeenCalled();
+    });
+
+    it("refuses a team lead an order on another lead's vessel", async () => {
+      db.order.findUnique.mockResolvedValue({
+        id: 'order-1',
+        serviceType: 'PROTECTION',
+        vesselId: 'vessel-2',
+        vessel: { id: 'vessel-2', teamLeadId: 'someone-else' },
+      });
+      await expect(
+        service.assignTeamMember('order-1', protector.id, teamLead, NOW),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+      await expect(
+        service.removeTeamMember('order-1', protector.id, teamLead),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('refuses workers', async () => {
+      await expect(
+        service.removeTeamMember('order-1', protector.id, cleaner),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
     it('removes a member', async () => {
-      await service.removeTeamMember('order-1', protector.id);
+      await service.removeTeamMember('order-1', protector.id, lead);
       expect(db.orderAssignment.deleteMany).toHaveBeenCalledWith({
         where: { orderId: 'order-1', userId: protector.id },
       });

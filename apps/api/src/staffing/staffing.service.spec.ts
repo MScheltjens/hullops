@@ -72,18 +72,29 @@ describe('StaffingService', () => {
 
   describe('findForWeek', () => {
     it('finds the requests of that Monday, sorted by vessel name', async () => {
-      await service.findForWeek('2026-10-26');
+      await service.findForWeek('2026-10-26', lead);
       expect(db.staffingRequest.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { weekStart: new Date('2026-10-26T00:00:00Z') },
+          where: { weekStart: new Date('2026-10-26T00:00:00Z'), vessel: {} },
           orderBy: { vessel: { name: 'asc' } },
         }),
       );
     });
 
     it('rejects a day that is not a Monday', () => {
-      expect(() => service.findForWeek('2026-10-27')).toThrow(
+      expect(() => service.findForWeek('2026-10-27', lead)).toThrow(
         BadRequestException,
+      );
+    });
+
+    it("limits a team lead to his own vessels' requests", async () => {
+      await service.findForWeek('2026-10-26', teamLead);
+      expect(db.staffingRequest.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            vessel: { teamLeadId: teamLead.id },
+          }),
+        }),
       );
     });
   });

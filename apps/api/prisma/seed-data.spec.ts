@@ -3,7 +3,8 @@ import { buildSeedData, SeedOrder, weekStartFor } from './seed-data';
 
 const STATUS_ORDER = ['PLANNED', 'IN_PROGRESS', 'DONE'] as const;
 const NOW = new Date('2026-10-04T12:00:00Z');
-const { users, vessels, orders, staffingRequests } = buildSeedData(NOW);
+const { users, vessels, orders, staffingRequests, crewPlan } =
+  buildSeedData(NOW);
 
 const userByEmail = new Map(users.map((user) => [user.email, user]));
 const isOverdue = (order: SeedOrder) =>
@@ -68,6 +69,40 @@ describe('seed data', () => {
           const key = `${request.weekOffset}|${email}`;
           expect(seen.has(key)).toBe(false);
           seen.add(key);
+        }
+      }
+    });
+  });
+
+  describe('crew plan', () => {
+    it('plans only workers, on existing vessels', () => {
+      for (const entry of crewPlan) {
+        expect(vessels.some((v) => v.id === entry.vesselId)).toBe(true);
+        for (const email of entry.workerEmails) {
+          expect(userByEmail.get(email)?.role).toBe('WORKER');
+        }
+      }
+    });
+
+    it('puts each worker on one vessel per week, as the database demands', () => {
+      const keys = crewPlan.flatMap((entry) =>
+        entry.workerEmails.map((email) => `${entry.weekOffset}|${email}`),
+      );
+      expect(new Set(keys).size).toBe(keys.length);
+    });
+
+    // Otherwise a worker would be on a team but couldn't see the order.
+    it("plans this week's open-order teams on the order's vessel", () => {
+      const plannedThisWeek = (email: string, vesselId: string) =>
+        crewPlan.some(
+          (entry) =>
+            entry.weekOffset === 0 &&
+            entry.vesselId === vesselId &&
+            entry.workerEmails.includes(email),
+        );
+      for (const order of orders.filter((o) => o.status !== 'DONE')) {
+        for (const email of order.teamEmails) {
+          expect(plannedThisWeek(email, order.vesselId)).toBe(true);
         }
       }
     });

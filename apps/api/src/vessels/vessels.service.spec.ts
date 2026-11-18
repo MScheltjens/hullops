@@ -1,3 +1,4 @@
+import type { AuthUser } from '../auth/auth-context';
 import {
   BadRequestException,
   ConflictException,
@@ -30,10 +31,11 @@ describe('VesselsService', () => {
     service = moduleRef.get(VesselsService);
   });
 
-  it('lists vessels with their team lead, sorted by name', async () => {
+  it('lists the visible vessels with their team lead, sorted by name', async () => {
     vessel.findMany.mockResolvedValue([]);
-    await service.findAll();
+    await service.findAll({ id: 'tl-1', role: 'TEAM_LEAD' } as AuthUser);
     expect(vessel.findMany).toHaveBeenCalledWith({
+      where: { teamLeadId: 'tl-1' },
       include: { teamLead: true },
       orderBy: { name: 'asc' },
     });

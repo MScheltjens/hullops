@@ -42,3 +42,12 @@ export function homePath(role: Role): string {
 export function seesWork(role: Role): boolean {
   return role !== "HR";
 }
+
+/**
+ * Whether this role sees the weekly planning (staffing requests and who is
+ * on which vessel). That's for the leads and administrators; the API refuses
+ * workers, who only see the vessels they're planned on.
+ */
+export function seesPlanning(role: Role): boolean {
+  return role === "ADMIN" || role === "PROJECT_LEAD" || role === "TEAM_LEAD";
+}

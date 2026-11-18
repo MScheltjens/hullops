@@ -1,7 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { requireUser, type Locale } from "@/lib/server/dal";
-import { canManageUsers, homePath, seesWork } from "@/lib/user-roles";
+import {
+  canManageUsers,
+  homePath,
+  seesPlanning,
+  seesWork,
+} from "@/lib/user-roles";
 import { logout, setLocale } from "./actions";
 
 /**
@@ -44,12 +49,15 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
             >
               {t("nav.vessels")}
             </Link>
-            <Link
-              href="/planning"
-              className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
-            >
-              {t("nav.planning")}
-            </Link>
+            {/* Workers don't plan; the page and the API check too. */}
+            {seesPlanning(user.role) && (
+              <Link
+                href="/planning"
+                className="flex min-h-11 items-center text-sm font-medium text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white"
+              >
+                {t("nav.planning")}
+              </Link>
+            )}
               </>
             )}
             {/* Administrators and HR manage users; the page and the API check too. */}

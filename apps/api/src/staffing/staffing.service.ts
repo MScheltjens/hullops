@@ -7,6 +7,7 @@ import {
 import type { AuthUser } from '../auth/auth-context';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import type { SaveStaffingRequestInput } from './staffing.inputs';
 import { validateStaffingRequest } from './staffing-rules';
 import { isMonday, parseDateOnly } from './week';
@@ -29,8 +30,11 @@ export type StaffingRequestWithRelations = Prisma.StaffingRequestGetPayload<{
 export class StaffingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** The requests for one week (given as its Monday), one per vessel. */
-  findForWeek(weekStart: string) {
+  /**
+   * The requests for one week (given as its Monday), one per vessel, for the
+   * vessels this user may see: a team lead gets only his own.
+   */
+  findForWeek(weekStart: string, actor: AuthUser, now = new Date()) {
     const week = parseDateOnly(weekStart);
     if (!week || !isMonday(week)) {
       throw new BadRequestException(
@@ -38,7 +42,7 @@ export class StaffingService {
       );
     }
     return this.prisma.staffingRequest.findMany({
-      where: { weekStart: week },
+      where: { weekStart: week, vessel: visibleVesselsWhere(actor, now) },
       include: STAFFING_INCLUDE,
       orderBy: { vessel: { name: 'asc' } },
     });

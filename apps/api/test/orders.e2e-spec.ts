@@ -4,6 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
+import { weekStartOf } from './../src/staffing/week';
 import { createUserAndLogin, graphql, runId } from './auth-helpers';
 
 /**
@@ -104,12 +105,21 @@ describe('Orders GraphQL API (e2e)', () => {
     await prisma.vessel.create({
       data: { id: ids.vessel, name: 'E2E Vessel' },
     });
+    // Workers only see orders on vessels they're planned on this week.
+    await prisma.crewAssignment.createMany({
+      data: [ids.cleaner, ids.protector].map((userId) => ({
+        userId,
+        vesselId: ids.vessel,
+        weekStart: weekStartOf(new Date()),
+      })),
+    });
   });
 
   afterAll(async () => {
     // Orders first: they reference the vessel and users. Deleting an order
     // cascades to its details, team and history.
     await prisma.order.deleteMany({ where: { vesselId: ids.vessel } });
+    await prisma.crewAssignment.deleteMany({ where: { vesselId: ids.vessel } });
     await prisma.vessel.deleteMany({ where: { id: ids.vessel } });
     await prisma.user.deleteMany({
       where: { id: { in: [ids.lead, ids.cleaner, ids.protector] } },

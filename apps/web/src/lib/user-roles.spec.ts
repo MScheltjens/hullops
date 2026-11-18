@@ -4,6 +4,7 @@ import {
   homePath,
   manageableRoles,
   ROLES,
+  seesPlanning,
   seesWork,
 } from "./user-roles";
 
@@ -44,5 +45,13 @@ describe("homePath and seesWork", () => {
       expect(homePath(role)).toBe("/orders");
       expect(seesWork(role)).toBe(true);
     }
+  });
+});
+
+describe("seesPlanning", () => {
+  it("is for the leads and administrators, not workers or HR", () => {
+    expect(ROLES.filter(seesPlanning).sort()).toEqual(
+      ["ADMIN", "PROJECT_LEAD", "TEAM_LEAD"].sort(),
+    );
   });
 });

@@ -7,6 +7,8 @@ import {
 import { Prisma, type ServiceType } from '../generated/prisma/client';
 import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
+import { addWeeks, weekStartOf } from '../staffing/week';
+import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import {
   AddOrderCommentInput,
   AddStatusUpdateInput,
@@ -78,15 +80,22 @@ export class OrdersService {
   /**
    * Open orders first, soonest due date first, so the most urgent ones lead
    * the list. Done orders follow, latest first, because the recent ones are
-   * the ones people still look up.
+   * the ones people still look up. Only orders on vessels the user may see
+   * are listed (see vessel-scope.ts).
    */
   async findAll(
     args: OrdersArgs,
+    actor: AuthUser,
     now = new Date(),
     include: Prisma.OrderInclude = ORDER_INCLUDE,
   ): Promise<LoadedOrder[]> {
     const { skip, take, ...filters } = args;
-    const where = buildOrdersWhere(filters, now);
+    const where: Prisma.OrderWhereInput = {
+      AND: [
+        buildOrdersWhere(filters, now),
+        { vessel: visibleVesselsWhere(actor, now) },
+      ],
+    };
     const openWhere = { AND: [where, { status: { not: 'DONE' as const } }] };
     const doneWhere = { AND: [where, { status: 'DONE' as const }] };
 
@@ -112,12 +121,20 @@ export class OrdersService {
     return [...open, ...done] as unknown as LoadedOrder[];
   }
 
+  /**
+   * One order, or null when it doesn't exist or is on a vessel the user may
+   * not see. Both look the same, so the answer doesn't reveal that an order
+   * exists. findFirst instead of findUnique, because the vessel filter isn't
+   * part of a unique key.
+   */
   findOne(
     id: string,
+    actor: AuthUser,
+    now = new Date(),
     include: Prisma.OrderInclude = ORDER_INCLUDE,
   ): Promise<LoadedOrder | null> {
-    return this.prisma.order.findUnique({
-      where: { id },
+    return this.prisma.order.findFirst({
+      where: { id, vessel: visibleVesselsWhere(actor, now) },
       include,
     }) as unknown as Promise<LoadedOrder | null>;
   }
@@ -294,17 +311,38 @@ export class OrdersService {
     });
   }
 
-  /** Adds someone to the team. Adding a current member changes nothing. */
+  /**
+   * Adds someone to the team. Adding a current member changes nothing.
+   *
+   * A team lead hands out the work on his own vessels, but only to the
+   * workers the project lead planned there for this week or next week. A
+   * project lead can add anyone, e.g. while creating the order before the
+   * week is planned.
+   */
   async assignTeamMember(
     orderId: string,
     userId: string,
+    actor: AuthUser,
+    now = new Date(),
   ): Promise<OrderWithRelations> {
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({ where: { id: orderId } });
-      if (!order) {
-        throw new NotFoundException(`Order ${orderId} not found`);
-      }
+      const order = await this.findOrderForTeamChange(tx, orderId, actor);
       await this.checkTeamMembers(tx, [userId], order.serviceType);
+      if (actor.role === 'TEAM_LEAD') {
+        const thisWeek = weekStartOf(now);
+        const planned = await tx.crewAssignment.findFirst({
+          where: {
+            userId,
+            vesselId: order.vesselId,
+            weekStart: { in: [thisWeek, addWeeks(thisWeek, 1)] },
+          },
+        });
+        if (!planned) {
+          throw new BadRequestException(
+            'This worker is not planned on this vessel this week or next week',
+          );
+        }
+      }
       await tx.orderAssignment.upsert({
         where: { orderId_userId: { orderId, userId } },
         create: { orderId, userId },
@@ -321,18 +359,45 @@ export class OrdersService {
   async removeTeamMember(
     orderId: string,
     userId: string,
+    actor: AuthUser,
   ): Promise<OrderWithRelations> {
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({ where: { id: orderId } });
-      if (!order) {
-        throw new NotFoundException(`Order ${orderId} not found`);
-      }
+      await this.findOrderForTeamChange(tx, orderId, actor);
       await tx.orderAssignment.deleteMany({ where: { orderId, userId } });
       return tx.order.findUniqueOrThrow({
         where: { id: orderId },
         include: ORDER_INCLUDE,
       });
     });
+  }
+
+  /**
+   * Loads an order whose team the actor wants to change. Project leads may
+   * change any team, a team lead only those on the vessels he leads. The
+   * resolver lets only these two roles in; this checks the vessel too, and
+   * keeps the rule intact if the service is called from elsewhere.
+   */
+  private async findOrderForTeamChange(
+    tx: Prisma.TransactionClient,
+    orderId: string,
+    actor: AuthUser,
+  ) {
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { vessel: true },
+    });
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} not found`);
+    }
+    const mayChange =
+      actor.role === 'PROJECT_LEAD' ||
+      (actor.role === 'TEAM_LEAD' && order.vessel.teamLeadId === actor.id);
+    if (!mayChange) {
+      throw new ForbiddenException(
+        'Only project leads, and team leads on their own vessels, can change the team',
+      );
+    }
+    return order;
   }
 
   /** Every team member must exist and work in the order's service area. */

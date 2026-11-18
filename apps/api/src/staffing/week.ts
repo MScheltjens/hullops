@@ -27,3 +27,21 @@ export function formatDateOnly(date: Date): string {
 export function isMonday(date: Date): boolean {
   return date.getUTCDay() === 1;
 }
+
+const DAY_MS = 86_400_000;
+
+/** Midnight UTC on the Monday of the week that `date` falls in. */
+export function weekStartOf(date: Date): Date {
+  const midnight = Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+  );
+  const daysSinceMonday = (new Date(midnight).getUTCDay() + 6) % 7;
+  return new Date(midnight - daysSinceMonday * DAY_MS);
+}
+
+/** The same weekday, `weeks` weeks later (or earlier, when negative). */
+export function addWeeks(date: Date, weeks: number): Date {
+  return new Date(date.getTime() + weeks * 7 * DAY_MS);
+}

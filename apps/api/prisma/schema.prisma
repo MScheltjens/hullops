@@ -60,6 +60,7 @@ model User {
   staffingEntered   StaffingRequest[]       @relation("StaffingEnteredBy")
   staffingRequested StaffingRequestWorker[]
   ledVessels        Vessel[]                @relation("VesselTeamLead")
+  crewAssignments   CrewAssignment[]
 }
 
 model Vessel {
@@ -77,6 +78,7 @@ model Vessel {
 
   orders           Order[]
   staffingRequests StaffingRequest[]
+  crewAssignments  CrewAssignment[]
 }
 
 model Order {
@@ -213,6 +215,27 @@ model StaffingRequestWorker {
 
   @@id([requestId, userId])
   @@index([userId])
+}
+
+// The project lead's plan for a week: which worker is on which vessel. The
+// staffing request is what a team lead asked for; this is what the project
+// lead decided. It also decides which vessel a worker may see in the app.
+model CrewAssignment {
+  weekStart DateTime @db.Date // the Monday of the ISO week, like StaffingRequest
+  createdAt DateTime @default(now())
+
+  userId   String
+  // No onDelete: users are deactivated, not deleted, and the plan is kept
+  // for invoicing, so the database refuses to delete a planned user.
+  user     User   @relation(fields: [userId], references: [id])
+  vesselId String
+  // Restrict, like StaffingRequest: a vessel with planning history isn't
+  // deleted by accident.
+  vessel   Vessel @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+
+  // One vessel per worker per week.
+  @@id([userId, weekStart])
+  @@index([vesselId, weekStart])
 }
 
 // Free-text information on an order that the app has no field for. The

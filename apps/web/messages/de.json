@@ -36,7 +36,9 @@
     },
     "users": "Benutzer",
     "planning": "Planung",
-    "vessels": "Schiffe"
+    "vessels": "Schiffe",
+    "preferences": "Einstellungen",
+    "close": "Schließen"
   },
   "orders": {
     "title": "Aufträge",

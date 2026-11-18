@@ -61,11 +61,14 @@ apps/api/
 │   ├── schema.gql             generated GraphQL schema, committed so API changes show up in review
 │   ├── generated/prisma/      generated Prisma client (gitignored)
 │   ├── prisma/                PrismaService: the single database client
-│   ├── graphql/               GraphQL error formatting
+│   ├── graphql/               GraphQL enums and error formatting
+│   ├── common/                small helpers shared by features (weeks as Mondays)
+│   ├── auth/                  login, JWT guard, @Public/@Roles/@CurrentUser
 │   ├── health/                GET /health
 │   ├── orders/                orders feature; business rules in order-rules.ts
-│   ├── users/                 users query
-│   └── vessels/               vessels feature
+│   ├── staffing/              weekly staffing requests and the crew plan
+│   ├── users/                 user management; who sees which email (user-rules.ts)
+│   └── vessels/               vessels feature; which vessels a user sees (vessel-scope.ts)
 └── test/                      end-to-end tests
 ```
 

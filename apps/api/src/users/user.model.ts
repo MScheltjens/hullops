@@ -13,7 +13,7 @@ export class User {
   @Field()
   name: string;
 
-  @Field()
+  // Exposed through UsersResolver.email, which hides it from most viewers.
   email: string;
 
   @Field(() => Role)

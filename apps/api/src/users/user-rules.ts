@@ -51,3 +51,19 @@ export function validateUserChange(
   }
   return errors;
 }
+
+/**
+ * Whether the viewer may see this user's email address: their own, and
+ * everyone's for administrators and HR, who manage the accounts. The others
+ * work with names; an email is personal data they don't need. `viewer` is
+ * undefined when nobody is logged in.
+ */
+export function canSeeEmail(
+  viewer: { id: string; role: Role } | undefined,
+  user: { id: string },
+): boolean {
+  if (!viewer) return false;
+  return (
+    viewer.id === user.id || viewer.role === 'ADMIN' || viewer.role === 'HR'
+  );
+}

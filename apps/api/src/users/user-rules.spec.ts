@@ -1,4 +1,4 @@
-import { canManageRole, validateUserChange } from './user-rules';
+import { canManageRole, canSeeEmail, validateUserChange } from './user-rules';
 
 describe('validateUserChange', () => {
   const admin = { id: 'admin-1', role: 'ADMIN' as const };
@@ -66,5 +66,28 @@ describe('canManageRole', () => {
     for (const actor of ['PROJECT_LEAD', 'TEAM_LEAD', 'WORKER'] as const) {
       expect(canManageRole(actor, 'WORKER')).toBe(false);
     }
+  });
+});
+
+describe('canSeeEmail', () => {
+  const someone = { id: 'someone' };
+
+  it('shows a user their own email, whatever the role', () => {
+    expect(canSeeEmail({ id: 'someone', role: 'WORKER' }, someone)).toBe(true);
+  });
+
+  it.each(['ADMIN', 'HR'] as const)('shows %s every email', (role) => {
+    expect(canSeeEmail({ id: 'manager', role }, someone)).toBe(true);
+  });
+
+  it.each(['PROJECT_LEAD', 'TEAM_LEAD', 'WORKER'] as const)(
+    "hides other people's emails from %s",
+    (role) => {
+      expect(canSeeEmail({ id: 'other', role }, someone)).toBe(false);
+    },
+  );
+
+  it('hides every email when nobody is logged in', () => {
+    expect(canSeeEmail(undefined, someone)).toBe(false);
   });
 });

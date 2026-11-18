@@ -398,10 +398,20 @@ describe('Orders GraphQL API (e2e)', () => {
     expect(byWorker.body.errors[0].extensions.code).toBe('FORBIDDEN');
   });
 
-  it('lists users by service area', async () => {
+  it("hides other people's emails wherever a user appears", async () => {
+    const created = await createOrder(cleaningOrder());
     const response = await asCleaner(
-      '{ users(serviceType: PROTECTION) { id } }',
+      'query ($id: ID!) { order(id: $id) { createdBy { email } team { email } } }',
+      { id: created.body.data.createOrder.id },
     );
+    expect(response.body.data.order).toEqual({
+      createdBy: { email: null }, // the project lead's
+      team: [{ email: `${ids.cleaner}@hullops.example` }], // his own
+    });
+  });
+
+  it('lists users by service area', async () => {
+    const response = await asLead('{ users(serviceType: PROTECTION) { id } }');
     const userIds = response.body.data.users.map((u: { id: string }) => u.id);
     expect(userIds).toEqual(expect.arrayContaining([ids.lead, ids.protector]));
     expect(userIds).not.toContain(ids.cleaner);

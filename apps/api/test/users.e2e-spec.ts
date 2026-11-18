@@ -339,4 +339,41 @@ describe('User management (e2e)', () => {
     expect(response.status).toBe(400);
     expect(TEST_PASSWORD).toBeDefined();
   });
+
+  describe('email addresses', () => {
+    const emailOf = (id: string) => `${id}@hullops.example`;
+    const listed = async (as: Gql) => {
+      const response = await as('{ users { id email } }');
+      expect(response.body.errors).toBeUndefined();
+      return response.body.data.users as { id: string; email: string | null }[];
+    };
+
+    it('keeps the list of users from workers', async () => {
+      const response = await asWorker('{ users { id } }');
+      expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    });
+
+    it('shows a project lead the people, but not their emails', async () => {
+      const users = await listed(asLead);
+      expect(users).toContainEqual({ id: ids.worker, email: null });
+      // Their own is fine.
+      expect(users).toContainEqual({ id: ids.lead, email: emailOf(ids.lead) });
+    });
+
+    it.each(['admin', 'hr'] as const)(
+      'shows %s every email, to manage the accounts',
+      async (key) => {
+        const as = key === 'admin' ? asAdmin : asHr;
+        expect(await listed(as)).toContainEqual({
+          id: ids.worker,
+          email: emailOf(ids.worker),
+        });
+      },
+    );
+
+    it('shows everyone their own email', async () => {
+      const response = await asWorker('{ me { email } }');
+      expect(response.body.data.me.email).toBe(emailOf(ids.worker));
+    });
+  });
 });

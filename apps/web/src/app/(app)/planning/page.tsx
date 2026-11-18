@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import { homePath, seesPlanning } from "@/lib/user-roles";
+import { crewByVessel, unplannedWorkers, type CrewRow } from "@/lib/crew";
 import {
   assignedFor,
   canEnterRequest,
@@ -11,6 +12,7 @@ import {
   otherVessels,
 } from "@/lib/staffing";
 import { addWeeks, isoWeek, parseWeekParam, toDateOnly } from "@/lib/week";
+import { CrewSection } from "./crew-section";
 import { StaffingForm, type StaffingDefaults } from "./staffing-form";
 
 interface Person {
@@ -27,6 +29,11 @@ interface RequestRow {
   note: string | null;
   requestedWorkers: Person[];
 }
+
+const CREW_PLAN = `
+  query ($week: String!) {
+    crewPlan(weekStart: $week) { user { id name } vessel { id name } }
+  }`;
 
 const REQUESTS = `
   query ($week: String!) {
@@ -54,7 +61,7 @@ export default async function PlanningPage({
   const weekStart = toDateOnly(week);
   const previousWeek = toDateOnly(addWeeks(week, -1));
 
-  const [{ vessels }, current, previous, { users }, { orders }] =
+  const [{ vessels }, current, previous, { users }, { orders }, { crewPlan }] =
     await Promise.all([
       apiAsUser<{ vessels: VesselRow[] }>(
         "{ vessels { id name teamLead { id name } } }",
@@ -79,6 +86,7 @@ export default async function PlanningPage({
           status startDate dueDate vessel { id } team { id name }
         } }`,
       ),
+      apiAsUser<{ crewPlan: CrewRow[] }>(CREW_PLAN, { week: weekStart }),
     ]);
 
   const t = await getTranslations("planning");
@@ -94,6 +102,10 @@ export default async function PlanningPage({
     previous.staffingRequests.map((r) => [r.vessel.id, r]),
   );
   const doubleBookings = findDoubleBookings(current.staffingRequests);
+  const crews = crewByVessel(crewPlan);
+  // Only project leads plan the crew; the API checks too.
+  const canPlan = user.role === "PROJECT_LEAD";
+  const unplanned = canPlan ? unplannedWorkers(users, crewPlan) : [];
   // A team lead sees the vessels he is responsible for first.
   const sortedVessels = [...vessels].sort(
     (a, b) =>
@@ -130,6 +142,23 @@ export default async function PlanningPage({
         </Link>
       </div>
 
+      {canPlan && sortedVessels.length > 0 && (
+        <p
+          className={
+            unplanned.length > 0
+              ? "rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200"
+              : "text-sm text-zinc-600 dark:text-zinc-400"
+          }
+        >
+          {unplanned.length > 0
+            ? t("crew.unplanned", {
+                week: isoWeek(week),
+                names: unplanned.map((w) => w.name).join(", "),
+              })
+            : t("crew.allPlanned", { week: isoWeek(week) })}
+        </p>
+      )}
+
       {sortedVessels.length === 0 ? (
         <p className="rounded-md border border-dashed border-zinc-300 px-4 py-10 text-center text-zinc-600 dark:border-zinc-700 dark:text-zinc-400">
           {t("noVessels")}
@@ -149,7 +178,7 @@ export default async function PlanningPage({
               note: request?.note ?? "",
               workerIds: source?.requestedWorkers.map((w) => w.id) ?? [],
             };
-            const gap = request ? request.workersNeeded - assigned.length : 0;
+            const crew = crews.get(vessel.id) ?? [];
 
             return (
               <li
@@ -200,11 +229,6 @@ export default async function PlanningPage({
                       ))}
                     <div className="text-zinc-600 dark:text-zinc-400">
                       {t("onOrders", { count: assigned.length })}
-                      {gap > 0 && (
-                        <span className="ml-2 font-medium text-red-700 dark:text-red-400">
-                          {t("short", { count: gap })}
-                        </span>
-                      )}
                     </div>
                     {request.workersActual !== null && (
                       <div className="text-zinc-600 dark:text-zinc-400">
@@ -224,6 +248,16 @@ export default async function PlanningPage({
                       ` · ${t("onOrders", { count: assigned.length })}`}
                   </p>
                 )}
+
+                <CrewSection
+                  vessel={vessel}
+                  weekStart={weekStart}
+                  crew={crew}
+                  plan={crewPlan}
+                  workers={users}
+                  request={request}
+                  canPlan={canPlan}
+                />
 
                 {/* Project leads and the vessel's own team lead enter requests; the API checks too. */}
                 {canEnterRequest(user, vessel) && (

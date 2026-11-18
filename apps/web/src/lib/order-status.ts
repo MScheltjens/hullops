@@ -31,3 +31,16 @@ export function canUpdateOrder(
 ): boolean {
   return user.role === "PROJECT_LEAD" || team.some((m) => m.id === user.id);
 }
+
+/**
+ * Whether this user may change the order's team: project leads on every
+ * order, a team lead on the orders of the vessels he leads. Same rule as the
+ * API, which also checks that a team lead only adds planned workers.
+ */
+export function canChangeTeam(
+  user: { id: string; role: Role },
+  vessel: { teamLead: { id: string } | null },
+): boolean {
+  if (user.role === "PROJECT_LEAD") return true;
+  return user.role === "TEAM_LEAD" && vessel.teamLead?.id === user.id;
+}

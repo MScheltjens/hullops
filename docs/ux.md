@@ -130,6 +130,7 @@ This needs **availability data** (who is on leave). That comes from Crewmeister 
 |---|---|
 | Status buttons for workers and team members; comments; team management | A start page and menu per role |
 | Weekly request per vessel with workers by name, a team lead per vessel, a warning for double-booked workers | Number stepper and last week's crew pre-ticked as shown above |
+| Weekly crew plan: the project lead puts workers on vessels by tapping; each role sees only its own vessels; the team lead gives the orders to his planned workers | |
 | Order form with a vessel list and choices for service, protection kind and materials | The full choice-based order form shown above (method, surface, dates and crew as buttons) |
 | Mobile first layout, installable as a PWA, English and German | Editing and cancelling orders; confirmation; practice account |
 | | Automatic planning from last week, and availability (leave) as the input it needs |

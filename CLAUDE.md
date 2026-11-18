@@ -19,6 +19,18 @@ pnpm 12 monorepo (`apps/*`), Node 24.
 - `apps/api`: NestJS (CommonJS), GraphQL, Prisma 7, PostgreSQL (via the root `docker-compose.yml`)
 - `apps/web`: Next.js 16 App Router, TypeScript, Tailwind CSS v4. This Next.js version has breaking changes compared with older ones, so read `apps/web/AGENTS.md` and the docs in `apps/web/node_modules/next/dist/docs/` before writing Next.js code.
 
+## Workflow: issues → branch → PR
+
+Work is planned as GitHub issues (epics with sub-issues; labels `type:*`, `area:*`, `prio:*`; one milestone per two-week sprint). When asked to work on an issue:
+
+1. Read it first: `gh issue view <n> --comments`. If it is an epic, work on one sub-issue at a time.
+2. Propose a short plan and wait for approval before writing code. Flag acceptance criteria that are unclear or conflict with the code.
+3. Branch from `main` as `<type>/<n>-<short-slug>` (e.g. `feat/41-photo-upload-api`, `fix/52-overdue-timezone`, `chore/…`, `docs/…`).
+4. Commit in small steps with Conventional Commits (`feat(api): …`, `fix(web): …`, `test: …`) and reference the issue (`Refs #41`).
+5. Open the PR with `.github/pull_request_template.md`, starting with `Closes #<n>`, and tick the acceptance criteria you met. Say which ones you didn't.
+
+Don't close issues, change milestones or edit acceptance criteria yourself; ask instead.
+
 ## Rules
 
 - Always use pnpm, never npm or yarn.

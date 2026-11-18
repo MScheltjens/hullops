@@ -64,10 +64,10 @@ describe('Vessel visibility and the crew plan (e2e)', () => {
     };
   };
 
-  const plan = (userId: string, vesselId: string, weekStart = THIS_WEEK) =>
-    as.lead(
-      `mutation ($input: PlanCrewMemberInput!) { planCrewMember(input: $input) { weekStart user { id } vessel { id } } }`,
-      { input: { userId, vesselId, weekStart } },
+  const plan = (userIds: string[], vesselId: string, gql = as.lead) =>
+    gql(
+      `mutation ($input: PlanCrewMembersInput!) { planCrewMembers(input: $input) { weekStart user { id } vessel { id } } }`,
+      { input: { userIds, vesselId, weekStart: THIS_WEEK } },
     );
 
   const assign = (gql: Gql, orderId: string, userId: string) =>
@@ -199,17 +199,19 @@ describe('Vessel visibility and the crew plan (e2e)', () => {
 
   describe('the crew plan', () => {
     it('lets a project lead plan a worker, which shows him the vessel', async () => {
-      const planned = await plan(ids.unplanned, ids.vesselA);
-      expect(planned.body.data.planCrewMember).toEqual({
-        weekStart: THIS_WEEK,
-        user: { id: ids.unplanned },
-        vessel: { id: ids.vesselA },
-      });
+      const planned = await plan([ids.unplanned], ids.vesselA);
+      expect(planned.body.data.planCrewMembers).toEqual([
+        {
+          weekStart: THIS_WEEK,
+          user: { id: ids.unplanned },
+          vessel: { id: ids.vesselA },
+        },
+      ]);
       expect((await visibleTo(as.unplanned)).vessels).toEqual([ids.vesselA]);
     });
 
     it('moves a worker who is planned again in the same week', async () => {
-      await plan(ids.unplanned, ids.vesselB);
+      await plan([ids.unplanned], ids.vesselB);
       expect((await visibleTo(as.unplanned)).vessels).toEqual([ids.vesselB]);
       const rows = await prisma.crewAssignment.count({
         where: { userId: ids.unplanned },
@@ -228,22 +230,17 @@ describe('Vessel visibility and the crew plan (e2e)', () => {
       expect((await visibleTo(as.unplanned)).vessels).toEqual([]);
     });
 
-    it('plans only active workers', async () => {
-      const response = await plan(ids.leadA, ids.vesselA);
+    it('plans only active workers, and then nobody at all', async () => {
+      const response = await plan([ids.unplanned, ids.leadA], ids.vesselA);
       expect(response.body.errors[0].extensions.code).toBe('BAD_REQUEST');
+      const rows = await prisma.crewAssignment.count({
+        where: { userId: ids.unplanned },
+      });
+      expect(rows).toBe(0);
     });
 
     it('is planned by project leads only', async () => {
-      const response = await as.leadA(
-        `mutation ($input: PlanCrewMemberInput!) { planCrewMember(input: $input) { weekStart } }`,
-        {
-          input: {
-            userId: ids.unplanned,
-            vesselId: ids.vesselA,
-            weekStart: NEXT_WEEK,
-          },
-        },
-      );
+      const response = await plan([ids.unplanned], ids.vesselA, as.leadA);
       expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
     });
 

@@ -10,10 +10,10 @@ HullOps is a planning tool for subcontractors who work on shipyards. Project lea
   <img src="docs/screenshots/login.png" alt="Login page with one-tap demo logins per role" width="24%">
   <img src="docs/screenshots/orders.png" alt="Order overview on a phone, with status and overdue badges" width="24%">
   <img src="docs/screenshots/order-detail.png" alt="Order details with a status update form" width="24%">
-  <img src="docs/screenshots/planning.png" alt="Weekly planning per vessel with workers requested by name" width="24%">
+  <img src="docs/screenshots/planning.png" alt="Weekly planning per vessel: the team lead's request and the crew the project lead planned, by tapping" width="24%">
 </p>
 
-> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing, and login with roles. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, creating orders, weekly planning, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
+> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing requests, the weekly crew plan, and login with roles; each role sees only the vessels it works on. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, creating orders, weekly planning with the crew plan, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -38,9 +38,9 @@ HullOps comes from a real way of working. On the yard, planning and all communic
 
 | Role | Who | Why it exists |
 |---|---|---|
-| Project lead | The office | Plans orders, passes on what the shipyard tells them, manages teams, and invoices the customer. |
-| Team lead (*Vorarbeiter*) | On the yard, one per vessel | Knows what the vessel needs, so they ask for workers for the coming week themselves, including by name. |
-| Worker | On the yard | Reads the plan and updates the status of their orders. |
+| Project lead | The office | Plans orders, divides the workers over the vessels each week, passes on what the shipyard tells them, and invoices the customer. Sees every vessel. |
+| Team lead (*Vorarbeiter*) | On the yard; leads one or more vessels | Knows what the vessel needs, so they ask for workers for the coming week themselves, including by name, and give the orders on their vessels to the workers planned there. Sees only their own vessels. |
+| Worker | On the yard | Reads the plan and updates the status of their orders. Sees only the vessel they're planned on this week, and next week's once it's planned. |
 | HR | Office | Hires people, so creates workers, team leads and project leads (recording absence is planned). Cannot create or touch administrators or other HR, and sees no orders, vessels or staffing. |
 | Administrator | Technical | Manages accounts. Reads everything but doesn't run the work, so responsibilities stay separate. |
 
@@ -49,6 +49,8 @@ The shipyard's own people (the customer's side) have **no login**. The project l
 **Decisions and their reasons**
 
 - **Mobile first, installable as a PWA.** Most use is on a phone on the yard: big tap targets, cards instead of wide tables, and "add to home screen" instead of an app store. There is no service worker because there is no offline mode.
+- **Each role sees only its own vessels.** One rule in the API ([`vessel-scope.ts`](apps/api/src/vessels/vessel-scope.ts)) decides which vessels a user may see, and every query for orders, vessels, staffing and the crew plan uses it. An order or vessel out of sight returns `null`, the same as one that doesn't exist, so the answer doesn't reveal it.
+- **A request is not a plan.** The team lead asks for workers; the project lead decides who goes where, one tap per worker, with one tap to accept everyone asked for by name. A worker is on one vessel per week (the database enforces it), and the plan is what a worker sees and what a team lead can hand out work to.
 - **Workers can be requested by name.** Keeping the same people on the same vessel is better than rotating them, so the weekly request carries names, is prefilled from the week before, and warns when one worker is asked for by two vessels.
 - **The API is language-neutral.** It sends codes (`CLEANING`, `IN_PROGRESS`) and the web app translates them, English and German, because it is mainly used in Germany.
 - **Validation lives in the API.** The web forms only reshape input; the API checks every rule and reports all violations at once. Repeating the rules in the browser would let the two drift apart.
@@ -156,7 +158,8 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Web: create orders, order details with comments, status updates and team assignment
 - [x] Mobile first, installable as a PWA
 - [x] Deployment: web on Vercel, API and PostgreSQL on Railway
-- [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the project lead
+- [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the team lead or the project lead
+- [x] Weekly crew plan: the project lead puts workers on vessels by tapping; each role sees only its own vessels; team leads give the orders on their vessels to their planned workers
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
 - [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source
 - [ ] Status updates with photo uploads

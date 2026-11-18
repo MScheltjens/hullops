@@ -3,7 +3,9 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
-import { canUpdateOrder, nextStatus } from "@/lib/order-status";
+import { plannedCandidates } from "@/lib/crew";
+import { canChangeTeam, canUpdateOrder, nextStatus } from "@/lib/order-status";
+import { addWeeks, mondayOf, toDateOnly } from "@/lib/week";
 import { StatusBadge, type Status } from "../status-badge";
 import { assignMember, removeMember } from "./actions";
 import { CommentForm } from "./comment-form";
@@ -21,7 +23,12 @@ interface OrderDetail {
   areaSqm: number | null;
   startDate: string;
   dueDate: string;
-  vessel: { name: string; imoNumber: string | null };
+  vessel: {
+    id: string;
+    name: string;
+    imoNumber: string | null;
+    teamLead: { id: string } | null;
+  };
   createdBy: { name: string };
   cleaningDetails: { method: string; surface: string } | null;
   protectionDetails: {
@@ -53,7 +60,7 @@ const ORDER = `
     order(id: $id) {
       id title description status serviceType overdue shipyard berth areaSqm
       startDate dueDate
-      vessel { name imoNumber }
+      vessel { id name imoNumber teamLead { id } }
       createdBy { name }
       cleaningDetails { method surface }
       protectionDetails {
@@ -90,17 +97,16 @@ export default async function OrderDetailPage({
   // The API answers null for an unknown id.
   if (!order) notFound();
 
-  const isLead = user.role === "PROJECT_LEAD";
-  // People who work in this service area and aren't on the team yet. Only
-  // leads can add members, so only they need the list.
-  const candidates = isLead
-    ? (
-        await apiAsUser<{ users: { id: string; name: string }[] }>(
-          "query ($serviceType: ServiceType) { users(serviceType: $serviceType) { id name } }",
-          { serviceType: order.serviceType },
-        )
-      ).users.filter((u) => !order.team.some((m) => m.id === u.id))
-    : [];
+  // Project leads staff any order; the vessel's team lead hands out the work
+  // on his own vessel. The API checks both.
+  const isLead = canChangeTeam(user, order.vessel);
+  let candidates: { id: string; name: string }[] = [];
+  if (isLead) {
+    candidates =
+      user.role === "TEAM_LEAD"
+        ? await plannedOnVessel(order)
+        : await inServiceArea(order);
+  }
   const mayUpdate = canUpdateOrder(user, order.team);
 
   const t = await getTranslations("orderDetail");
@@ -237,7 +243,9 @@ export default async function OrderDetailPage({
         {isLead &&
           (candidates.length === 0 ? (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              {t("noOneToAdd")}
+              {user.role === "TEAM_LEAD"
+                ? t("noPlannedToAdd")
+                : t("noOneToAdd")}
             </p>
           ) : (
             <form
@@ -347,5 +355,41 @@ function Item({
       </dt>
       <dd>{children}</dd>
     </div>
+  );
+}
+
+/** Who a project lead can add: anyone in the order's service area not on the team yet. */
+async function inServiceArea(order: OrderDetail) {
+  const { users } = await apiAsUser<{ users: { id: string; name: string }[] }>(
+    "query ($serviceType: ServiceType) { users(serviceType: $serviceType) { id name } }",
+    { serviceType: order.serviceType },
+  );
+  return users.filter((u) => !order.team.some((m) => m.id === u.id));
+}
+
+const CREW_PLAN = `
+  query ($week: String!) {
+    crewPlan(weekStart: $week) {
+      user { id name serviceTypes }
+      vessel { id }
+    }
+  }`;
+
+/**
+ * The workers a team lead can put on this order: those the project lead
+ * planned on its vessel this week or next week (the API allows the same).
+ */
+async function plannedOnVessel(order: OrderDetail) {
+  type Rows = Parameters<typeof plannedCandidates>[0];
+  const thisWeek = mondayOf(new Date());
+  const weeks = [thisWeek, addWeeks(thisWeek, 1)].map(toDateOnly);
+  const plans = await Promise.all(
+    weeks.map((week) => apiAsUser<{ crewPlan: Rows }>(CREW_PLAN, { week })),
+  );
+  return plannedCandidates(
+    plans.flatMap((plan) => plan.crewPlan),
+    order.vessel.id,
+    order.serviceType,
+    order.team,
   );
 }

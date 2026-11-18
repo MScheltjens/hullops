@@ -143,7 +143,8 @@
     "addMember": "Teammitglied hinzufügen",
     "chooseMember": "Person auswählen…",
     "add": "Hinzufügen",
-    "noOneToAdd": "Alle Personen dieses Leistungsbereichs sind bereits im Team."
+    "noOneToAdd": "Alle Personen dieses Leistungsbereichs sind bereits im Team.",
+    "noPlannedToAdd": "Alle auf diesem Schiff eingeplanten Personen dieses Leistungsbereichs sind bereits im Team. Der Projektleiter plant die Arbeiter auf der Seite Planung ein."
   },
   "comments": {
     "text": "Kommentar",
@@ -219,7 +220,7 @@
   },
   "planning": {
     "title": "Planung",
-    "subtitle": "Was die Vorarbeiter angefordert haben, Woche für Woche",
+    "subtitle": "Anforderungen und Einsatzplan, Woche für Woche",
     "week": "Woche {number}",
     "previousWeek": "Vorherige Woche",
     "nextWeek": "Nächste Woche",
@@ -229,7 +230,6 @@
     "namedCount": "{count} namentlich",
     "doubleBooked": "{name} ist auch für {vessels} angefordert",
     "onOrders": "{count, plural, one {# Person} other {# Personen}} in den Teams laufender Aufträge",
-    "short": "{count, plural, one {# weiterer nötig} other {# weitere nötig}}",
     "actual": "Tatsächlich gearbeitet: {count}",
     "enter": "Anforderung eintragen",
     "edit": "Anforderung bearbeiten",
@@ -250,7 +250,23 @@
       "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
     },
     "teamLeadIs": "Vorarbeiter: {name}",
-    "noTeamLead": "Noch kein Vorarbeiter. Ein Projektleiter kann auf der Seite Schiffe einen wählen."
+    "noTeamLead": "Noch kein Vorarbeiter. Ein Projektleiter kann auf der Seite Schiffe einen wählen.",
+    "crew": {
+      "title": "Eingeplant",
+      "count": "{count, plural, =0 {noch niemand eingeplant} one {# Arbeiter} other {# Arbeiter}}",
+      "short": "{count, plural, one {# weiterer nötig} other {# weitere nötig}}",
+      "remove": "{name} von diesem Schiff nehmen",
+      "planRequested": "{count, plural, one {Den angeforderten Arbeiter einplanen} other {Die # angeforderten Arbeiter einplanen}}",
+      "add": "Antippen, um auf dieses Schiff einzuplanen:",
+      "onVessel": "jetzt auf {vessel}",
+      "unplanned": "In Woche {week} nicht eingeplant: {names}",
+      "allPlanned": "Alle Arbeiter sind in Woche {week} eingeplant.",
+      "errors": {
+        "forbidden": "Nur Projektleiter können Arbeiter einplanen.",
+        "invalid": "Das konnte nicht eingeplant werden:",
+        "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+      }
+    }
   },
   "vessels": {
     "title": "Schiffe",

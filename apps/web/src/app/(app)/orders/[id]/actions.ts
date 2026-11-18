@@ -111,10 +111,13 @@ const REMOVE = `
     removeTeamMember(orderId: $orderId, userId: $userId) { id }
   }`;
 
-/** Adds the person chosen in the form. Project leads only (the API checks too). */
+/**
+ * Adds the person chosen in the form. For project leads, and team leads on
+ * their own vessels; the API checks the vessel and the crew plan.
+ */
 export async function assignMember(orderId: string, formData: FormData) {
   const user = await requireUser();
-  if (user.role !== "PROJECT_LEAD") return;
+  if (user.role !== "PROJECT_LEAD" && user.role !== "TEAM_LEAD") return;
   const userId = String(formData.get("userId") ?? "");
   if (!userId) return;
   await apiAsUser(ASSIGN, { orderId, userId });
@@ -124,7 +127,7 @@ export async function assignMember(orderId: string, formData: FormData) {
 /** Bound to the order and the person: `removeMember.bind(null, order.id, member.id)`. */
 export async function removeMember(orderId: string, userId: string) {
   const user = await requireUser();
-  if (user.role !== "PROJECT_LEAD") return;
+  if (user.role !== "PROJECT_LEAD" && user.role !== "TEAM_LEAD") return;
   await apiAsUser(REMOVE, { orderId, userId });
   revalidatePath(`/orders/${orderId}`);
 }

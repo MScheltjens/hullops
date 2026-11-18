@@ -8,7 +8,7 @@ import type { AuthUser } from '../auth/auth-context';
 import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
-import type { PlanCrewMemberInput } from './crew.inputs';
+import type { PlanCrewMembersInput } from './crew.inputs';
 import { isMonday, parseDateOnly } from './week';
 
 export const CREW_INCLUDE = {
@@ -66,16 +66,18 @@ export class CrewService {
   }
 
   /**
-   * Puts a worker on a vessel for a week. A worker is on one vessel per
-   * week, so planning him again moves him: the row is keyed by worker and
-   * week, and an upsert replaces the vessel.
+   * Puts workers on a vessel for a week, all or none. A worker is on one
+   * vessel per week, so planning him again moves him: the row is keyed by
+   * worker and week, and an upsert replaces the vessel. Returns the rows
+   * that were saved.
    */
   async plan(
-    input: PlanCrewMemberInput,
+    input: PlanCrewMembersInput,
     actor: AuthUser,
-  ): Promise<CrewAssignmentWithRelations> {
+  ): Promise<CrewAssignmentWithRelations[]> {
     requireProjectLead(actor);
     const week = parseWeekStart(input.weekStart);
+    const userIds = [...new Set(input.userIds)];
 
     return this.prisma.$transaction(async (tx) => {
       const vessel = await tx.vessel.findUnique({
@@ -84,22 +86,32 @@ export class CrewService {
       if (!vessel) {
         throw new NotFoundException(`Vessel ${input.vesselId} not found`);
       }
-      const user = await tx.user.findUnique({ where: { id: input.userId } });
-      if (!user) {
-        throw new NotFoundException(`User ${input.userId} not found`);
+      const users = await tx.user.findMany({ where: { id: { in: userIds } } });
+      const missing = userIds.filter((id) => !users.some((u) => u.id === id));
+      if (missing.length > 0) {
+        throw new NotFoundException(`User(s) not found: ${missing.join(', ')}`);
       }
       // Team leads have their vessels through Vessel.teamLead, and the
       // office doesn't work on the vessels; only workers are planned.
-      if (user.role !== 'WORKER' || !user.active) {
-        throw new BadRequestException(`${user.name} is not an active worker`);
+      const ineligible = users.filter((u) => u.role !== 'WORKER' || !u.active);
+      if (ineligible.length > 0) {
+        throw new BadRequestException(
+          ineligible.map((u) => `${u.name} is not an active worker`),
+        );
       }
 
-      return tx.crewAssignment.upsert({
-        where: { userId_weekStart: { userId: user.id, weekStart: week } },
-        create: { userId: user.id, vesselId: vessel.id, weekStart: week },
-        update: { vesselId: vessel.id },
-        include: CREW_INCLUDE,
-      });
+      const saved: CrewAssignmentWithRelations[] = [];
+      for (const userId of userIds) {
+        saved.push(
+          await tx.crewAssignment.upsert({
+            where: { userId_weekStart: { userId, weekStart: week } },
+            create: { userId, vesselId: vessel.id, weekStart: week },
+            update: { vesselId: vessel.id },
+            include: CREW_INCLUDE,
+          }),
+        );
+      }
+      return saved;
     });
   }
 

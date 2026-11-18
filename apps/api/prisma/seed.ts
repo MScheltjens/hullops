@@ -209,7 +209,7 @@ async function main() {
     );
 
     console.log(
-      `Seeded ${users.length} users, ${vessels.length} vessels, ${orders.length} orders and ${staffingRequests.length} staffing requests and a crew plan for ${crewPlan.length} vessel-weeks.`,
+      `Seeded ${users.length} users, ${vessels.length} vessels, ${orders.length} orders, ${staffingRequests.length} staffing requests and a crew plan for ${crewPlan.length} vessel-weeks.`,
     );
     console.log(
       `All seeded users can log in with the password "${SEED_PASSWORD}".`,

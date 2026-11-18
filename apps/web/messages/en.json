@@ -143,7 +143,8 @@
     "addMember": "Add team member",
     "chooseMember": "Choose a person…",
     "add": "Add",
-    "noOneToAdd": "Everyone who works in this service area is already on the team."
+    "noOneToAdd": "Everyone who works in this service area is already on the team.",
+    "noPlannedToAdd": "Everyone planned on this vessel who works in this service area is already on the team. The project lead plans the crew on the Planning page."
   },
   "comments": {
     "text": "Comment",
@@ -219,7 +220,7 @@
   },
   "planning": {
     "title": "Planning",
-    "subtitle": "What the foremen asked for, week by week",
+    "subtitle": "Requests and the crew plan, week by week",
     "week": "Week {number}",
     "previousWeek": "Previous week",
     "nextWeek": "Next week",
@@ -229,7 +230,6 @@
     "namedCount": "{count} by name",
     "doubleBooked": "{name} is also requested for {vessels}",
     "onOrders": "{count, plural, one {# person} other {# people}} on the teams of current orders",
-    "short": "{count, plural, one {# more needed} other {# more needed}}",
     "actual": "Actually worked: {count}",
     "enter": "Enter the request",
     "edit": "Edit the request",
@@ -250,7 +250,23 @@
       "unavailable": "The server can't be reached right now. Please try again later."
     },
     "teamLeadIs": "Team lead: {name}",
-    "noTeamLead": "No team lead yet. A project lead can choose one on the Vessels page."
+    "noTeamLead": "No team lead yet. A project lead can choose one on the Vessels page.",
+    "crew": {
+      "title": "Planned crew",
+      "count": "{count, plural, =0 {nobody planned yet} one {# worker} other {# workers}}",
+      "short": "{count, plural, one {# more needed} other {# more needed}}",
+      "remove": "Take {name} off this vessel",
+      "planRequested": "{count, plural, one {Plan the requested worker} other {Plan the # requested workers}}",
+      "add": "Tap to add to this vessel:",
+      "onVessel": "now on {vessel}",
+      "unplanned": "Not planned in week {week}: {names}",
+      "allPlanned": "Every worker is planned in week {week}.",
+      "errors": {
+        "forbidden": "Only project leads can plan the crew.",
+        "invalid": "This couldn't be planned:",
+        "unavailable": "The server can't be reached right now. Please try again later."
+      }
+    }
   },
   "vessels": {
     "title": "Vessels",

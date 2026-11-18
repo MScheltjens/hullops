@@ -14,7 +14,7 @@ import {
   StaffingService,
   type StaffingRequestWithRelations,
 } from './staffing.service';
-import { formatDateOnly } from './week';
+import { formatDateOnly } from '../common/week';
 
 @Resolver(() => StaffingRequest)
 export class StaffingResolver {

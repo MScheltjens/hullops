@@ -1,4 +1,4 @@
-import { isMonday, parseDateOnly } from './week';
+import { isMonday, parseDateOnly } from '../common/week';
 
 /**
  * Rules for a weekly staffing request, as a plain function: no database and

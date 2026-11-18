@@ -4,7 +4,7 @@ import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { weekStartOf } from './../src/staffing/week';
+import { weekStartOf } from './../src/common/week';
 import { createUserAndLogin, graphql, runId } from './auth-helpers';
 
 /**

@@ -9,7 +9,7 @@ import type { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import type { PlanCrewMembersInput } from './crew.inputs';
-import { isMonday, parseDateOnly } from './week';
+import { isMonday, parseDateOnly } from '../common/week';
 
 export const CREW_INCLUDE = {
   user: true,

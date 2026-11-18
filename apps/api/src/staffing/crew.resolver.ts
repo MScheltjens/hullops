@@ -11,7 +11,7 @@ import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
 import { PlanCrewMembersInput } from './crew.inputs';
 import { CrewAssignment } from './crew.model';
 import { CrewService, type CrewAssignmentWithRelations } from './crew.service';
-import { formatDateOnly } from './week';
+import { formatDateOnly } from '../common/week';
 
 @Resolver(() => CrewAssignment)
 export class CrewResolver {

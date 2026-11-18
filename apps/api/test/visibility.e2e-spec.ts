@@ -5,7 +5,7 @@ import { AppModule } from './../src/app.module';
 import { configureApp } from './../src/app.setup';
 import type { Role } from './../src/generated/prisma/client';
 import { PrismaService } from './../src/prisma/prisma.service';
-import { addWeeks, formatDateOnly, weekStartOf } from './../src/staffing/week';
+import { addWeeks, formatDateOnly, weekStartOf } from './../src/common/week';
 import { createUserAndLogin, graphql, runId } from './auth-helpers';
 
 /**

@@ -1,0 +1,35 @@
+name: Technical task
+description: Setup, refactoring, tooling or a decision, without a direct user-facing change
+title: "[Task] "
+labels: ["type:task"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should be true afterwards, and why does it matter?
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Definition of done
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - api
+        - web
+        - infra
+        - docs
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes

@@ -1,0 +1,38 @@
+name: User story
+description: Something a user can do that they can't do yet
+title: "[Story] "
+labels: ["type:story"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      description: Who wants what, and why?
+      placeholder: As a <role>, I want <goal>, so that <reason>.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable statements. The issue is done when every box is ticked.
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      multiple: true
+      options:
+        - api
+        - web
+        - infra
+        - docs
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Technical hints, out of scope, open questions, links.

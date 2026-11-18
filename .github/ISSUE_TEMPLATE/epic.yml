@@ -1,0 +1,21 @@
+name: Epic
+description: A larger feature, split into stories and tasks (sub-issues)
+title: "[Epic] "
+labels: ["type:epic"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What problem does this solve, and for whom?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope / out of scope
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions and open questions
+      description: Link ADRs or comments where decisions were made.

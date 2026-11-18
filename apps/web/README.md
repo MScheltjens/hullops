@@ -2,7 +2,7 @@
 
 The frontend of [HullOps](../../README.md), built with Next.js 16 (App Router), React 19, Tailwind CSS v4 and next-intl.
 
-> **Status:** login and a read-only order overview. Creating and updating orders, order details and vessels come next (see the [roadmap](../../README.md#roadmap)).
+> **Status:** login, the order overview and details (status updates, comments, team), creating orders, vessels, weekly planning with the crew plan, and user management, in English and German (see the [roadmap](../../README.md#roadmap)).
 
 ## Development
 

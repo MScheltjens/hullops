@@ -84,7 +84,7 @@ Each feature follows the same layout:
 
 `pnpm exec prisma db seed` fills the database with fictional demo data from [`prisma/seed-data.ts`](prisma/seed-data.ts):
 
-- **7 users:** 2 project leads and 5 workers with different service areas. All of them log in with the password `hullops-dev`.
+- **11 users:** 2 project leads, 2 team leads, 5 workers with different service areas, HR and an administrator. All of them log in with the password `hullops-dev`.
 
   | Email | Role | Service areas |
   |---|---|---|
@@ -95,9 +95,15 @@ Each feature follows the same layout:
   | `anna.schulz@hullops.example` | Worker | Protection |
   | `tom.dejong@hullops.example` | Worker | Protection |
   | `sofia.rossi@hullops.example` | Worker | Cleaning |
+  | `heinz.brandt@hullops.example` | Team lead (Nordlicht) | Cleaning, protection |
+  | `ute.lange@hullops.example` | Team lead (Sea Breeze) | Cleaning, protection |
+  | `petra.neumann@hullops.example` | HR | |
+  | `admin@hullops.example` | Administrator | |
 
-- **4 vessels:** a container ship, a cruise ship, a yacht, and a tug without an IMO number.
-- **8 orders,** covering every status and both service types, with teams and status history. Two are overdue, one has no team yet, and on one vessel cleaning and protection run at the same time.
+- **2 vessels:** Sea Breeze, a yacht in refit, and Nordlicht, a ferry being built.
+- **7 orders,** covering every status and both service types, with teams and status history. Some are overdue, one has no team yet, and on Sea Breeze cleaning and protection run at the same time.
+- **Staffing requests** from the team leads for last week and next week, with workers asked for by name.
+- **A crew plan** for this week and next week. This week the project lead moved Mehmet to Sea Breeze although Nordlicht asked for him; next week follows the requests. Log in as a worker to see that they only see their own vessel.
 
 Dates are relative to the day you seed, so the data always looks current. Running the seed again refreshes only the demo records: users are matched by email, vessels and orders by their `seed-…` ids, and anything you created yourself stays untouched. The seed refuses to run with `NODE_ENV=production`.
 
@@ -110,6 +116,8 @@ Defined in [`prisma/schema.prisma`](prisma/schema.prisma):
 - **Order** is the central entity. It belongs to a **Vessel** and to the **User** who created it, and has a service type (`CLEANING` or `PROTECTION`) and a status (`PLANNED` → `IN_PROGRESS` → `DONE`).
 - **CleaningDetails** or **ProtectionDetails** hold the service-specific fields, 1:1 with the order. The database doesn't check that they match the order's service type, so the application must.
 - **OrderAssignment** links users to the orders they work on.
+- **StaffingRequest** is what a vessel's team lead asked for in one week: how many workers, and which ones by name (**StaffingRequestWorker**).
+- **CrewAssignment** is the project lead's plan: one worker on one vessel in one week. The key is worker + week, so a worker is on one vessel per week. It also decides which vessels a worker may see.
 - **StatusUpdate** is an order's history log, with optional **Photos** stored by object-storage key.
 - "Overdue" (`dueDate < now && status != DONE`) is computed when needed, never stored.
 
@@ -139,11 +147,18 @@ Every endpoint requires login, except the `login` mutation and `GET /health`.
 
 What each role may do:
 
-| | Worker | Project lead |
-|---|---|---|
-| Read vessels, orders, users | ✓ | ✓ |
-| Add status updates and notes | Only on orders whose team they're on | ✓ |
-| Create orders, add or remove team members, add vessels | | ✓ |
+| | Worker | Team lead | Project lead | Admin | HR |
+|---|---|---|---|---|---|
+| Read vessels and orders | Vessels they're planned on this week or next | Their own vessels | All | All | |
+| Read staffing requests and the crew plan | | Their own vessels | All | All | |
+| Add status updates and notes | Orders whose team they're on | Orders whose team they're on | ✓ | | |
+| Enter a staffing request | | Their own vessels | ✓ | | |
+| Plan the crew | | | ✓ | | |
+| Add or remove team members | | On their own vessels; only workers planned there this week or next | ✓ | | |
+| Create orders, add vessels, choose a vessel's team lead | | | ✓ | | |
+| Manage users | | | | ✓ | Workers, team leads, project leads |
+
+Which vessels a user sees is one rule, [`vessel-scope.ts`](src/vessels/vessel-scope.ts), used by every query that reads orders, vessels, staffing or the crew plan. An order or vessel out of sight returns `null`, like one that doesn't exist.
 
 How it works (see [`src/auth/`](src/auth)):
 
@@ -213,13 +228,38 @@ The rules, all enforced by the API (see [`src/orders/order-rules.ts`](src/orders
 - **Details match the service type.** A cleaning order needs `cleaning` details and a protection order needs `protection` details, never both. Coating fields (`coatingProduct`, `layers`, `targetThicknessUm`) only apply to coatings.
 - **Dates:** `startDate` must not be after `dueDate`.
 - **Status flow:** `PLANNED` → `IN_PROGRESS` → `DONE`, one step at a time, never back. An update that keeps the status is a note, and needs note text.
-- **Who may do what:** only project leads create orders. Status updates come from the order's team or a project lead. Team members must work in the order's service area.
+- **Who may do what:** only project leads create orders. Status updates come from the order's team or a project lead. Team members must work in the order's service area. A team lead may change the teams on his own vessels, with workers planned there this week or next.
 - **Overdue** (`dueDate` passed and not `DONE`) is computed on every read, never stored. The `orders(overdue: …)` filter applies the same rule in the database.
 - **Team changes:** adding someone who is already on the team, or removing someone who isn't, changes nothing.
 
 The creator of an order and the author of a status update are the logged-in user.
 
 Each order response loads its vessel, creator, details, team and history in one database query. That avoids an extra query per order and per field (the "N+1" problem) without adding a batching layer.
+
+### Weekly staffing and the crew plan
+
+```graphql
+mutation {
+  # The team lead's request: 6 workers, two of them by name
+  saveStaffingRequest(input: {
+    vesselId: "…", weekStart: "2026-11-23", workersNeeded: 6, requestedWorkerIds: ["…", "…"]
+  }) { workersNeeded requestedWorkers { name } }
+
+  # The project lead's plan: these workers on this vessel that week.
+  # All or none; a worker already planned elsewhere that week is moved.
+  planCrewMembers(input: { vesselId: "…", weekStart: "2026-11-23", userIds: ["…", "…"] }) {
+    user { name } vessel { name }
+  }
+  unplanCrewMember(weekStart: "2026-11-23", userId: "…")   # false if he wasn't planned
+}
+
+query {
+  staffingRequests(weekStart: "2026-11-23") { vessel { name } workersNeeded }
+  crewPlan(weekStart: "2026-11-23") { user { name } vessel { name } }
+}
+```
+
+A week is always given as its Monday. Only active workers can be requested or planned.
 
 ### Errors
 

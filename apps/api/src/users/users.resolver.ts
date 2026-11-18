@@ -1,11 +1,25 @@
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { CurrentUser, Roles, type AuthUser } from '../auth/auth-context';
+import {
+  Args,
+  ID,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
+} from '@nestjs/graphql';
+import {
+  CurrentUser,
+  OptionalCurrentUser,
+  Roles,
+  type AuthUser,
+} from '../auth/auth-context';
 import { Role, ServiceType } from '../graphql/enums';
 import {
   CreateUserInput,
   ResetPasswordInput,
   UpdateUserInput,
 } from './user.inputs';
+import { canSeeEmail } from './user-rules';
 import { User } from './user.model';
 import { UsersService } from './users.service';
 
@@ -13,6 +27,8 @@ import { UsersService } from './users.service';
 export class UsersResolver {
   constructor(private readonly usersService: UsersService) {}
 
+  // Workers need no list of people; the leads pick workers and team leads.
+  @Roles('ADMIN', 'HR', 'PROJECT_LEAD', 'TEAM_LEAD')
   @Query(() => [User], {
     description:
       'Active users. Administrators and HR can include deactivated ones.',
@@ -70,5 +86,19 @@ export class UsersResolver {
     @CurrentUser() actor: AuthUser,
   ) {
     return this.usersService.resetPassword(input, actor);
+  }
+
+  // A field resolver, not a plain field, so the rule holds wherever a user
+  // appears: in this list, an order's team, a history entry, the crew plan.
+  @ResolveField(() => String, {
+    nullable: true,
+    description:
+      'Only for the user themselves, administrators and HR; null for everyone else',
+  })
+  email(
+    @Parent() user: User,
+    @OptionalCurrentUser() viewer: AuthUser | undefined,
+  ): string | null {
+    return canSeeEmail(viewer, user) ? user.email : null;
   }
 }

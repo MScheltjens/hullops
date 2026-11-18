@@ -56,6 +56,7 @@ The shipyard's own people (the customer's side) have **no login**. The project l
 - **Validation lives in the API.** The web forms only reshape input; the API checks every rule and reports all violations at once. Repeating the rules in the browser would let the two drift apart.
 - **The login token never reaches the browser.** Pages render on the server and call the API with the token from an httpOnly cookie.
 - **Rights are checked where the data is.** The pages hide what you may not do, but the API and the Server Actions enforce it. Deactivating a user cuts off their existing token at once.
+- **Emails are personal data.** Only the user themselves, administrators and HR (who manage the accounts) see an email address; everyone else works with names. The rule sits on the `email` field itself, so it holds wherever a user appears, not just in the user list.
 - **Computed, not stored:** "overdue" is worked out when needed, so it can't go stale.
 - **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (a nightly reset restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
 

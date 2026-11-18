@@ -76,6 +76,9 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 
 - A global `AuthGuard` requires a JWT (`Authorization: Bearer …`) on every endpoint. Mark open endpoints with `@Public()`, restrict roles with `@Roles('PROJECT_LEAD')`, and get the user with `@CurrentUser()` (all in `auth-context.ts`).
 - `PrismaService` omits `User.passwordHash` by default; only the login query asks for it with `omit: { passwordHash: false }`. Never add it to a GraphQL type.
+- Roles: `PROJECT_LEAD`, `TEAM_LEAD`, `WORKER`, `HR`, `ADMIN`. `WORK_ROLES` (all but HR) may read the work.
+- Which vessels a user sees is one rule, `visibleVesselsWhere` in `src/vessels/vessel-scope.ts`: project leads and admins all, a team lead the vessels he leads, a worker the ones he's planned on (`CrewAssignment`) this week or next. Every query that reads orders, vessels, staffing or the crew plan must filter with it; out of sight returns `null` or nothing, never a different error.
+- `User.email` is a field resolver (`UsersResolver.email`, rule `canSeeEmail`): only the user themselves, admins and HR see it, everyone else gets `null`. Don't turn it back into a plain `@Field()`.
 - e2e tests log in through `test/auth-helpers.ts` (`createUserAndLogin`, `graphql(app, token)`).
 
 ## Web (`apps/web/`)
@@ -89,6 +92,7 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 
 - `Order` is the central entity. It belongs to a `Vessel` and a creating `User`, and has a `serviceType` and a `status` (`PLANNED` → `IN_PROGRESS` → `DONE`).
 - Service-specific 1:1 details: `CleaningDetails` or `ProtectionDetails` (holds the kind, the materials list, and fields that apply only to coatings). The database doesn't check that these match `serviceType`, so application code must.
-- `OrderAssignment`: the team on an order (User ↔ Order). `User.role` is `PROJECT_LEAD` or `WORKER`.
+- `OrderAssignment`: the team on an order (User ↔ Order). Project leads change any team; a team lead only on his own vessels, with workers planned there.
+- `StaffingRequest`: what a vessel's team lead asked for in one week (a Monday), with workers by name. `CrewAssignment`: the project lead's plan, one worker on one vessel per week (key: user + week).
 - `StatusUpdate`: the order's history log, with optional `Photo`s (stored by object-storage key).
 - "Overdue" (`dueDate < now && status != DONE`) is computed when needed, never stored.

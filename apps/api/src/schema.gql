@@ -392,7 +392,11 @@ input UpdateUserInput {
 type User {
   """A deactivated user can't log in or use the API"""
   active: Boolean!
-  email: String!
+
+  """
+  Only for the user themselves, administrators and HR; null for everyone else
+  """
+  email: String
   id: ID!
   locale: Locale!
   name: String!

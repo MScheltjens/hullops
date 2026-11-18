@@ -43,6 +43,16 @@ export const WORK_ROLES: Role[] = [
   'WORKER',
 ];
 
+/**
+ * Injects the logged-in user, or undefined when there is none. For field
+ * resolvers whose answer depends on who is asking, and that also run under
+ * a @Public() endpoint (the user returned by `login`).
+ */
+export const OptionalCurrentUser = createParamDecorator(
+  (_data: unknown, context: ExecutionContext): AuthUser | undefined =>
+    getRequest(context).user,
+);
+
 /** Injects the logged-in user into a resolver or controller method. */
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthUser => {

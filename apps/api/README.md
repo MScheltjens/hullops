@@ -156,6 +156,8 @@ What each role may do:
 | Plan the crew | | | ✓ | | |
 | Add or remove team members | | On their own vessels; only workers planned there this week or next | ✓ | | |
 | Create orders, add vessels, choose a vessel's team lead | | | ✓ | | |
+| List users | | ✓ | ✓ | ✓ | ✓ |
+| See other users' emails (everyone sees their own) | | | | ✓ | ✓ |
 | Manage users | | | | ✓ | Workers, team leads, project leads |
 
 Which vessels a user sees is one rule, [`vessel-scope.ts`](src/vessels/vessel-scope.ts), used by every query that reads orders, vessels, staffing or the crew plan. An order or vessel out of sight returns `null`, like one that doesn't exist.

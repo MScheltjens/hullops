@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import type { SaveStaffingRequestInput } from './staffing.inputs';
 import { validateStaffingRequest } from './staffing-rules';
-import { isMonday, parseDateOnly } from './week';
+import { isMonday, parseDateOnly } from '../common/week';
 
 /** Everything a StaffingRequest response can contain, loaded in one query. */
 export const STAFFING_INCLUDE = {

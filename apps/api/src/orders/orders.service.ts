@@ -7,7 +7,7 @@ import {
 import { Prisma, type ServiceType } from '../generated/prisma/client';
 import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
-import { addWeeks, weekStartOf } from '../staffing/week';
+import { addWeeks, weekStartOf } from '../common/week';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import {
   AddOrderCommentInput,

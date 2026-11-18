@@ -1,6 +1,6 @@
 import type { AuthUser } from '../auth/auth-context';
 import type { Prisma } from '../generated/prisma/client';
-import { addWeeks, weekStartOf } from '../staffing/week';
+import { addWeeks, weekStartOf } from '../common/week';
 
 /** A filter that matches no vessel at all. */
 const NO_VESSELS: Prisma.VesselWhereInput = { id: { in: [] } };

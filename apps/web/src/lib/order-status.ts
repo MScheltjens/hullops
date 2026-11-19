@@ -22,23 +22,6 @@ export function nextStatus(status: Status): ForwardStatus | undefined {
 }
 
 /**
- * Whether this user may post a status update on the order: project leads,
- * its team members, and the team lead of the order's vessel. Same rule as
- * the API's canUpdateOrder.
- */
-export function canUpdateOrder(
-  user: { id: string; role: Role },
-  order: {
-    team: readonly { id: string }[];
-    vessel: { teamLead: { id: string } | null };
-  },
-): boolean {
-  if (user.role === "PROJECT_LEAD") return true;
-  if (order.team.some((m) => m.id === user.id)) return true;
-  return user.role === "TEAM_LEAD" && order.vessel.teamLead?.id === user.id;
-}
-
-/**
  * Whether this user may change the order's team: project leads on every
  * order, a team lead on the orders of the vessels he leads. Same rule as the
  * API, which also checks that a team lead only adds planned workers.

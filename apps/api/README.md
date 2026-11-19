@@ -219,7 +219,8 @@ query {
     team { name }
     protectionDetails { kind materials }
   }
-  order(id: "…") { title history { status note author { name } createdAt } }
+  # viewerCanUpdate: may the logged-in user post a status update here?
+  order(id: "…") { title viewerCanUpdate history { status note author { name } createdAt } }
 }
 
 mutation {

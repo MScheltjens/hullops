@@ -22,14 +22,20 @@ export function nextStatus(status: Status): ForwardStatus | undefined {
 }
 
 /**
- * Whether this user may update the order: its team members and project
- * leads, like the API's rule for status updates.
+ * Whether this user may post a status update on the order: project leads,
+ * its team members, and the team lead of the order's vessel. Same rule as
+ * the API's canUpdateOrder.
  */
 export function canUpdateOrder(
   user: { id: string; role: Role },
-  team: readonly { id: string }[],
+  order: {
+    team: readonly { id: string }[];
+    vessel: { teamLead: { id: string } | null };
+  },
 ): boolean {
-  return user.role === "PROJECT_LEAD" || team.some((m) => m.id === user.id);
+  if (user.role === "PROJECT_LEAD") return true;
+  if (order.team.some((m) => m.id === user.id)) return true;
+  return user.role === "TEAM_LEAD" && order.vessel.teamLead?.id === user.id;
 }
 
 /**

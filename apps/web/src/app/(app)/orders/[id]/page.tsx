@@ -107,7 +107,7 @@ export default async function OrderDetailPage({
         ? await plannedOnVessel(order)
         : await inServiceArea(order);
   }
-  const mayUpdate = canUpdateOrder(user, order.team);
+  const mayUpdate = canUpdateOrder(user, order);
 
   const t = await getTranslations("orderDetail");
   const tOrders = await getTranslations("orders");

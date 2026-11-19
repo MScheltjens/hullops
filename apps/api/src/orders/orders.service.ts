@@ -16,6 +16,7 @@ import {
   OrdersArgs,
 } from './order.inputs';
 import {
+  canUpdateOrder,
   canWorkOn,
   isAllowedStatusChange,
   splitOrderPage,
@@ -232,16 +233,15 @@ export class OrdersService {
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: input.orderId },
-        include: { assignments: true },
+        include: { assignments: true, vessel: true },
       });
       if (!order) {
         throw new NotFoundException(`Order ${input.orderId} not found`);
       }
 
-      const isOnTeam = order.assignments.some((a) => a.userId === author.id);
-      if (!isOnTeam && author.role !== 'PROJECT_LEAD') {
+      if (!canUpdateOrder(author, order)) {
         throw new ForbiddenException(
-          'Only the order’s team and project leads can update it',
+          'Only the order’s team, project leads and the vessel’s team lead can update it',
         );
       }
 

@@ -231,6 +231,7 @@ describe('OrdersService', () => {
       id: 'order-1',
       status,
       assignments: teamIds.map((userId) => ({ userId })),
+      vessel: { teamLeadId: null },
     });
 
     it('moves the order one step forward and records it in the history', async () => {

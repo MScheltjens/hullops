@@ -84,6 +84,11 @@ describe('orderIncludeFor', () => {
     expect(include).not.toHaveProperty('_count');
   });
 
+  it('loads the team and the vessel for viewerCanUpdate, even when they are not asked for', () => {
+    const include = orderIncludeFor(new Set(['id', 'viewerCanUpdate']));
+    expect(Object.keys(include).sort()).toEqual(['assignments', 'vessel']);
+  });
+
   it('loads history, details and the creator for the detail page', () => {
     const include = orderIncludeFor(
       new Set(['history', 'createdBy', 'cleaningDetails', 'protectionDetails']),

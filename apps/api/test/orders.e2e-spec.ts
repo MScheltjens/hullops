@@ -296,6 +296,26 @@ describe('Orders GraphQL API (e2e)', () => {
     expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
   });
 
+  it('tells each viewer whether they may update the order (viewerCanUpdate)', async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+    const viewerCanUpdate = async (as: Gql) => {
+      const response = await as(
+        'query ($id: ID!) { order(id: $id) { viewerCanUpdate } }',
+        { id: orderId },
+      );
+      expect(response.body.errors).toBeUndefined();
+      return response.body.data.order.viewerCanUpdate;
+    };
+
+    expect(await viewerCanUpdate(asLead)).toBe(true);
+    expect(await viewerCanUpdate(asCleaner)).toBe(true); // on the team
+    // The vessel's team lead, though he isn't on the order's team.
+    expect(await viewerCanUpdate(asTeamLead)).toBe(true);
+    // Planned on the vessel, so he sees the order, but not on its team.
+    expect(await viewerCanUpdate(asProtector)).toBe(false);
+  });
+
   it('walks an order through PLANNED → IN_PROGRESS → DONE', async () => {
     const created = await createOrder(cleaningOrder());
     const orderId = created.body.data.createOrder.id;

@@ -201,6 +201,11 @@ type Order {
   title: String!
   updatedAt: DateTime!
   vessel: Vessel!
+
+  """
+  Whether the logged-in user may post a status update on this order. The web app shows the update form from this instead of repeating the rule.
+  """
+  viewerCanUpdate: Boolean!
 }
 
 """Free-text information on an order, passed on by the project lead"""

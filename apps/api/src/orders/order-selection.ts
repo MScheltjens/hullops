@@ -37,11 +37,14 @@ export function orderIncludeFor(
   fields: ReadonlySet<string>,
 ): Prisma.OrderInclude {
   const include: Prisma.OrderInclude = {};
-  if (fields.has('vessel')) include.vessel = true;
+  // viewerCanUpdate is decided from the team and the vessel's team lead.
+  const needsPermission = fields.has('viewerCanUpdate');
+  if (fields.has('vessel') || needsPermission) include.vessel = true;
   if (fields.has('createdBy')) include.createdBy = true;
   if (fields.has('cleaningDetails')) include.cleaningDetails = true;
   if (fields.has('protectionDetails')) include.protectionDetails = true;
-  if (fields.has('team')) {
+  if (fields.has('team') || needsPermission) {
+    // One shape for both uses, so LoadedOrder stays a single type.
     // Team sorted by name: members added together share the same assignedAt.
     include.assignments = {
       include: { user: true },

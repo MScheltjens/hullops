@@ -28,6 +28,12 @@ jobs:
       DATABASE_URL: postgresql://hullops:hullops@localhost:5432/hullops_test
       # Only signs tokens inside this throwaway CI run; not a real secret.
       JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else
+      # Signing an upload URL needs no connection, so CI runs without a
+      # storage service. These are placeholders, not credentials.
+      S3_ENDPOINT: http://localhost:9000
+      S3_BUCKET: hullops-photos
+      S3_ACCESS_KEY_ID: ci-placeholder
+      S3_SECRET_ACCESS_KEY: ci-placeholder
 
     steps:
       - uses: actions/checkout@v4

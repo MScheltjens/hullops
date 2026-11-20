@@ -34,6 +34,18 @@ const envSchema = z
           .map((origin) => origin.trim())
           .filter(Boolean),
       ),
+    // Object storage for photos (see docs/adr/0001-object-storage.md). Any
+    // S3-compatible store: RustFS from docker-compose.yml locally, Cloudflare
+    // R2 in production. The bucket must be private.
+    S3_ENDPOINT: z.url({
+      protocol: /^https?$/,
+      error: 'must be an http(s) URL, e.g. http://localhost:9000',
+    }),
+    // R2 ignores the region but the S3 client needs one; "auto" is R2's value.
+    S3_REGION: z.string().min(1).default('auto'),
+    S3_BUCKET: z.string().min(1),
+    S3_ACCESS_KEY_ID: z.string().min(1),
+    S3_SECRET_ACCESS_KEY: z.string().min(1),
     // Creates the first administrator when the API starts and no admin exists
     // yet (see AdminBootstrapService). Set both or neither. Without them an
     // empty database has nobody who can create users.

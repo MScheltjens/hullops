@@ -1,4 +1,5 @@
 import {
+  canUpdateOrder,
   canWorkOn,
   isAllowedStatusChange,
   isOverdue,
@@ -90,6 +91,54 @@ describe('canWorkOn', () => {
 
   it('refuses someone who does not', () => {
     expect(canWorkOn({ serviceTypes: ['CLEANING'] }, 'PROTECTION')).toBe(false);
+  });
+});
+
+describe('canUpdateOrder', () => {
+  // An order on Heinz's vessel, with only the worker Ali on its team. Each
+  // case changes just the field it's about.
+  const order = {
+    assignments: [{ userId: 'ali' }],
+    vessel: { teamLeadId: 'heinz' },
+  };
+
+  it('allows project leads on every order', () => {
+    expect(canUpdateOrder({ id: 'lena', role: 'PROJECT_LEAD' }, order)).toBe(
+      true,
+    );
+  });
+
+  it("allows the order's team", () => {
+    expect(canUpdateOrder({ id: 'ali', role: 'WORKER' }, order)).toBe(true);
+  });
+
+  it("allows the vessel's team lead, even when he isn't on the team", () => {
+    expect(canUpdateOrder({ id: 'heinz', role: 'TEAM_LEAD' }, order)).toBe(
+      true,
+    );
+  });
+
+  it("refuses a team lead on another vessel's order", () => {
+    expect(canUpdateOrder({ id: 'ute', role: 'TEAM_LEAD' }, order)).toBe(false);
+  });
+
+  it('refuses a team lead when the vessel has no team lead', () => {
+    expect(
+      canUpdateOrder(
+        { id: 'heinz', role: 'TEAM_LEAD' },
+        { ...order, vessel: { teamLeadId: null } },
+      ),
+    ).toBe(false);
+  });
+
+  it('refuses a vessel lead whose role is no longer TEAM_LEAD', () => {
+    expect(canUpdateOrder({ id: 'heinz', role: 'WORKER' }, order)).toBe(false);
+  });
+
+  it('refuses workers and admins who are not on the team', () => {
+    for (const role of ['WORKER', 'ADMIN'] as const) {
+      expect(canUpdateOrder({ id: 'max', role }, order)).toBe(false);
+    }
   });
 });
 

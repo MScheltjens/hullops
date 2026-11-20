@@ -24,7 +24,7 @@ import {
   OrdersArgs,
 } from './order.inputs';
 import { Order, OrderComment, StatusUpdate } from './order.model';
-import { isOverdue } from './order-rules';
+import { canUpdateOrder, isOverdue } from './order-rules';
 import { orderIncludeFor, requestedFields } from './order-selection';
 import { OrdersService, type LoadedOrder } from './orders.service';
 
@@ -158,6 +158,18 @@ export class OrdersResolver {
   })
   overdue(@Parent() order: LoadedOrder) {
     return isOverdue(order);
+  }
+
+  @ResolveField(() => Boolean, {
+    description:
+      'Whether the logged-in user may post a status update on this order. The web app shows the update form from this instead of repeating the rule.',
+  })
+  viewerCanUpdate(@Parent() order: LoadedOrder, @CurrentUser() user: AuthUser) {
+    // The same rule addStatusUpdate enforces, so the two can't drift apart.
+    return canUpdateOrder(user, {
+      assignments: loaded(order.assignments, 'viewerCanUpdate'),
+      vessel: loaded(order.vessel, 'viewerCanUpdate'),
+    });
   }
 }
 

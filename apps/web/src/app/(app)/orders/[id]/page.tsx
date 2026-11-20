@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
 import { plannedCandidates } from "@/lib/crew";
-import { canChangeTeam, canUpdateOrder, nextStatus } from "@/lib/order-status";
+import { canChangeTeam, nextStatus } from "@/lib/order-status";
 import { addWeeks, mondayOf, toDateOnly } from "@/lib/week";
 import { StatusBadge, type Status } from "../status-badge";
 import { assignMember, removeMember } from "./actions";
@@ -18,6 +18,8 @@ interface OrderDetail {
   status: Status;
   serviceType: "CLEANING" | "PROTECTION";
   overdue: boolean;
+  /** Decided by the API, the same rule it enforces on addStatusUpdate. */
+  viewerCanUpdate: boolean;
   shipyard: string;
   berth: string | null;
   areaSqm: number | null;
@@ -58,8 +60,8 @@ interface OrderDetail {
 const ORDER = `
   query ($id: ID!) {
     order(id: $id) {
-      id title description status serviceType overdue shipyard berth areaSqm
-      startDate dueDate
+      id title description status serviceType overdue viewerCanUpdate
+      shipyard berth areaSqm startDate dueDate
       vessel { id name imoNumber teamLead { id } }
       createdBy { name }
       cleaningDetails { method surface }
@@ -107,7 +109,6 @@ export default async function OrderDetailPage({
         ? await plannedOnVessel(order)
         : await inServiceArea(order);
   }
-  const mayUpdate = canUpdateOrder(user, order.team);
 
   const t = await getTranslations("orderDetail");
   const tOrders = await getTranslations("orders");
@@ -152,7 +153,7 @@ export default async function OrderDetailPage({
       </div>
 
       {/* The thing people do on site, so it comes before the details. */}
-      {mayUpdate && (
+      {order.viewerCanUpdate && (
         <Section title={t("update")}>
           <StatusActions
             orderId={order.id}

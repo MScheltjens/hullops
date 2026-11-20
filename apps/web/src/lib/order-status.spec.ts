@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canChangeTeam, canUpdateOrder, nextStatus } from "./order-status";
+import { canChangeTeam, nextStatus } from "./order-status";
 
 describe("nextStatus", () => {
   it("moves a planned order to in progress", () => {
@@ -13,19 +13,6 @@ describe("nextStatus", () => {
   it("has nothing after done", () => {
     expect(nextStatus("DONE")).toBeUndefined();
   });
-});
-
-describe("canUpdateOrder", () => {
-  const team = [{ id: "worker-1" }, { id: "worker-2" }];
-
-  it("lets a worker on the team update the order", () => {
-    expect(canUpdateOrder({ id: "worker-1", role: "WORKER" }, team)).toBe(true);
-  });
-
-  // Your turn: replace each todo with a test, like the one above.
-  it.todo("refuses a worker who is not on the team");
-  it.todo("lets a project lead update an order they are not on the team of");
-  it.todo("refuses a worker when the team is empty");
 });
 
 describe("canChangeTeam", () => {

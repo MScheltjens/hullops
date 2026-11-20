@@ -1,6 +1,7 @@
 import type {
   OrderStatus,
   ProtectionKind,
+  Role,
   ServiceType,
 } from '../generated/prisma/client';
 
@@ -49,6 +50,24 @@ export function canWorkOn(
   serviceType: ServiceType,
 ): boolean {
   return user.serviceTypes.includes(serviceType);
+}
+
+/**
+ * Who may post a status update (a note or the next status) on an order:
+ * project leads on every order, the order's team, and the team lead of the
+ * order's vessel, because he runs the work there even on orders whose team
+ * he isn't on. Admins don't run the work, so they aren't included.
+ */
+export function canUpdateOrder(
+  user: { id: string; role: Role },
+  order: {
+    assignments: readonly { userId: string }[];
+    vessel: { teamLeadId: string | null };
+  },
+): boolean {
+  if (user.role === 'PROJECT_LEAD') return true;
+  if (order.assignments.some((a) => a.userId === user.id)) return true;
+  return user.role === 'TEAM_LEAD' && order.vessel.teamLeadId === user.id;
 }
 
 export interface OrderInputToValidate {

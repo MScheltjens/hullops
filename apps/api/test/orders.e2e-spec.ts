@@ -22,7 +22,10 @@ describe('Orders GraphQL API (e2e)', () => {
     lead: `e2e-${run}-lead`,
     cleaner: `e2e-${run}-cleaner`,
     protector: `e2e-${run}-protector`,
+    teamLead: `e2e-${run}-team-lead`,
+    otherTeamLead: `e2e-${run}-other-team-lead`,
     vessel: `e2e-${run}-vessel`,
+    otherVessel: `e2e-${run}-other-vessel`,
   };
 
   // One GraphQL client per user, each sending that user's token.
@@ -30,6 +33,8 @@ describe('Orders GraphQL API (e2e)', () => {
   let asLead: Gql;
   let asCleaner: Gql;
   let asProtector: Gql;
+  let asTeamLead: Gql;
+  let asOtherTeamLead: Gql;
 
   const ORDER_FIELDS = `
     id title status serviceType overdue dueDate
@@ -102,8 +107,31 @@ describe('Orders GraphQL API (e2e)', () => {
         serviceTypes: ['PROTECTION'],
       }),
     );
-    await prisma.vessel.create({
-      data: { id: ids.vessel, name: 'E2E Vessel' },
+    asTeamLead = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: ids.teamLead,
+        role: 'TEAM_LEAD',
+        serviceTypes: ['CLEANING'],
+      }),
+    );
+    asOtherTeamLead = graphql(
+      app,
+      await createUserAndLogin(app, {
+        id: ids.otherTeamLead,
+        role: 'TEAM_LEAD',
+        serviceTypes: ['CLEANING'],
+      }),
+    );
+    await prisma.vessel.createMany({
+      data: [
+        { id: ids.vessel, name: 'E2E Vessel', teamLeadId: ids.teamLead },
+        {
+          id: ids.otherVessel,
+          name: 'E2E Other Vessel',
+          teamLeadId: ids.otherTeamLead,
+        },
+      ],
     });
     // Workers only see orders on vessels they're planned on this week.
     await prisma.crewAssignment.createMany({
@@ -120,9 +148,21 @@ describe('Orders GraphQL API (e2e)', () => {
     // cascades to its details, team and history.
     await prisma.order.deleteMany({ where: { vesselId: ids.vessel } });
     await prisma.crewAssignment.deleteMany({ where: { vesselId: ids.vessel } });
-    await prisma.vessel.deleteMany({ where: { id: ids.vessel } });
+    await prisma.vessel.deleteMany({
+      where: { id: { in: [ids.vessel, ids.otherVessel] } },
+    });
     await prisma.user.deleteMany({
-      where: { id: { in: [ids.lead, ids.cleaner, ids.protector] } },
+      where: {
+        id: {
+          in: [
+            ids.lead,
+            ids.cleaner,
+            ids.protector,
+            ids.teamLead,
+            ids.otherTeamLead,
+          ],
+        },
+      },
     });
     await app.close();
   });
@@ -227,6 +267,53 @@ describe('Orders GraphQL API (e2e)', () => {
     expect(byLead.body.data.addStatusUpdate.history.at(-1).author).toEqual({
       id: ids.lead,
     });
+  });
+
+  it("lets a team lead update orders on his own vessel, even when he isn't on the team", async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+
+    const response = await addStatusUpdate(
+      { orderId, status: 'PLANNED', note: 'Scaffolding goes up tomorrow' },
+      asTeamLead,
+    );
+    expect(response.body.errors).toBeUndefined();
+    expect(response.body.data.addStatusUpdate.history.at(-1)).toEqual({
+      status: 'PLANNED',
+      note: 'Scaffolding goes up tomorrow',
+      author: { id: ids.teamLead },
+    });
+  });
+
+  it("refuses a team lead on another vessel's order", async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+
+    const response = await addStatusUpdate(
+      { orderId, status: 'IN_PROGRESS' },
+      asOtherTeamLead,
+    );
+    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+  });
+
+  it('tells each viewer whether they may update the order (viewerCanUpdate)', async () => {
+    const created = await createOrder(cleaningOrder());
+    const orderId = created.body.data.createOrder.id;
+    const viewerCanUpdate = async (as: Gql) => {
+      const response = await as(
+        'query ($id: ID!) { order(id: $id) { viewerCanUpdate } }',
+        { id: orderId },
+      );
+      expect(response.body.errors).toBeUndefined();
+      return response.body.data.order.viewerCanUpdate;
+    };
+
+    expect(await viewerCanUpdate(asLead)).toBe(true);
+    expect(await viewerCanUpdate(asCleaner)).toBe(true); // on the team
+    // The vessel's team lead, though he isn't on the order's team.
+    expect(await viewerCanUpdate(asTeamLead)).toBe(true);
+    // Planned on the vessel, so he sees the order, but not on its team.
+    expect(await viewerCanUpdate(asProtector)).toBe(false);
   });
 
   it('walks an order through PLANNED → IN_PROGRESS → DONE', async () => {

@@ -154,7 +154,7 @@ What each role may do:
 |---|---|---|---|---|---|
 | Read vessels and orders | Vessels they're planned on this week or next | Their own vessels | All | All | |
 | Read staffing requests and the crew plan | | Their own vessels | All | All | |
-| Add status updates and notes | Orders whose team they're on | Orders whose team they're on | ✓ | | |
+| Add status updates and notes | Orders whose team they're on | Orders on their own vessels, and orders whose team they're on | ✓ | | |
 | Enter a staffing request | | Their own vessels | ✓ | | |
 | Plan the crew | | | ✓ | | |
 | Add or remove team members | | On their own vessels; only workers planned there this week or next | ✓ | | |
@@ -219,7 +219,8 @@ query {
     team { name }
     protectionDetails { kind materials }
   }
-  order(id: "…") { title history { status note author { name } createdAt } }
+  # viewerCanUpdate: may the logged-in user post a status update here?
+  order(id: "…") { title viewerCanUpdate history { status note author { name } createdAt } }
 }
 
 mutation {
@@ -233,7 +234,7 @@ The rules, all enforced by the API (see [`src/orders/order-rules.ts`](src/orders
 - **Details match the service type.** A cleaning order needs `cleaning` details and a protection order needs `protection` details, never both. Coating fields (`coatingProduct`, `layers`, `targetThicknessUm`) only apply to coatings.
 - **Dates:** `startDate` must not be after `dueDate`.
 - **Status flow:** `PLANNED` → `IN_PROGRESS` → `DONE`, one step at a time, never back. An update that keeps the status is a note, and needs note text.
-- **Who may do what:** only project leads create orders. Status updates come from the order's team or a project lead. Team members must work in the order's service area. A team lead may change the teams on his own vessels, with workers planned there this week or next.
+- **Who may do what:** only project leads create orders. Status updates come from the order's team, a project lead, or the team lead of the order's vessel. Team members must work in the order's service area. A team lead may change the teams on his own vessels, with workers planned there this week or next.
 - **Overdue** (`dueDate` passed and not `DONE`) is computed on every read, never stored. The `orders(overdue: …)` filter applies the same rule in the database.
 - **Team changes:** adding someone who is already on the team, or removing someone who isn't, changes nothing.
 

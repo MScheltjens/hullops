@@ -10,5 +10,46 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  # S3-compatible object storage for photos in local development; production
+  # uses Cloudflare R2 (see docs/adr/0001-object-storage.md). The credentials
+  # are local-only and match apps/api/.env.example.
+  storage:
+    image: rustfs/rustfs:1.0.4
+    restart: unless-stopped
+    environment:
+      RUSTFS_ACCESS_KEY: hullops
+      RUSTFS_SECRET_KEY: hullops-dev-secret
+    command: /data
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # web console
+    volumes:
+      - storagedata:/data
+
+  # Creates the private photo bucket once and exits. Safe to rerun:
+  # `docker compose up storage-init` does nothing if the bucket exists.
+  storage-init:
+    image: amazon/aws-cli:2.41.2
+    depends_on:
+      - storage
+    environment:
+      AWS_ACCESS_KEY_ID: hullops
+      AWS_SECRET_ACCESS_KEY: hullops-dev-secret
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+          aws --endpoint-url http://storage:9000 s3api head-bucket --bucket hullops-photos 2>/dev/null && exit 0
+          aws --endpoint-url http://storage:9000 s3api create-bucket --bucket hullops-photos && exit 0
+          sleep 2
+        done
+        echo "Could not create the bucket hullops-photos" >&2
+        exit 1
+    restart: "no"
+
 volumes:
   pgdata:
+  storagedata:

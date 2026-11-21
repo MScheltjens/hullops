@@ -28,6 +28,24 @@ Create a PostgreSQL database and copy its connection string
    the secret is shown only once.
 3. The S3 endpoint is shown on the bucket's settings page. For an EU bucket it
    is `https://<account-id>.eu.r2.cloudflarestorage.com`.
+4. **Bucket → Settings → CORS policy → Add CORS policy**. Browsers upload
+   photos straight to the bucket and show them from there, so it must allow
+   the web app's origin (replace it with yours; add a Vercel preview domain
+   too if you test uploads there):
+
+   ```json
+   [
+     {
+       "AllowedOrigins": ["https://hullops.example.com"],
+       "AllowedMethods": ["PUT", "GET"],
+       "AllowedHeaders": ["content-type"],
+       "MaxAgeSeconds": 3600
+     }
+   ]
+   ```
+
+   Without it, photo uploads fail in the browser with a CORS error, while
+   everything else works.
 
 Don't paste the keys into chats or issues; put them straight into the API
 host's variables (next step).

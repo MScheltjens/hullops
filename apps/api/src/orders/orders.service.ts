@@ -7,6 +7,7 @@ import {
 import { Prisma, type ServiceType } from '../generated/prisma/client';
 import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
+import { PHOTO_ORDER } from './order-selection';
 import { addWeeks, weekStartOf } from '../common/week';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import {
@@ -21,6 +22,7 @@ import {
   isAllowedStatusChange,
   splitOrderPage,
   validateOrderInput,
+  validatePhotoKeys,
 } from './order-rules';
 
 /**
@@ -37,7 +39,13 @@ export const ORDER_INCLUDE = {
   protectionDetails: true,
   // Team sorted by name: members added together share the same assignedAt.
   assignments: { include: { user: true }, orderBy: { user: { name: 'asc' } } },
-  statusUpdates: { include: { author: true }, orderBy: { createdAt: 'asc' } },
+  // Photos always come with the history: one more query for all updates
+  // together, not one per update, and the history is only loaded for the
+  // detail page anyway.
+  statusUpdates: {
+    include: { author: true, photos: { orderBy: PHOTO_ORDER } },
+    orderBy: { createdAt: 'asc' },
+  },
   comments: { include: { author: true }, orderBy: { createdAt: 'asc' } },
 } satisfies Prisma.OrderInclude;
 
@@ -222,17 +230,22 @@ export class OrdersService {
   }
 
   /**
-   * Adds an entry to the order's history: either a note (same status) or a
-   * step forward in the status flow, optionally with a note.
+   * Adds an entry to the order's history: a step forward in the status flow,
+   * or the same status with a note and/or photos. Photos are attached by the
+   * storage keys requestPhotoUploads handed out (see PhotoUpload in the
+   * schema). `author` is the logged-in user.
    */
-  /** `author` is the logged-in user. */
   async addStatusUpdate(
     input: AddStatusUpdateInput,
     author: AuthUser,
+    now = new Date(),
   ): Promise<OrderWithRelations> {
+    const photoKeys = input.photoKeys ?? [];
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({
-        where: { id: input.orderId },
+      // Only orders on vessels the author may see, like every other read
+      // (vessel-scope.ts); out of sight looks the same as unknown.
+      const order = await tx.order.findFirst({
+        where: { id: input.orderId, vessel: visibleVesselsWhere(author, now) },
         include: { assignments: true, vessel: true },
       });
       if (!order) {
@@ -245,17 +258,37 @@ export class OrdersService {
         );
       }
 
+      // Everything below is the content of the update, so it's collected
+      // and reported at once.
+      const errors: string[] = [];
       if (!isAllowedStatusChange(order.status, input.status)) {
-        throw new BadRequestException(
+        errors.push(
           `Cannot change status from ${order.status} to ${input.status}`,
         );
       }
       const statusChanges = input.status !== order.status;
-      if (!statusChanges && !input.note?.trim()) {
-        throw new BadRequestException(
-          'An update that keeps the status needs a note',
-        );
+      // A photo says what was done as well as a note does, and saves typing.
+      if (!statusChanges && !input.note?.trim() && photoKeys.length === 0) {
+        errors.push('An update that keeps the status needs a note or photos');
       }
+
+      const uploads =
+        photoKeys.length > 0
+          ? await tx.photoUpload.findMany({
+              where: {
+                storageKey: { in: photoKeys },
+                userId: author.id,
+                orderId: order.id,
+              },
+            })
+          : [];
+      errors.push(
+        ...validatePhotoKeys(
+          photoKeys,
+          uploads.map((upload) => upload.storageKey),
+        ),
+      );
+      if (errors.length > 0) throw new BadRequestException(errors);
 
       await tx.statusUpdate.create({
         data: {
@@ -263,8 +296,20 @@ export class OrdersService {
           note: input.note,
           order: { connect: { id: order.id } },
           author: { connect: { id: author.id } },
+          photos: {
+            create: uploads.map(({ storageKey, mimeType }) => ({
+              storageKey,
+              mimeType,
+            })),
+          },
         },
       });
+      // Each key can be attached once: after this it's a Photo, not an upload.
+      if (uploads.length > 0) {
+        await tx.photoUpload.deleteMany({
+          where: { storageKey: { in: uploads.map((u) => u.storageKey) } },
+        });
+      }
       return tx.order.update({
         where: { id: order.id },
         data: { status: input.status },

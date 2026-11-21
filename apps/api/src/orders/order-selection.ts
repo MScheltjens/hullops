@@ -13,6 +13,12 @@ import type { Prisma } from '../generated/prisma/client';
  * fields were requested and load just those relations.
  */
 
+/** Photos of one update are created together, so the id breaks the tie. */
+export const PHOTO_ORDER = [
+  { createdAt: 'asc' },
+  { id: 'asc' },
+] satisfies Prisma.PhotoOrderByWithRelationInput[];
+
 /** The names of the fields requested directly under the field being resolved. */
 export function requestedFields(info: GraphQLResolveInfo): Set<string> {
   const names = new Set<string>();
@@ -52,8 +58,9 @@ export function orderIncludeFor(
     };
   }
   if (fields.has('history')) {
+    // Same shape as ORDER_INCLUDE, photos included (see there).
     include.statusUpdates = {
-      include: { author: true },
+      include: { author: true, photos: { orderBy: PHOTO_ORDER } },
       orderBy: { createdAt: 'asc' },
     };
   }

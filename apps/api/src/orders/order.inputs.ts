@@ -176,6 +176,16 @@ export class AddStatusUpdateInput {
   @IsString()
   @MaxLength(2000)
   note?: string;
+
+  // No @ArrayUnique/@ArrayMaxSize: validatePhotoKeys reports duplicates and
+  // too many keys together with the other violations.
+  @Field(() => [String], {
+    defaultValue: [],
+    description: 'Storage keys from requestPhotoUploads, once uploaded',
+  })
+  @IsArray()
+  @IsString({ each: true })
+  photoKeys?: string[];
 }
 
 @InputType()
@@ -193,7 +203,8 @@ export class AddOrderCommentInput {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"',
+    description:
+      'Where it came from, e.g. "Hafenwerft Nord, J. Meyer, by mail"',
   })
   @IsOptional()
   @IsString()

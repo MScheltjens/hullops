@@ -28,6 +28,7 @@ const db = {
   user: { findMany: jest.fn() },
   crewAssignment: { findFirst: jest.fn() },
   statusUpdate: { create: jest.fn() },
+  photoUpload: { findMany: jest.fn(), deleteMany: jest.fn() },
   orderComment: { create: jest.fn() },
   orderAssignment: { upsert: jest.fn(), deleteMany: jest.fn() },
   $transaction: jest.fn(),
@@ -235,7 +236,7 @@ describe('OrdersService', () => {
     });
 
     it('moves the order one step forward and records it in the history', async () => {
-      db.order.findUnique.mockResolvedValue(order('PLANNED'));
+      db.order.findFirst.mockResolvedValue(order('PLANNED'));
 
       await service.addStatusUpdate(
         {
@@ -258,7 +259,7 @@ describe('OrdersService', () => {
     });
 
     it('rejects a step that skips or goes back', async () => {
-      db.order.findUnique.mockResolvedValue(order('PLANNED'));
+      db.order.findFirst.mockResolvedValue(order('PLANNED'));
 
       await expect(
         service.addStatusUpdate(
@@ -268,12 +269,14 @@ describe('OrdersService', () => {
           },
           cleaner,
         ),
-      ).rejects.toThrow('Cannot change status from PLANNED to DONE');
+      ).rejects.toMatchObject({
+        response: { message: ['Cannot change status from PLANNED to DONE'] },
+      });
       expect(db.statusUpdate.create).not.toHaveBeenCalled();
     });
 
     it('accepts a note without a status change', async () => {
-      db.order.findUnique.mockResolvedValue(order('IN_PROGRESS'));
+      db.order.findFirst.mockResolvedValue(order('IN_PROGRESS'));
 
       await service.addStatusUpdate(
         {
@@ -287,7 +290,7 @@ describe('OrdersService', () => {
     });
 
     it('rejects an update that changes nothing and has no note', async () => {
-      db.order.findUnique.mockResolvedValue(order('IN_PROGRESS'));
+      db.order.findFirst.mockResolvedValue(order('IN_PROGRESS'));
 
       await expect(
         service.addStatusUpdate(
@@ -298,11 +301,15 @@ describe('OrdersService', () => {
           },
           cleaner,
         ),
-      ).rejects.toThrow('An update that keeps the status needs a note');
+      ).rejects.toMatchObject({
+        response: {
+          message: ['An update that keeps the status needs a note or photos'],
+        },
+      });
     });
 
     it('refuses workers who are not on the team', async () => {
-      db.order.findUnique.mockResolvedValue(order('PLANNED', []));
+      db.order.findFirst.mockResolvedValue(order('PLANNED', []));
 
       await expect(
         service.addStatusUpdate(
@@ -316,7 +323,7 @@ describe('OrdersService', () => {
     });
 
     it('allows project leads who are not on the team', async () => {
-      db.order.findUnique.mockResolvedValue(order('PLANNED', []));
+      db.order.findFirst.mockResolvedValue(order('PLANNED', []));
 
       await service.addStatusUpdate(
         {
@@ -329,7 +336,7 @@ describe('OrdersService', () => {
     });
 
     it('rejects an unknown order', async () => {
-      db.order.findUnique.mockResolvedValue(null);
+      db.order.findFirst.mockResolvedValue(null);
       await expect(
         service.addStatusUpdate(
           {
@@ -339,6 +346,87 @@ describe('OrdersService', () => {
           lead,
         ),
       ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('only finds orders on vessels the author may see', async () => {
+      db.order.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.addStatusUpdate(
+          { orderId: 'order-1', status: 'IN_PROGRESS', photoKeys: [] },
+          cleaner,
+        ),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(db.order.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ vessel: expect.anything() }),
+        }),
+      );
+    });
+
+    it('attaches requested photos and uses each upload only once', async () => {
+      db.order.findFirst.mockResolvedValue(order('IN_PROGRESS'));
+      db.photoUpload.findMany.mockResolvedValue([
+        { storageKey: 'orders/order-1/a.jpg', mimeType: 'image/jpeg' },
+      ]);
+
+      // Photos alone are enough: no note needed.
+      await service.addStatusUpdate(
+        {
+          orderId: 'order-1',
+          status: 'IN_PROGRESS',
+          photoKeys: ['orders/order-1/a.jpg'],
+        },
+        cleaner,
+      );
+
+      // Only this author's uploads for this order count.
+      expect(db.photoUpload.findMany).toHaveBeenCalledWith({
+        where: {
+          storageKey: { in: ['orders/order-1/a.jpg'] },
+          userId: cleaner.id,
+          orderId: 'order-1',
+        },
+      });
+      expect(db.statusUpdate.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          photos: {
+            create: [
+              { storageKey: 'orders/order-1/a.jpg', mimeType: 'image/jpeg' },
+            ],
+          },
+        }),
+      });
+      expect(db.photoUpload.deleteMany).toHaveBeenCalledWith({
+        where: { storageKey: { in: ['orders/order-1/a.jpg'] } },
+      });
+    });
+
+    it('rejects a key this author did not request, together with other violations', async () => {
+      db.order.findFirst.mockResolvedValue(order('PLANNED'));
+      // Someone else's key: the lookup for this author finds nothing.
+      db.photoUpload.findMany.mockResolvedValue([]);
+
+      const result = service.addStatusUpdate(
+        {
+          orderId: 'order-1',
+          status: 'DONE',
+          photoKeys: ['orders/order-1/someone-else.jpg'],
+        },
+        cleaner,
+      );
+
+      await expect(result).rejects.toBeInstanceOf(BadRequestException);
+      await expect(result).rejects.toMatchObject({
+        response: {
+          message: [
+            'Cannot change status from PLANNED to DONE',
+            expect.stringContaining('orders/order-1/someone-else.jpg'),
+          ],
+        },
+      });
+      expect(db.statusUpdate.create).not.toHaveBeenCalled();
+      expect(db.photoUpload.deleteMany).not.toHaveBeenCalled();
     });
   });
 

@@ -100,4 +100,11 @@ describe('orderIncludeFor', () => {
       'statusUpdates',
     ]);
   });
+
+  it('loads the photos with the history, so StatusUpdate.photos costs no query', () => {
+    const include = orderIncludeFor(new Set(['history']));
+    expect(include.statusUpdates).toMatchObject({
+      include: { author: true, photos: expect.anything() },
+    });
+  });
 });

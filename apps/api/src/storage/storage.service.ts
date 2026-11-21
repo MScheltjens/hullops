@@ -90,8 +90,9 @@ export class StorageService {
 
     const url = await getSignedUrl(this.client, command, {
       expiresIn: UPLOAD_URL_TTL_SECONDS,
-      // By default only the host is signed. Signing these two makes the
-      // storage enforce the size and type.
+      // The SDK signs content-length on its own once ContentLength is set,
+      // but content-type only when listed here. Both are named so the
+      // storage visibly enforces size and type (the spec checks this).
       signableHeaders: new Set(['content-type', 'content-length']),
     });
 

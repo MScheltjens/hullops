@@ -89,7 +89,7 @@ You need **Node 24**, **pnpm 12** and **Docker**.
 
 ```bash
 pnpm install                              # install all workspaces
-docker compose up -d db                   # start Postgres 16 on :5432
+docker compose up -d                      # Postgres 16 on :5432, RustFS (photo storage) on :9000
 
 cp apps/api/.env.example apps/api/.env    # point the API at that database
 cd apps/api

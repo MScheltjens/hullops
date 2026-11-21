@@ -2,7 +2,13 @@ import { validateEnv } from './env';
 
 const DATABASE_URL = 'postgresql://hullops:hullops@localhost:5432/hullops';
 const JWT_SECRET = 'a-test-secret-that-is-long-enough-1234';
-const required = { DATABASE_URL, JWT_SECRET };
+const storage = {
+  S3_ENDPOINT: 'http://localhost:9000',
+  S3_BUCKET: 'hullops-photos',
+  S3_ACCESS_KEY_ID: 'key-id',
+  S3_SECRET_ACCESS_KEY: 'secret',
+};
+const required = { DATABASE_URL, JWT_SECRET, ...storage };
 
 describe('validateEnv', () => {
   it('fills in defaults for optional variables', () => {
@@ -13,6 +19,8 @@ describe('validateEnv', () => {
       JWT_SECRET,
       JWT_EXPIRES_IN_HOURS: 8,
       CORS_ORIGINS: ['http://localhost:3000'],
+      ...storage,
+      S3_REGION: 'auto',
     });
   });
 
@@ -30,7 +38,9 @@ describe('validateEnv', () => {
   });
 
   it('fails with a message naming a missing DATABASE_URL', () => {
-    expect(() => validateEnv({ JWT_SECRET })).toThrow(/DATABASE_URL/);
+    expect(() => validateEnv({ ...required, DATABASE_URL: undefined })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 
   it('rejects a non-Postgres DATABASE_URL', () => {
@@ -50,9 +60,25 @@ describe('validateEnv', () => {
   });
 
   it('requires a JWT secret of at least 32 characters', () => {
-    expect(() => validateEnv({ DATABASE_URL })).toThrow(/JWT_SECRET/);
+    expect(() => validateEnv({ ...required, JWT_SECRET: undefined })).toThrow(
+      /JWT_SECRET/,
+    );
+    expect(() => validateEnv({ ...required, JWT_SECRET: 'too-short' })).toThrow(
+      /at least 32 characters/,
+    );
+  });
+
+  it('requires the object storage settings', () => {
+    for (const name of Object.keys(storage)) {
+      expect(() => validateEnv({ ...required, [name]: undefined })).toThrow(
+        new RegExp(name),
+      );
+    }
+  });
+
+  it('rejects an S3_ENDPOINT that is not an http(s) URL', () => {
     expect(() =>
-      validateEnv({ DATABASE_URL, JWT_SECRET: 'too-short' }),
-    ).toThrow(/at least 32 characters/);
+      validateEnv({ ...required, S3_ENDPOINT: 'localhost:9000' }),
+    ).toThrow(/S3_ENDPOINT/);
   });
 });

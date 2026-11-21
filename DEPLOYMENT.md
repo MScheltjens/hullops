@@ -7,6 +7,7 @@ HullOps is two services and a database:
 | Web (`apps/web`) | Next.js | Vercel (set the project's root directory to `apps/web`) |
 | API (`apps/api`) | NestJS in a container (`apps/api/Dockerfile`) | Railway or Fly.io |
 | Database | PostgreSQL 16 | The host's managed Postgres, or Neon |
+| Photo storage | S3-compatible bucket | Cloudflare R2 ([why](docs/adr/0001-object-storage.md)) |
 
 The web app talks to the API **from its server** (Server Components and
 Server Actions), never from the browser. So the API must be reachable from the
@@ -17,7 +18,21 @@ web host, but CORS doesn't come into play.
 Create a PostgreSQL database and copy its connection string
 (`postgresql://user:password@host:5432/dbname`).
 
-## 2. API
+## 2. Photo storage (Cloudflare R2)
+
+1. In the Cloudflare dashboard: **R2 → Create bucket**, e.g. `hullops-photos`,
+   with location **EU jurisdiction**. Leave public access **off**; the API
+   hands out short-lived signed URLs for every upload and download.
+2. **R2 → Manage API tokens → Create API token** with **Object Read & Write**,
+   limited to that bucket. Copy the access key ID and the secret access key;
+   the secret is shown only once.
+3. The S3 endpoint is shown on the bucket's settings page. For an EU bucket it
+   is `https://<account-id>.eu.r2.cloudflarestorage.com`.
+
+Don't paste the keys into chats or issues; put them straight into the API
+host's variables (next step).
+
+## 3. API
 
 Build from the repository root (the pnpm workspace lives there):
 
@@ -44,6 +59,10 @@ Environment variables:
 | `NODE_ENV` | `production` (the Dockerfile sets it; this turns off GraphiQL and introspection) |
 | `PORT` | usually set by the host; defaults to 4000 |
 | `CORS_ORIGINS` | the web app's URL; only needed if a browser ever calls the API directly (a future native or client-side app) |
+| `S3_ENDPOINT` | the R2 endpoint from step 2 |
+| `S3_BUCKET` | the bucket name, e.g. `hullops-photos` |
+| `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY` | the R2 API token from step 2 |
+| `S3_REGION` | optional; defaults to `auto`, which is what R2 expects |
 | `ADMIN_EMAIL` and `ADMIN_PASSWORD` | the first administrator, e.g. `admin@hullops.example` and a password of at least 8 characters you choose. Set both or neither. |
 
 On start the container applies pending migrations (`prisma migrate deploy`)
@@ -112,7 +131,7 @@ Then try it once: `gh workflow run demo-reset.yml`. GitHub pauses scheduled
 workflows after 60 days without activity in a repository; it emails you, and
 one click in the Actions tab turns it back on.
 
-## 3. Web
+## 4. Web
 
 On Vercel: import the repository, set the root directory to `apps/web`, and add:
 
@@ -126,7 +145,7 @@ Write the full URL, starting with `https://`. A value without it (or any value t
 The session cookie is `secure` in production, so the site must be served over
 HTTPS (Vercel does this).
 
-## 4. Install on a phone (PWA)
+## 5. Install on a phone (PWA)
 
 Open the web app's HTTPS URL on a phone and use "Add to Home Screen" (iOS
 Safari: Share → Add to Home Screen; Android Chrome: the install prompt or the

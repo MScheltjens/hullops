@@ -4,7 +4,7 @@ The backend of [HullOps](../../README.md): a NestJS app that serves a GraphQL AP
 
 ## Setup
 
-From the repository root, start the database first: `docker compose up -d db`. Then, in this directory:
+From the repository root, start the database and the photo storage first: `docker compose up -d`. Then, in this directory:
 
 ```bash
 cp .env.example .env              # DATABASE_URL for the local Postgres container

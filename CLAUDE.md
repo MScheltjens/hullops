@@ -44,7 +44,7 @@ Don't close issues, change milestones or edit acceptance criteria yourself; ask 
 
 ```bash
 pnpm install
-docker compose up -d db                 # Postgres 16 (user/pass/db: hullops)
+docker compose up -d                    # Postgres 16 (user/pass/db: hullops) + RustFS photo storage on :9000 (console :9001)
 pnpm -r lint                            # api: oxlint --type-aware; web: eslint
 pnpm -r typecheck                       # api: tsc incl. tests; web: route types + tsc incl. translation completeness
 pnpm -r test

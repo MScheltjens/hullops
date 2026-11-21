@@ -172,9 +172,29 @@
     "confirmDone": "Auftrag als erledigt markieren? Das lässt sich nicht rückgängig machen.",
     "errors": {
       "forbidden": "Nur das Team des Auftrags und Projektleiter können ihn aktualisieren.",
-      "noteRequired": "Bitte zuerst eine Notiz schreiben.",
+      "noteRequired": "Bitte zuerst eine Notiz schreiben oder ein Foto hinzufügen.",
       "outdated": "Der Auftrag wurde zwischenzeitlich geändert. Laden Sie die Seite neu und versuchen Sie es erneut.",
-      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut."
+      "unavailable": "Der Server ist derzeit nicht erreichbar. Bitte versuchen Sie es später erneut.",
+      "photosRejected": "Die Fotos konnten nicht gespeichert werden. Entfernen Sie sie und fügen Sie sie erneut hinzu.",
+      "photosForbidden": "Nur das Team des Auftrags und Projektleiter können Fotos hinzufügen.",
+      "uploadFailed": "Das Hochladen der Fotos ist fehlgeschlagen. Prüfen Sie die Verbindung und versuchen Sie es erneut."
+    },
+    "addNoteOrPhotos": "Notiz und Fotos speichern",
+    "uploadingPhotos": "Fotos werden hochgeladen…",
+    "photos": {
+      "title": "Fotos ({count} von {max})",
+      "take": "Foto aufnehmen",
+      "choose": "Fotos auswählen",
+      "preparing": "Fotos werden vorbereitet…",
+      "preview": "Foto {number}",
+      "uploading": "Foto {number} wird hochgeladen",
+      "remove": "Foto {number} entfernen",
+      "problems": {
+        "wrongType": "{name} ist kein Foto. Erlaubt sind JPEG, PNG, WebP und HEIC.",
+        "tooLarge": "{name} ist größer als {max} MB.",
+        "empty": "{name} ist leer.",
+        "tooMany": "Pro Update sind höchstens {max} Fotos möglich."
+      }
     }
   },
   "admin": {
@@ -294,5 +314,10 @@
     "teamLeadIs": "Vorarbeiter: {name}",
     "noTeamLead": "Noch kein Vorarbeiter",
     "saveTeamLead": "Speichern"
+  },
+  "photoGallery": {
+    "open": "Foto {number} öffnen",
+    "close": "Schließen",
+    "photo": "Foto {number} von {total}"
   }
 }

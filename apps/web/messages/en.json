@@ -172,9 +172,29 @@
     "confirmDone": "Mark this order as done? This can't be undone.",
     "errors": {
       "forbidden": "Only the order's team and project leads can update it.",
-      "noteRequired": "Write a note first.",
+      "noteRequired": "Write a note or add a photo first.",
       "outdated": "The order was changed in the meantime. Reload the page and try again.",
-      "unavailable": "The server can't be reached right now. Please try again later."
+      "unavailable": "The server can't be reached right now. Please try again later.",
+      "photosRejected": "The photos couldn't be saved. Remove them and add them again.",
+      "photosForbidden": "Only the order's team and project leads can add photos.",
+      "uploadFailed": "Uploading the photos failed. Check your connection and try again."
+    },
+    "addNoteOrPhotos": "Save note and photos",
+    "uploadingPhotos": "Uploading photos…",
+    "photos": {
+      "title": "Photos ({count} of {max})",
+      "take": "Take photo",
+      "choose": "Choose photos",
+      "preparing": "Preparing photos…",
+      "preview": "Photo {number}",
+      "uploading": "Uploading photo {number}",
+      "remove": "Remove photo {number}",
+      "problems": {
+        "wrongType": "{name} isn't a photo. Use JPEG, PNG, WebP or HEIC.",
+        "tooLarge": "{name} is larger than {max} MB.",
+        "empty": "{name} is empty.",
+        "tooMany": "You can add up to {max} photos per update."
+      }
     }
   },
   "admin": {
@@ -294,5 +314,10 @@
     "teamLeadIs": "Team lead: {name}",
     "noTeamLead": "No team lead yet",
     "saveTeamLead": "Save"
+  },
+  "photoGallery": {
+    "open": "Open photo {number}",
+    "close": "Close",
+    "photo": "Photo {number} of {total}"
   }
 }

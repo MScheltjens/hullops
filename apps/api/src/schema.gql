@@ -241,6 +241,18 @@ enum OrderStatus {
   PLANNED
 }
 
+"""A photo attached to a status update"""
+type Photo {
+  createdAt: DateTime!
+  id: ID!
+  mimeType: String!
+
+  """
+  Signed download link, valid for a few minutes: fetch it when showing the photo, don’t store it
+  """
+  url: String!
+}
+
 """A photo the browser is about to upload"""
 input PhotoFileInput {
   """
@@ -420,6 +432,9 @@ type StatusUpdate {
   createdAt: DateTime!
   id: ID!
   note: String
+
+  """Oldest first"""
+  photos: [Photo!]!
 
   """The order’s status after this update"""
   status: OrderStatus!

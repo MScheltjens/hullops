@@ -47,7 +47,7 @@ describe('Performance: database queries per request (e2e)', () => {
         startDate vessel { name imoNumber } createdBy { name }
         cleaningDetails { method surface }
         protectionDetails { kind materials }
-        history { status note createdAt author { name } }
+        history { status note createdAt author { name } photos { url } }
         comments { id text source createdAt author { name } } } }`,
       budget: 14,
     },

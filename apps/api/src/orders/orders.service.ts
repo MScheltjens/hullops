@@ -7,6 +7,7 @@ import {
 import { Prisma, type ServiceType } from '../generated/prisma/client';
 import type { AuthUser } from '../auth/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
+import { PHOTO_ORDER } from './order-selection';
 import { addWeeks, weekStartOf } from '../common/week';
 import { visibleVesselsWhere } from '../vessels/vessel-scope';
 import {
@@ -38,7 +39,13 @@ export const ORDER_INCLUDE = {
   protectionDetails: true,
   // Team sorted by name: members added together share the same assignedAt.
   assignments: { include: { user: true }, orderBy: { user: { name: 'asc' } } },
-  statusUpdates: { include: { author: true }, orderBy: { createdAt: 'asc' } },
+  // Photos always come with the history: one more query for all updates
+  // together, not one per update, and the history is only loaded for the
+  // detail page anyway.
+  statusUpdates: {
+    include: { author: true, photos: { orderBy: PHOTO_ORDER } },
+    orderBy: { createdAt: 'asc' },
+  },
   comments: { include: { author: true }, orderBy: { createdAt: 'asc' } },
 } satisfies Prisma.OrderInclude;
 

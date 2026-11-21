@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ID, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class HttpHeader {
@@ -22,4 +22,22 @@ export class PhotoUploadTarget {
 
   @Field(() => [HttpHeader])
   headers: HttpHeader[];
+}
+
+@ObjectType({ description: 'A photo attached to a status update' })
+export class Photo {
+  @Field(() => ID)
+  id: string;
+
+  @Field({
+    description:
+      'Signed download link, valid for a few minutes: fetch it when showing the photo, don’t store it',
+  })
+  url: string;
+
+  @Field()
+  mimeType: string;
+
+  @Field()
+  createdAt: Date;
 }

@@ -146,3 +146,60 @@ export function splitOrderPage(
     done: { skip: Math.max(skip - openCount, 0), take: take - openTake },
   };
 }
+
+export const MAX_PHOTOS_PER_UPDATE = 5;
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10 MB
+
+/**
+ * What phones and cameras produce. iPhones save HEIC, but browsers report it
+ * as either image/heic or image/heif depending on the device, so both count.
+ */
+export const ALLOWED_PHOTO_TYPES: readonly string[] = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+];
+
+export interface PhotoToValidate {
+  mimeType: string;
+  sizeBytes: number;
+}
+
+/**
+ * Checks the photos a user wants to upload for one status update. Returns
+ * every violation, like validateOrderInput, and names each file by its
+ * position (counting from 1), so the client can point at the wrong one.
+ */
+export function validatePhotoUploads(
+  files: readonly PhotoToValidate[],
+): string[] {
+  const errors: string[] = [];
+
+  if (files.length < 1 || files.length > MAX_PHOTOS_PER_UPDATE) {
+    errors.push(
+      `Upload between 1 and ${MAX_PHOTOS_PER_UPDATE} photos, got ${files.length}`,
+    );
+  }
+
+  const maxMegabytes = MAX_PHOTO_BYTES / (1024 * 1024);
+  for (const [index, file] of files.entries()) {
+    const label = `Photo ${index + 1}`;
+
+    if (!ALLOWED_PHOTO_TYPES.includes(file.mimeType)) {
+      errors.push(
+        `${label}: type ${file.mimeType} is not allowed (JPEG, PNG, WebP or HEIC only)`,
+      );
+    }
+    // Checked here as user input, so the client gets a validation error
+    // instead of the StorageService's programming error (a 500).
+    if (!Number.isInteger(file.sizeBytes) || file.sizeBytes <= 0) {
+      errors.push(`${label}: size must be a positive whole number of bytes`);
+    } else if (file.sizeBytes > MAX_PHOTO_BYTES) {
+      errors.push(`${label}: larger than ${maxMegabytes} MB`);
+    }
+  }
+
+  return errors;
+}

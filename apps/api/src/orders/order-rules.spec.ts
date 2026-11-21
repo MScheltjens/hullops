@@ -3,8 +3,10 @@ import {
   canWorkOn,
   isAllowedStatusChange,
   isOverdue,
+  MAX_PHOTO_BYTES,
   splitOrderPage,
   validateOrderInput,
+  validatePhotoUploads,
 } from './order-rules';
 
 describe('isOverdue', () => {
@@ -290,5 +292,76 @@ describe('splitOrderPage', () => {
       open: { skip: 0, take: 0 },
       done: { skip: 0, take: 5 },
     });
+  });
+});
+
+describe('validatePhotoUploads', () => {
+  const jpeg = (sizeBytes = 1000) => ({ mimeType: 'image/jpeg', sizeBytes });
+
+  it('accepts one photo', () => {
+    expect(validatePhotoUploads([jpeg()])).toEqual([]);
+  });
+
+  it('accepts five photos of every allowed type', () => {
+    const files = ['jpeg', 'png', 'webp', 'heic', 'heif'].map((type) => ({
+      mimeType: `image/${type}`,
+      sizeBytes: 1000,
+    }));
+
+    expect(validatePhotoUploads(files)).toEqual([]);
+  });
+
+  it('rejects an empty list', () => {
+    expect(validatePhotoUploads([])).toEqual([
+      'Upload between 1 and 5 photos, got 0',
+    ]);
+  });
+
+  it('rejects six photos', () => {
+    expect(
+      validatePhotoUploads(Array.from({ length: 6 }, () => jpeg())),
+    ).toEqual(['Upload between 1 and 5 photos, got 6']);
+  });
+
+  it('rejects a file that is not a photo', () => {
+    expect(
+      validatePhotoUploads([{ mimeType: 'application/pdf', sizeBytes: 1000 }]),
+    ).toEqual([
+      'Photo 1: type application/pdf is not allowed (JPEG, PNG, WebP or HEIC only)',
+    ]);
+  });
+
+  it('accepts exactly 10 MB', () => {
+    expect(validatePhotoUploads([jpeg(MAX_PHOTO_BYTES)])).toEqual([]);
+  });
+
+  it('rejects one byte more than 10 MB', () => {
+    expect(validatePhotoUploads([jpeg(MAX_PHOTO_BYTES + 1)])).toEqual([
+      'Photo 1: larger than 10 MB',
+    ]);
+  });
+
+  it.each([0, -1, 1.5])('rejects a size of %p bytes', (sizeBytes) => {
+    expect(validatePhotoUploads([jpeg(sizeBytes)])).toEqual([
+      'Photo 1: size must be a positive whole number of bytes',
+    ]);
+  });
+
+  it('reports every violation at once, naming each photo', () => {
+    const files = [
+      jpeg(),
+      { mimeType: 'application/pdf', sizeBytes: MAX_PHOTO_BYTES + 1 },
+      jpeg(),
+      jpeg(),
+      jpeg(0),
+      jpeg(),
+    ];
+
+    expect(validatePhotoUploads(files)).toEqual([
+      'Upload between 1 and 5 photos, got 6',
+      'Photo 2: type application/pdf is not allowed (JPEG, PNG, WebP or HEIC only)',
+      'Photo 2: larger than 10 MB',
+      'Photo 5: size must be a positive whole number of bytes',
+    ]);
   });
 });

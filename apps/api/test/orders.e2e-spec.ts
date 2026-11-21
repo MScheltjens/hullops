@@ -285,7 +285,7 @@ describe('Orders GraphQL API (e2e)', () => {
     });
   });
 
-  it("refuses a team lead on another vessel's order", async () => {
+  it("doesn't let a team lead update another vessel's order", async () => {
     const created = await createOrder(cleaningOrder());
     const orderId = created.body.data.createOrder.id;
 
@@ -293,7 +293,9 @@ describe('Orders GraphQL API (e2e)', () => {
       { orderId, status: 'IN_PROGRESS' },
       asOtherTeamLead,
     );
-    expect(response.body.errors[0].extensions.code).toBe('FORBIDDEN');
+    // He can't see that vessel, so the order looks unknown to him, the same
+    // answer as for an id that doesn't exist (see vessel-scope.ts).
+    expect(response.body.errors[0].extensions.code).toBe('NOT_FOUND');
   });
 
   it('tells each viewer whether they may update the order (viewerCanUpdate)', async () => {
@@ -324,9 +326,9 @@ describe('Orders GraphQL API (e2e)', () => {
       orderId,
       status: 'DONE',
     });
-    expect(skip.body.errors[0].message).toBe(
+    expect(skip.body.errors[0].extensions.validationErrors).toEqual([
       'Cannot change status from PLANNED to DONE',
-    );
+    ]);
 
     await addStatusUpdate({
       orderId,

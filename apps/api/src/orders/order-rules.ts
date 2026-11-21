@@ -203,3 +203,40 @@ export function validatePhotoUploads(
 
   return errors;
 }
+
+/**
+ * Checks the storage keys a status update wants to attach. `requestedKeys`
+ * are the keys this user requested for this order (their PhotoUpload rows),
+ * so a key that isn't among them is someone else's, already used, or made up.
+ *
+ * Returns every violation, like validatePhotoUploads.
+ */
+export function validatePhotoKeys(
+  keys: readonly string[],
+  requestedKeys: readonly string[],
+): string[] {
+  const errors: string[] = [];
+
+  if (keys.length > MAX_PHOTOS_PER_UPDATE) {
+    errors.push(
+      `Attach at most ${MAX_PHOTOS_PER_UPDATE} photos, got ${keys.length}`,
+    );
+  }
+
+  // indexOf finds the first occurrence, so a key whose index differs from it
+  // appeared earlier in the list already.
+  const duplicates = keys.filter((key, index) => keys.indexOf(key) !== index);
+  for (const key of new Set(duplicates)) {
+    errors.push(`Photo ${key}: listed more than once`);
+  }
+
+  // Someone else's, already attached, or made up: the client can't tell them
+  // apart, and shouldn't learn which one it is.
+  const requested = new Set(requestedKeys);
+  const unknown = new Set(keys.filter((key) => !requested.has(key)));
+  for (const key of unknown) {
+    errors.push(`Photo ${key}: not an upload of yours for this order`);
+  }
+
+  return errors;
+}

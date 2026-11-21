@@ -6,6 +6,7 @@ import {
   MAX_PHOTO_BYTES,
   splitOrderPage,
   validateOrderInput,
+  validatePhotoKeys,
   validatePhotoUploads,
 } from './order-rules';
 
@@ -362,6 +363,46 @@ describe('validatePhotoUploads', () => {
       'Photo 2: type application/pdf is not allowed (JPEG, PNG, WebP or HEIC only)',
       'Photo 2: larger than 10 MB',
       'Photo 5: size must be a positive whole number of bytes',
+    ]);
+  });
+});
+
+describe('validatePhotoKeys', () => {
+  const requested = ['k1', 'k2', 'k3', 'k4', 'k5', 'k6'];
+
+  it('accepts no photos at all', () => {
+    expect(validatePhotoKeys([], [])).toEqual([]);
+  });
+
+  it('accepts keys the user requested', () => {
+    expect(validatePhotoKeys(['k1', 'k2'], requested)).toEqual([]);
+  });
+
+  it('rejects more than five photos', () => {
+    expect(validatePhotoKeys(requested, requested)).toEqual([
+      'Attach at most 5 photos, got 6',
+    ]);
+  });
+
+  it('reports a key listed twice once', () => {
+    expect(validatePhotoKeys(['k1', 'k1', 'k1'], requested)).toEqual([
+      'Photo k1: listed more than once',
+    ]);
+  });
+
+  it('rejects a key the user did not request', () => {
+    expect(validatePhotoKeys(['k1', 'other'], requested)).toEqual([
+      'Photo other: not an upload of yours for this order',
+    ]);
+  });
+
+  it('reports every violation at once', () => {
+    expect(
+      validatePhotoKeys(['x', 'x', 'k1', 'k2', 'k3', 'k4'], requested),
+    ).toEqual([
+      'Attach at most 5 photos, got 6',
+      'Photo x: listed more than once',
+      'Photo x: not an upload of yours for this order',
     ]);
   });
 });

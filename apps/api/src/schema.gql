@@ -16,6 +16,9 @@ input AddStatusUpdateInput {
   note: String
   orderId: ID!
 
+  """Storage keys from requestPhotoUploads, once uploaded"""
+  photoKeys: [String!]! = []
+
   """The new status: the current one (to add a note) or the next step"""
   status: OrderStatus!
 }

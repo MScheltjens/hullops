@@ -99,6 +99,11 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type HttpHeader {
+  name: String!
+  value: String!
+}
+
 """Language for text the server sends a user"""
 enum Locale {
   DE
@@ -135,6 +140,11 @@ type Mutation {
   Remove someone from the order's team. A team lead can do this on his own vessels.
   """
   removeTeamMember(orderId: ID!, userId: ID!): Order!
+
+  """
+  Step 1 of adding photos: get upload URLs for 1–5 photos, then pass the storage keys to addStatusUpdate
+  """
+  requestPhotoUploads(input: RequestPhotoUploadsInput!): [PhotoUploadTarget!]!
   resetUserPassword(input: ResetPasswordInput!): User!
 
   """
@@ -228,6 +238,26 @@ enum OrderStatus {
   PLANNED
 }
 
+"""A photo the browser is about to upload"""
+input PhotoFileInput {
+  """
+  As the browser reports it, e.g. "image/jpeg"
+  """
+  mimeType: String!
+  sizeBytes: Int!
+}
+
+"""
+Where to upload one photo. PUT the file to url with exactly these headers, then pass storageKey to addStatusUpdate.
+"""
+type PhotoUploadTarget {
+  headers: [HttpHeader!]!
+  storageKey: String!
+
+  """Signed, valid for a few minutes"""
+  url: String!
+}
+
 input PlanCrewMembersInput {
   """The workers to put on the vessel; one tap can plan several"""
   userIds: [ID!]!
@@ -317,6 +347,11 @@ type Query {
   users(includeInactive: Boolean! = false, role: Role, serviceType: ServiceType): [User!]!
   vessel(id: ID!): Vessel
   vessels: [Vessel!]!
+}
+
+input RequestPhotoUploadsInput {
+  files: [PhotoFileInput!]!
+  orderId: ID!
 }
 
 input ResetPasswordInput {

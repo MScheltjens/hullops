@@ -61,6 +61,7 @@ model User {
   staffingRequested StaffingRequestWorker[]
   ledVessels        Vessel[]                @relation("VesselTeamLead")
   crewAssignments   CrewAssignment[]
+  photoUploads      PhotoUpload[]
 }
 
 model Vessel {
@@ -103,6 +104,7 @@ model Order {
   assignments   OrderAssignment[]
   statusUpdates StatusUpdate[]
   comments      OrderComment[]
+  photoUploads  PhotoUpload[]
 
   // Service-specific details (1:1). Exactly one is set, matching serviceType;
   // the database doesn't enforce this, so application code must.
@@ -256,10 +258,29 @@ model OrderComment {
 
 model Photo {
   id         String   @id @default(cuid())
-  storageKey String // object key in storage (e.g. S3)
+  storageKey String   @unique // object key in storage (e.g. S3); one file, one photo
   mimeType   String
   createdAt  DateTime @default(now())
 
   statusUpdateId String
   statusUpdate   StatusUpdate @relation(fields: [statusUpdateId], references: [id], onDelete: Cascade)
+}
+
+/// An upload URL the API handed out and that hasn't been attached yet.
+/// addStatusUpdate only accepts keys listed here for the same user and order,
+/// so nobody can attach someone else's file, and deletes the row when it
+/// creates the Photo. Rows that stay behind are uploads nobody attached.
+model PhotoUpload {
+  id         String   @id @default(cuid())
+  storageKey String   @unique
+  mimeType   String
+  sizeBytes  Int
+  createdAt  DateTime @default(now())
+
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, orderId])
 }

@@ -9,6 +9,7 @@ import { addWeeks, mondayOf, toDateOnly } from "@/lib/week";
 import { StatusBadge, type Status } from "../status-badge";
 import { assignMember, removeMember } from "./actions";
 import { CommentForm } from "./comment-form";
+import { PhotoGallery } from "./photo-gallery";
 import { StatusActions } from "./status-actions";
 
 interface OrderDetail {
@@ -47,6 +48,7 @@ interface OrderDetail {
     note: string | null;
     createdAt: string;
     author: { name: string };
+    photos: { id: string; url: string }[];
   }[];
   comments: {
     id: string;
@@ -69,7 +71,7 @@ const ORDER = `
         kind protectedItem materials coatingProduct layers targetThicknessUm
       }
       team { id name }
-      history { status note createdAt author { name } }
+      history { status note createdAt author { name } photos { id url } }
       comments { id text source createdAt author { name } }
     }
   }`;
@@ -315,6 +317,9 @@ export default async function OrderDetailPage({
                 {entry.author.name} · {dateTime(entry.createdAt)}
               </span>
               {entry.note && <span className="w-full">{entry.note}</span>}
+              {entry.photos.length > 0 && (
+                <PhotoGallery photos={entry.photos} />
+              )}
             </li>
           ))}
         </ol>

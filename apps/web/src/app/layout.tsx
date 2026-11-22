@@ -59,6 +59,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             orderForm: messages.orderForm,
             comments: messages.comments,
             statusActions: messages.statusActions,
+            photoGallery: messages.photoGallery,
             admin: messages.admin,
             planning: messages.planning,
             vessels: messages.vessels,

@@ -55,3 +55,57 @@ jobs:
       # Runs the API against the Postgres service above
       - run: pnpm --filter api test:e2e
       - run: pnpm -r build
+
+  # Browser tests (Playwright): the real API and web app against a seeded
+  # database. A separate job, so a slow or failing browser run doesn't hide
+  # the result of the fast checks above.
+  e2e:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: hullops
+          POSTGRES_PASSWORD: hullops
+          POSTGRES_DB: hullops
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Playwright derives hullops_e2e from this, then creates and seeds it.
+      DATABASE_URL: postgresql://hullops:hullops@localhost:5432/hullops
+      # Throwaway values for this run only, not real secrets (see above).
+      JWT_SECRET: ci-only-jwt-secret-not-used-anywhere-else
+      S3_ENDPOINT: http://localhost:9000
+      S3_BUCKET: hullops-photos
+      S3_ACCESS_KEY_ID: ci-placeholder
+      S3_SECRET_ACCESS_KEY: ci-placeholder
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter api exec prisma generate
+      # The browser plus the system libraries it needs on the runner
+      - run: pnpm --filter web exec playwright install --with-deps chromium
+      - run: pnpm --filter web test:e2e
+
+      # The HTML report holds the trace of every failed test: download the
+      # artifact and open it with `pnpm exec playwright show-report <dir>`.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 14

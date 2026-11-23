@@ -138,12 +138,19 @@ pnpm dev                     # run API and web in parallel
 pnpm -r lint                 # lint all apps
 pnpm -r test                 # unit tests
 pnpm --filter api test:e2e   # API end-to-end tests (use their own hullops_test database)
+pnpm --filter web test:e2e   # browser tests with Playwright (see below)
 pnpm -r build                # production builds
 ```
 
+### Browser tests
+
+[Playwright](apps/web/playwright.config.ts) starts the API (port 4100) and a production build of the web app (port 3100) against their own `hullops_e2e` database, which is reset to the demo seed before every run, and drives a mobile Chromium. Your dev servers can keep running. Tests live in [apps/web/e2e/](apps/web/e2e/) as `*.e2e.ts`, and start logged in as a seed user through `test.use({ storageState: authFile("projectLead") })`.
+
+Once, install the browser: `pnpm --filter web exec playwright install chromium`. Add `--headed` to watch a run, and open the report of a failed run with `pnpm --filter web exec playwright show-report`.
+
 ## CI
 
-Every push to `main` and every pull request runs [the CI workflow](.github/workflows/ci.yml) against a throwaway Postgres container. It installs dependencies, generates the Prisma client, applies migrations, then runs lint, unit tests, API end-to-end tests and builds.
+Every push to `main` and every pull request runs [the CI workflow](.github/workflows/ci.yml) against a throwaway Postgres container. It installs dependencies, generates the Prisma client, applies migrations, then runs lint, unit tests, API end-to-end tests and builds. A second job runs the browser tests and uploads the Playwright report when one fails.
 
 ## Deployment
 

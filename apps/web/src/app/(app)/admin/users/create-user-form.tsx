@@ -2,13 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { SERVICE_TYPES } from "@/lib/service-types";
+import { USER_FIELD_LIMITS } from "@/lib/user-input";
 import type { Role } from "@/lib/user-roles";
 import { createUser, type CreateUserState } from "./actions";
 
 const inputClass =
   "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
-
-const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
 /** `roles`: the roles the logged-in user may create (HR gets fewer than admins). */
 export function CreateUserForm({ roles }: { roles: readonly Role[] }) {
@@ -33,7 +33,7 @@ export function CreateUserForm({ roles }: { roles: readonly Role[] }) {
         <input
           name="name"
           required
-          maxLength={100}
+          maxLength={USER_FIELD_LIMITS.name}
           defaultValue={value("name")}
           className={inputClass}
         />
@@ -44,7 +44,7 @@ export function CreateUserForm({ roles }: { roles: readonly Role[] }) {
           name="email"
           type="email"
           required
-          maxLength={254}
+          maxLength={USER_FIELD_LIMITS.email}
           autoComplete="off"
           defaultValue={value("email")}
           className={inputClass}
@@ -56,8 +56,8 @@ export function CreateUserForm({ roles }: { roles: readonly Role[] }) {
           name="password"
           type="password"
           required
-          minLength={8}
-          maxLength={200}
+          minLength={USER_FIELD_LIMITS.passwordMin}
+          maxLength={USER_FIELD_LIMITS.passwordMax}
           autoComplete="new-password"
           className={inputClass}
         />

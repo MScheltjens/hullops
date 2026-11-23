@@ -4,10 +4,11 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import {
+  ORDER_FIELD_LIMITS,
   PROTECTION_KINDS,
   PROTECTION_MATERIALS,
-  SERVICE_TYPES,
 } from "@/lib/order-input";
+import { SERVICE_TYPES } from "@/lib/service-types";
 import { createOrder, type CreateOrderState } from "./actions";
 
 export interface VesselOption {
@@ -46,7 +47,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
         <input
           name="title"
           required
-          maxLength={200}
+          maxLength={ORDER_FIELD_LIMITS.title}
           defaultValue={value("title")}
           className={inputClass}
         />
@@ -56,7 +57,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
         <textarea
           name="description"
           rows={3}
-          maxLength={2000}
+          maxLength={ORDER_FIELD_LIMITS.description}
           defaultValue={value("description")}
           className={inputClass}
         />
@@ -86,7 +87,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
           <input
             name="shipyard"
             required
-            maxLength={100}
+            maxLength={ORDER_FIELD_LIMITS.shipyard}
             defaultValue={value("shipyard")}
             className={inputClass}
           />
@@ -94,7 +95,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
         <Field label={t("berth")}>
           <input
             name="berth"
-            maxLength={100}
+            maxLength={ORDER_FIELD_LIMITS.berth}
             defaultValue={value("berth")}
             className={inputClass}
           />
@@ -154,7 +155,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
             <input
               name="method"
               required
-              maxLength={100}
+              maxLength={ORDER_FIELD_LIMITS.method}
               defaultValue={value("method")}
               className={inputClass}
             />
@@ -163,7 +164,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
             <input
               name="surface"
               required
-              maxLength={100}
+              maxLength={ORDER_FIELD_LIMITS.surface}
               defaultValue={value("surface")}
               className={inputClass}
             />
@@ -188,7 +189,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
           <Field label={t("protectedItem")} hint={t("protectedItemHint")}>
             <input
               name="protectedItem"
-              maxLength={200}
+              maxLength={ORDER_FIELD_LIMITS.protectedItem}
               defaultValue={value("protectedItem")}
               className={inputClass}
             />
@@ -221,7 +222,7 @@ export function OrderForm({ vessels }: { vessels: VesselOption[] }) {
               <Field label={t("coatingProduct")}>
                 <input
                   name="coatingProduct"
-                  maxLength={100}
+                  maxLength={ORDER_FIELD_LIMITS.coatingProduct}
                   defaultValue={value("coatingProduct")}
                   className={inputClass}
                 />

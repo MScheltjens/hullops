@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef, useState } from "react";
+import { ORDER_FIELD_LIMITS } from "@/lib/order-input";
 import type { ForwardStatus, Status } from "@/lib/order-status";
 import { shrinkPhoto, uploadPhoto } from "@/lib/photo-upload";
 import {
@@ -202,7 +203,7 @@ export function StatusActions({
         <textarea
           name="note"
           rows={3}
-          maxLength={2000}
+          maxLength={ORDER_FIELD_LIMITS.statusNote}
           defaultValue={state.note}
           className={inputClass}
         />

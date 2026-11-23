@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import type { CurrentUser, Locale } from "@/lib/server/dal";
+import type { CurrentUser } from "@/lib/server/dal";
+import { USER_LOCALES } from "@/i18n/locales";
 import { logout, setLocale } from "./actions";
 import { PopoverA11y } from "@/components/popover-a11y";
 
@@ -77,7 +78,7 @@ export async function PreferencesMenu({ user }: { user: CurrentUser }) {
             aria-label={t("language")}
             className="flex self-start overflow-hidden rounded-md border border-zinc-300 dark:border-zinc-700"
           >
-            {(["EN", "DE"] satisfies Locale[]).map((locale, i) => (
+            {USER_LOCALES.map((locale, i) => (
               <form key={locale} action={setLocale.bind(null, locale)}>
                 <button
                   type="submit"

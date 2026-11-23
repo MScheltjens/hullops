@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { ORDER_FIELD_LIMITS } from "@/lib/order-input";
 import { addComment, type AddCommentState } from "./actions";
 
 const inputClass =
@@ -22,7 +23,7 @@ export function CommentForm({ orderId }: { orderId: string }) {
           name="text"
           required
           rows={4}
-          maxLength={4000}
+          maxLength={ORDER_FIELD_LIMITS.comment}
           defaultValue={state.text}
           className={inputClass}
         />
@@ -31,7 +32,7 @@ export function CommentForm({ orderId }: { orderId: string }) {
         {t("source")}
         <input
           name="source"
-          maxLength={200}
+          maxLength={ORDER_FIELD_LIMITS.commentSource}
           defaultValue={state.source}
           className={inputClass}
         />

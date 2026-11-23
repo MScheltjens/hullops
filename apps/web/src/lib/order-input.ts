@@ -5,12 +5,32 @@
  * Deliberately no validation here: the API checks every rule (required
  * fields, details matching the service type, start before due date) and
  * answers with all violations at once. Repeating the rules in the web app
- * would only let the two drift apart.
+ * would only let the two drift apart. The one exception is the field
+ * limits below, which the browser enforces itself through `maxLength`.
  */
 
 import { number, text } from "./form-data";
 
-export const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
+/**
+ * Longest text per order field. Copies of the API's input
+ * validation, so the browser stops a too long text before sending; #82
+ * will take them from the API instead.
+ * See apps/api/src/orders/order.inputs.ts.
+ */
+export const ORDER_FIELD_LIMITS = {
+  title: 200,
+  description: 2000,
+  shipyard: 100,
+  berth: 100,
+  method: 100,
+  surface: 100,
+  protectedItem: 200,
+  coatingProduct: 100,
+  statusNote: 2000,
+  comment: 4000,
+  commentSource: 200,
+} as const;
+
 export const PROTECTION_KINDS = [
   "ENCLOSURE",
   "COVERING",

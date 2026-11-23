@@ -39,6 +39,7 @@ The variables are checked at startup ([`src/config/env.ts`](src/config/env.ts)).
 | `pnpm test` | Unit tests |
 | `pnpm test -- src/vessels` | Unit tests in one folder (or pass a file) |
 | `pnpm test:e2e` | End-to-end tests against the test database (see [Testing](#testing)) |
+| `pnpm prepare:browser-db` | Create, migrate and reset the browser test database (run by Playwright, see [Testing](#testing)) |
 | `pnpm exec prisma migrate dev --name <name>` | Create and apply a migration after changing the schema |
 | `pnpm exec prisma db seed` | Add or refresh the demo data |
 | `pnpm exec prisma studio` | Browse the database in the browser |
@@ -305,6 +306,7 @@ The mapping lives in [`src/graphql/format-graphql-error.ts`](src/graphql/format-
   - The test database has the name from `DATABASE_URL` plus `_test`. With the default `.env`, that's `hullops_test` on the same server. If the name already ends in `_test`, as in CI, it's used as is.
   - Before the tests run, [`test/global-setup.ts`](test/global-setup.ts) creates that database if it's missing and applies all migrations. `pnpm test:e2e` needs no manual setup, only a running Postgres.
   - The suites still delete the data they create, so runs don't affect each other.
+- **Browser tests** live in the web app ([`apps/web/e2e/`](../web/e2e/)) and run this API against a third database, `hullops_e2e`. [`test/prepare-browser-db.ts`](test/prepare-browser-db.ts) creates and migrates it and resets it to the demo seed before every run. It refuses any database whose name doesn't end in `_e2e`, because the reset deletes everything that isn't seed data.
 
 ## Notes on the setup
 

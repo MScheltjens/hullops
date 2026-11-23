@@ -2,7 +2,7 @@
 
 The frontend of [HullOps](../../README.md), built with Next.js 16 (App Router), React 19, Tailwind CSS v4 and next-intl.
 
-> **Status:** login, the order overview and details (status updates, comments, team), creating orders, vessels, weekly planning with the crew plan, and user management, in English and German (see the [roadmap](../../README.md#roadmap)).
+> **Status:** login, the order overview and details (status updates, comments, team), creating orders, vessels, weekly planning with the crew plan, user management and photos on status updates, in English and German (see the [roadmap](../../README.md#roadmap)).
 
 ## Development
 
@@ -14,6 +14,8 @@ pnpm dev                     # http://localhost:3000
 pnpm build                   # production build
 pnpm typecheck               # types, including translation completeness
 pnpm lint                    # ESLint
+pnpm test                    # unit tests (Vitest)
+pnpm test:e2e                # browser tests (Playwright), see Testing
 ```
 
 Log in with a demo user from the API seed, e.g. `lena.hoffmann@hullops.example` (German) or `tom.dejong@hullops.example` (English); the password is `hullops-dev`.
@@ -36,6 +38,8 @@ This split follows the Next.js authentication guide: a cheap optimistic check in
 
 Pages are Server Components that fetch from the API on the server ([`src/lib/server/api.ts`](src/lib/server/api.ts)), with the user's token. The browser never sees the token or talks to the API directly. Nothing is cached, because data is per user and changes constantly.
 
+**Photos are the exception:** the browser uploads them straight to object storage, with signed URLs it gets from the API through a Server Action (`requestPhotoUploads`), and the status update then sends only their keys. Photos are checked against the API's limits and scaled down to JPEGs of at most 2000 px in the browser first ([`src/lib/photos.ts`](src/lib/photos.ts), [`src/lib/photo-upload.ts`](src/lib/photo-upload.ts)), so they don't travel through this server on slow yard connections. The bucket needs a CORS rule for that (see [DEPLOYMENT.md](../../DEPLOYMENT.md)).
+
 Filters on the order overview live in the URL (`/orders?status=PLANNED&overdue=true`), so filtered views can be bookmarked and shared.
 
 ### Languages
@@ -47,10 +51,19 @@ The app is in **English** (default) and **German**, via [next-intl](https://next
 - **Keys are type-checked:** a key that doesn't exist, such as a misspelled `t("orders.titel")` instead of `t("orders.title")`, is a compile error, and [`messages.check.ts`](src/i18n/messages.check.ts) fails the build if German is missing a key that English has.
 - **Dates** are formatted per language in the `Europe/Berlin` time zone.
 
+## Testing
+
+- **Unit tests** (`src/**/*.spec.ts`, Vitest) test pure logic such as the photo checks.
+- **Browser tests** ([`e2e/`](e2e/), Playwright, `*.e2e.ts`) run the real app. [`playwright.config.ts`](playwright.config.ts) starts the API on port 4100 and a production build of this app on 3100, against their own `hullops_e2e` database, which `pnpm --filter api prepare:browser-db` resets to the demo seed before every run. Your dev servers can keep running.
+  - Install the browser once: `pnpm exec playwright install chromium`.
+  - A setup project logs in as project lead, team lead and worker and saves each session; a test starts logged in with `test.use({ storageState: authFile("projectLead") })` ([`e2e/auth.ts`](e2e/auth.ts)).
+  - The tests use a mobile Chromium, because the app is mostly used on phones. Add `--headed` to watch, and open the report of a failed run with `pnpm exec playwright show-report`.
+
 ## Structure
 
 ```
 apps/web/
+├── e2e/                   browser tests (Playwright)
 ├── messages/              translations (en, de)
 └── src/
     ├── proxy.ts           redirect to /login without a session cookie
@@ -60,7 +73,10 @@ apps/web/
         ├── layout.tsx     root layout: language, translations provider
         ├── login/         login page, form and Server Actions
         └── (app)/         pages that need login, with the shared header
-            └── orders/    order overview
+            ├── orders/    order overview, details with status updates and photos, new order
+            ├── vessels/   vessels
+            ├── planning/  weekly staffing and crew plan
+            └── admin/     user management
 ```
 
 ## Next.js 16

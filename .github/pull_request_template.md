@@ -14,4 +14,4 @@ Closes #
 - [ ] Tests added or updated for new backend logic
 - [ ] New UI strings in both `messages/en.json` and `messages/de.json`
 - [ ] `pnpm -r lint`, `pnpm -r typecheck` and `pnpm -r test` pass
-- [ ] README / docs updated if behaviour or setup changed
+- [ ] Docs updated where behaviour, setup, commands or conventions changed: READMEs (root, `apps/api`, `apps/web`), `CLAUDE.md`, `DEPLOYMENT.md`, `docs/`

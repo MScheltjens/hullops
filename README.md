@@ -13,7 +13,7 @@ HullOps is a planning tool for subcontractors who work on shipyards. Project lea
   <img src="docs/screenshots/planning.png" alt="Weekly planning per vessel: the team lead's request and the crew the project lead planned, by tapping" width="24%">
 </p>
 
-> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing requests, the weekly crew plan, and login with roles; each role sees only the vessels it works on. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, creating orders, weekly planning with the crew plan, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
+> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing requests, the weekly crew plan, and login with roles; each role sees only the vessels it works on. The web app, in English and German, has login, the order overview, order details with status updates (with photos from the phone camera), comments and team management, creating orders, weekly planning with the crew plan, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -138,12 +138,19 @@ pnpm dev                     # run API and web in parallel
 pnpm -r lint                 # lint all apps
 pnpm -r test                 # unit tests
 pnpm --filter api test:e2e   # API end-to-end tests (use their own hullops_test database)
+pnpm --filter web test:e2e   # browser tests with Playwright (see below)
 pnpm -r build                # production builds
 ```
 
+### Browser tests
+
+[Playwright](apps/web/playwright.config.ts) starts the API (port 4100) and a production build of the web app (port 3100) against their own `hullops_e2e` database, which is reset to the demo seed before every run, and drives a mobile Chromium. Your dev servers can keep running. Tests live in [apps/web/e2e/](apps/web/e2e/) as `*.e2e.ts`, and start logged in as a seed user through `test.use({ storageState: authFile("projectLead") })`.
+
+Once, install the browser: `pnpm --filter web exec playwright install chromium`. Add `--headed` to watch a run, and open the report of a failed run with `pnpm --filter web exec playwright show-report`.
+
 ## CI
 
-Every push to `main` and every pull request runs [the CI workflow](.github/workflows/ci.yml) against a throwaway Postgres container. It installs dependencies, generates the Prisma client, applies migrations, then runs lint, unit tests, API end-to-end tests and builds.
+Every push to `main` and every pull request runs [the CI workflow](.github/workflows/ci.yml) against a throwaway Postgres container. It installs dependencies, generates the Prisma client, applies migrations, then runs lint, unit tests, API end-to-end tests and builds. A second job runs the browser tests and uploads the Playwright report when one fails.
 
 ## Deployment
 
@@ -164,5 +171,6 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the team lead or the project lead
 - [x] Weekly crew plan: the project lead puts workers on vessels by tapping; each role sees only its own vessels; team leads give the orders on their vessels to their planned workers
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
+- [x] Status updates with photos: taken or picked on the phone, shrunk in the browser, uploaded straight to object storage
+- [x] Browser tests with Playwright in CI (more flows follow)
 - [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source
-- [ ] Status updates with photo uploads

@@ -98,7 +98,7 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - Tests start logged in: `test.use({ storageState: authFile("projectLead") })`. Seed users and `authFile` live in `e2e/auth.ts`, because a test file may not import another test file (`auth.setup.e2e.ts`).
 - After login the UI is in the user's `locale`, not the browser's: Lena (project lead) and Mehmet (worker) are seeded with DE.
 - Pages render some content twice for phone and desktop with one hidden by CSS (e.g. order cards and table). Prefer `getByRole`, which skips hidden elements; `getByText` finds both and fails in strict mode.
-- On a failure, `test-results/*/error-context.md` has a snapshot of what the browser saw.
+- On a failure, `test-results/*/` has `error-context.md` (a snapshot of what the browser saw) and `trace.zip` (`pnpm exec playwright show-trace <file>`), locally and in CI (`trace: "retain-on-failure"`).
 
 ## Data model (`apps/api/prisma/schema.prisma`)
 

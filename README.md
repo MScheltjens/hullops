@@ -62,7 +62,7 @@ The shipyard's own people (the customer's side) have **no login**. The project l
 - **Computed, not stored:** "overdue" is worked out when needed, so it can't go stale.
 - **Demo data is public on purpose.** The seeded users share one published password, and the seeded administrator can lock the others out. That is fine for a demo (a nightly reset restores it) and is documented in [DEPLOYMENT.md](DEPLOYMENT.md); anything real starts without the seed.
 
-**More detail:** [docs/ux.md](docs/ux.md) describes who uses the app, the bar it is held to (any new user can use it after an hour of explanation) and the main flows with sketches. [docs/caching.md](docs/caching.md) says what is cached, what is not and why.
+**More detail:** [docs/ux.md](docs/ux.md) describes who uses the app, the bar it is held to (any new user can use it after an hour of explanation) and the main flows with sketches. [docs/caching.md](docs/caching.md) says what is cached, what is not and why. [docs/flows.md](docs/flows.md) shows the core flows as diagrams: login and auth, which vessels each role sees, the order status and the photo upload.
 
 **Planned: leave and sickness from Crewmeister**
 

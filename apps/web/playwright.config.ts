@@ -50,9 +50,11 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
     locale: "en-US",
-    // A trace (DOM snapshots, network, console) of every failed test that was
-    // retried; CI uploads it. Open with `pnpm exec playwright show-trace`.
-    trace: "on-first-retry",
+    // A trace (DOM snapshots, network, console) of every failed test, locally
+    // too: "on-first-retry" would only record one on a retry, and locally
+    // there are none. Passing tests keep none. The HTML report links them;
+    // CI uploads it. Open one with `pnpm exec playwright show-trace`.
+    trace: "retain-on-failure",
   },
 
   projects: [

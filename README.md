@@ -13,7 +13,7 @@ HullOps is a planning tool for subcontractors who work on shipyards. Project lea
   <img src="docs/screenshots/planning.png" alt="Weekly planning per vessel: the team lead's request and the crew the project lead planned, by tapping" width="24%">
 </p>
 
-> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing requests, the weekly crew plan, and login with roles; each role sees only the vessels it works on. The web app, in English and German, has login, the order overview, order details with status updates, comments and team management, creating orders, weekly planning with the crew plan, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
+> **Status:** in development. The API covers vessels, orders, teams, comments, weekly staffing requests, the weekly crew plan, and login with roles; each role sees only the vessels it works on. The web app, in English and German, has login, the order overview, order details with status updates (with photos from the phone camera), comments and team management, creating orders, weekly planning with the crew plan, and user and vessel management. It is mobile first and installable as a PWA (see [Roadmap](#roadmap)).
 
 ## The domain
 
@@ -171,5 +171,6 @@ The web app goes on Vercel, the API runs as a container (see [apps/api/Dockerfil
 - [x] Weekly staffing: the foreman's request per vessel and week, with workers asked for by name (prefilled from the week before, with a warning when one worker is asked for by two vessels), entered by the team lead or the project lead
 - [x] Weekly crew plan: the project lead puts workers on vessels by tapping; each role sees only its own vessels; team leads give the orders on their vessels to their planned workers
 - [x] Web: vessel management (project leads add vessels; everyone can see them)
+- [x] Status updates with photos: taken or picked on the phone, shrunk in the browser, uploaded straight to object storage
+- [x] Browser tests with Playwright in CI (more flows follow)
 - [ ] Availability (leave and sickness) in the planning, with a demo source and a Crewmeister source
-- [ ] Status updates with photo uploads

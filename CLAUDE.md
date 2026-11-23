@@ -27,7 +27,8 @@ Work is planned as GitHub issues (epics with sub-issues; labels `type:*`, `area:
 2. Propose a short plan and wait for approval before writing code. Flag acceptance criteria that are unclear or conflict with the code.
 3. Branch from `main` as `<type>/<n>-<short-slug>` (e.g. `feat/41-photo-upload-api`, `fix/52-overdue-timezone`, `chore/…`, `docs/…`).
 4. Commit in small steps with Conventional Commits (`feat(api): …`, `fix(web): …`, `test: …`) and reference the issue (`Refs #41`).
-5. Open the PR with `.github/pull_request_template.md`, starting with `Closes #<n>`, and tick the acceptance criteria you met. Say which ones you didn't.
+5. Update the docs in the same PR, for every change: the READMEs (root, `apps/api`, `apps/web`), this file, `DEPLOYMENT.md` and `docs/`, wherever behaviour, setup, commands or conventions changed.
+6. Open the PR with `.github/pull_request_template.md`, starting with `Closes #<n>`, and tick the acceptance criteria you met. Say which ones you didn't.
 
 Don't close issues, change milestones or edit acceptance criteria yourself; ask instead.
 
@@ -56,6 +57,7 @@ pnpm --filter web dev                   # web on :3000
 pnpm --filter api test -- src/app.controller.spec.ts   # single file
 pnpm --filter api test -- -t "should return"           # by test name
 pnpm --filter api test:e2e               # uses <db>_test (e.g. hullops_test), created and migrated automatically
+pnpm --filter web test:e2e               # Playwright: API :4100 + web build :3100 on <db>_e2e, reset to the seed each run
 
 # Prisma (from apps/api)
 pnpm exec prisma migrate dev --name <name>
@@ -63,7 +65,7 @@ pnpm exec prisma generate
 pnpm exec prisma db seed                # demo data (prisma/seed-data.ts); password for all seed users: hullops-dev
 ```
 
-CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma migrate deploy` → lint → test → build against a Postgres service.
+CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma migrate deploy` → lint → test → build against a Postgres service. A separate `e2e` job runs the Playwright tests and uploads the report on failure.
 
 ## Prisma 7 notes
 
@@ -87,6 +89,15 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - `src/proxy.ts` is Next.js 16's middleware: an optimistic cookie check only. Real auth is in the DAL.
 - Error screens: `not-found.tsx` and `error.tsx` exist at `src/app` (full page, also catches `(app)/layout.tsx` failing) and in `(app)` (inside the header, same component). `global-error.tsx` is the last resort, without translations.
 - i18n with next-intl, no locale in the URL: the language comes from `User.locale` (or Accept-Language before login). Add every UI string to both `messages/en.json` and `messages/de.json`; `pnpm typecheck` fails if German misses a key. Client Components only get the namespaces passed in `src/app/layout.tsx`.
+- Photos go from the browser straight to object storage through signed URLs (`requestPhotoUploads`); the status update then sends only the keys. That needs a CORS rule on the bucket (`storage-init` in `docker-compose.yml`, `DEPLOYMENT.md` for R2). Shown with plain `<img>`, not `next/image`, because the signed URLs expire.
+
+## Browser tests (`apps/web/e2e/`)
+
+- Playwright files are `*.e2e.ts` (Vitest picks up every `*.spec.ts`). `next build` type-checks them, so a broken test file stops the web server from starting.
+- Tests start logged in: `test.use({ storageState: authFile("projectLead") })`. Seed users and `authFile` live in `e2e/auth.ts`, because a test file may not import another test file (`auth.setup.e2e.ts`).
+- After login the UI is in the user's `locale`, not the browser's: Lena (project lead) and Mehmet (worker) are seeded with DE.
+- Pages render some content twice for phone and desktop with one hidden by CSS (e.g. order cards and table). Prefer `getByRole`, which skips hidden elements; `getByText` finds both and fails in strict mode.
+- On a failure, `test-results/*/error-context.md` has a snapshot of what the browser saw.
 
 ## Data model (`apps/api/prisma/schema.prisma`)
 

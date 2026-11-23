@@ -27,7 +27,7 @@ Work is planned as GitHub issues (epics with sub-issues; labels `type:*`, `area:
 2. Propose a short plan and wait for approval before writing code. Flag acceptance criteria that are unclear or conflict with the code.
 3. Branch from `main` as `<type>/<n>-<short-slug>` (e.g. `feat/41-photo-upload-api`, `fix/52-overdue-timezone`, `chore/…`, `docs/…`).
 4. Commit in small steps with Conventional Commits (`feat(api): …`, `fix(web): …`, `test: …`) and reference the issue (`Refs #41`).
-5. Update the docs in the same PR, for every change: the READMEs (root, `apps/api`, `apps/web`), this file, `DEPLOYMENT.md` and `docs/`, wherever behaviour, setup, commands or conventions changed.
+5. Update the docs in the same PR, for every change: the READMEs (root, `apps/api`, `apps/web`), this file, `DEPLOYMENT.md` and `docs/`, wherever behaviour, setup, commands or conventions changed. If a PR changes login/auth, vessel visibility, the order status flow or the photo upload, update its diagram in `docs/flows.md`.
 6. Open the PR with `.github/pull_request_template.md`, starting with `Closes #<n>`, and tick the acceptance criteria you met. Say which ones you didn't.
 
 Don't close issues, change milestones or edit acceptance criteria yourself; ask instead.

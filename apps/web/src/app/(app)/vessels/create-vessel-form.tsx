@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { VESSEL_FIELD_LIMITS } from "@/lib/vessel-input";
 import { createVessel, type CreateVesselState } from "./actions";
 
 const inputClass =
@@ -28,7 +29,7 @@ export function CreateVesselForm() {
         <input
           name="name"
           required
-          maxLength={200}
+          maxLength={VESSEL_FIELD_LIMITS.name}
           defaultValue={value("name")}
           className={inputClass}
         />
@@ -38,7 +39,7 @@ export function CreateVesselForm() {
         <input
           name="imoNumber"
           inputMode="numeric"
-          maxLength={7}
+          maxLength={VESSEL_FIELD_LIMITS.imoNumber}
           defaultValue={value("imoNumber")}
           className={inputClass}
         />
@@ -50,7 +51,7 @@ export function CreateVesselForm() {
         {t("vesselType")}
         <input
           name="vesselType"
-          maxLength={100}
+          maxLength={VESSEL_FIELD_LIMITS.vesselType}
           defaultValue={value("vesselType")}
           className={inputClass}
         />

@@ -89,6 +89,7 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - `src/proxy.ts` is Next.js 16's middleware: an optimistic cookie check only. Real auth is in the DAL.
 - Error screens: `not-found.tsx` and `error.tsx` exist at `src/app` (full page, also catches `(app)/layout.tsx` failing) and in `(app)` (inside the header, same component). `global-error.tsx` is the last resort, without translations.
 - i18n with next-intl, no locale in the URL: the language comes from `User.locale` (or Accept-Language before login). Add every UI string to both `messages/en.json` and `messages/de.json`; `pnpm typecheck` fails if German misses a key. Client Components only get the namespaces passed in `src/app/layout.tsx`.
+- Define each code list and limit once, next to the rule that uses it (no general `constants/` folder): `SERVICE_TYPES` in `lib/service-types.ts`, `STATUS_FLOW` in `lib/order-status.ts`, `USER_LOCALES` in `i18n/locales.ts`, and field limits as `*_FIELD_LIMITS` in the `lib/*-input.ts` of their form. Never write a `maxLength={…}` number in JSX. The limits mirror the API's validation until #82 generates them.
 - Photos go from the browser straight to object storage through signed URLs (`requestPhotoUploads`); the status update then sends only the keys. That needs a CORS rule on the bucket (`storage-init` in `docker-compose.yml`, `DEPLOYMENT.md` for R2). Shown with plain `<img>`, not `next/image`, because the signed URLs expire.
 
 ## Browser tests (`apps/web/e2e/`)

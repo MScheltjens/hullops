@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { STAFFING_FIELD_LIMITS } from "@/lib/staffing-input";
 import { saveRequest, type SaveRequestState } from "./actions";
 
 const inputClass =
@@ -56,7 +57,7 @@ export function StaffingForm({
           inputMode="numeric"
           required
           min={0}
-          max={500}
+          max={STAFFING_FIELD_LIMITS.maxWorkers}
           step={1}
           defaultValue={defaults.workersNeeded ?? undefined}
           className={inputClass}
@@ -90,7 +91,7 @@ export function StaffingForm({
         <textarea
           name="note"
           rows={2}
-          maxLength={2000}
+          maxLength={STAFFING_FIELD_LIMITS.note}
           defaultValue={defaults.note}
           className={inputClass}
         />
@@ -102,7 +103,7 @@ export function StaffingForm({
           type="number"
           inputMode="numeric"
           min={0}
-          max={500}
+          max={STAFFING_FIELD_LIMITS.maxWorkers}
           step={1}
           defaultValue={defaults.workersActual ?? undefined}
           className={inputClass}

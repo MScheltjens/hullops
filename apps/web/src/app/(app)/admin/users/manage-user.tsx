@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
+import { SERVICE_TYPES } from "@/lib/service-types";
+import { USER_FIELD_LIMITS } from "@/lib/user-input";
 import type { Role } from "@/lib/user-roles";
 import {
   resetPassword,
@@ -13,8 +15,6 @@ const inputClass =
   "min-h-11 rounded-md border border-zinc-300 bg-white px-3 py-2 text-base font-normal text-zinc-900 focus:border-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-600/30 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100";
 const buttonClass =
   "min-h-11 self-start rounded-md bg-sky-700 px-4 font-medium text-white hover:bg-sky-800 disabled:opacity-60";
-
-const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
 
 /** The result line under a form: an error with the API's messages, or "done". */
 function Result({
@@ -84,7 +84,7 @@ export function EditUserForm({
         <input
           name="name"
           required
-          maxLength={100}
+          maxLength={USER_FIELD_LIMITS.name}
           defaultValue={name}
           className={inputClass}
         />
@@ -144,8 +144,8 @@ export function ResetPasswordForm({ userId }: { userId: string }) {
           name="password"
           type="password"
           required
-          minLength={8}
-          maxLength={200}
+          minLength={USER_FIELD_LIMITS.passwordMin}
+          maxLength={USER_FIELD_LIMITS.passwordMax}
           autoComplete="new-password"
           className={inputClass}
         />

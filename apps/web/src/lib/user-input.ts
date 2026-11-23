@@ -3,8 +3,22 @@ import { text } from "./form-data";
 /**
  * Turns the user-management forms into the inputs the API expects. A
  * plain function, like order-input.ts. The API checks every rule (valid
- * email, password length, unique email); nothing is repeated here.
+ * email, password length, unique email); only the field limits below are
+ * repeated, for the browser's own checks.
  */
+
+/**
+ * Text limits of the user forms. Copies of the API's input
+ * validation, so the browser stops a too long text before sending; #82
+ * will take them from the API instead.
+ * See apps/api/src/users/user.inputs.ts and MIN_PASSWORD_LENGTH.
+ */
+export const USER_FIELD_LIMITS = {
+  name: 100,
+  email: 254,
+  passwordMin: 8,
+  passwordMax: 200,
+} as const;
 
 export const USER_ROLES = ["PROJECT_LEAD", "WORKER", "ADMIN"] as const;
 

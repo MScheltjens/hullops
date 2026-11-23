@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { apiAsUser, requireWorkUser } from "@/lib/server/dal";
+import { STATUS_FLOW } from "@/lib/order-status";
+import { SERVICE_TYPES, type ServiceType } from "@/lib/service-types";
 import { StatusBadge, type Status } from "./status-badge";
 
-const STATUSES = ["PLANNED", "IN_PROGRESS", "DONE"] as const satisfies readonly Status[];
-const SERVICE_TYPES = ["CLEANING", "PROTECTION"] as const;
-type ServiceType = (typeof SERVICE_TYPES)[number];
 
 interface OrderRow {
   id: string;
@@ -54,7 +53,7 @@ export default async function OrdersPage({
   // view can be bookmarked or shared, and the page needs no client state.
   const user = await requireWorkUser();
   const params = await searchParams;
-  const status = pick(params.status, STATUSES);
+  const status = pick(params.status, STATUS_FLOW);
   const serviceType = pick(params.serviceType, SERVICE_TYPES);
   const overdue = pick(params.overdue, ["true", "false"] as const);
 
@@ -93,7 +92,7 @@ export default async function OrdersPage({
       <form className="grid grid-cols-2 items-end gap-3 text-sm sm:flex sm:flex-wrap">
         <Filter label={t("filters.status")} name="status" value={status}>
           <option value="">{t("filters.all")}</option>
-          {STATUSES.map((s) => (
+          {STATUS_FLOW.map((s) => (
             <option key={s} value={s}>
               {t(`status.${s}`)}
             </option>

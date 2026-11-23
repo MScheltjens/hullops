@@ -5,6 +5,7 @@ import { cache } from "react";
 import { ApiError, graphqlRequest } from "./api";
 import { getSessionToken } from "./session";
 import { homePath, seesWork } from "../user-roles";
+import type { UserLocale } from "@/i18n/locales";
 
 /**
  * Data access layer: the one place that decides who is logged in. Pages and
@@ -12,7 +13,8 @@ import { homePath, seesWork } from "../user-roles";
  * themselves (the pattern the Next.js authentication guide recommends).
  */
 
-export type Locale = "EN" | "DE";
+/** A user's language as the API stores it. */
+export type Locale = UserLocale;
 
 export interface CurrentUser {
   id: string;

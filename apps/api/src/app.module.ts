@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { Env, validateEnv } from './config/env';
 import { formatGraphqlError } from './graphql/format-graphql-error';
 import { HealthModule } from './health/health.module';
+import { McpModule } from './mcp/mcp.module';
 import { OrdersModule } from './orders/orders.module';
 import { PhotosModule } from './photos/photos.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -53,6 +54,7 @@ import { VesselsModule } from './vessels/vessels.module';
     OrdersModule,
     PhotosModule,
     StaffingModule,
+    McpModule,
   ],
 })
 export class AppModule {}

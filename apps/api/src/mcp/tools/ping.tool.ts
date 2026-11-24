@@ -12,15 +12,12 @@ export function registerPingTool(server: McpServer, user: AuthUser): void {
     {
       description:
         'Checks the connection to HullOps and returns the name and role of the logged-in user.',
-      // TODO 1: is there anything the caller has to pass? (Look at how the
-      // SDK's README example declares `inputSchema`, and decide if ping needs one.)
       annotations: { readOnlyHint: true },
     },
     async () => {
-      // TODO 2: return the answer. A tool returns `{ content: [...] }`, a
-      // list of content blocks; text is `{ type: 'text', text: '...' }`.
-      void user;
-      throw new Error('ping is not implemented yet');
+      return {
+        content: [{ type: 'text', text: `pong: ${user.name} (${user.role})` }],
+      };
     },
   );
 }

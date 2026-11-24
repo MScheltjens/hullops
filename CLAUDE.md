@@ -83,6 +83,14 @@ CI (`.github/workflows/ci.yml`) runs install → `prisma generate` → `prisma m
 - `User.email` is a field resolver (`UsersResolver.email`, rule `canSeeEmail`): only the user themselves, admins and HR see it, everyone else gets `null`. Don't turn it back into a plain `@Field()`.
 - e2e tests log in through `test/auth-helpers.ts` (`createUserAndLogin`, `graphql(app, token)`).
 
+## MCP (`apps/api/src/mcp/`)
+
+- `/mcp` serves MCP over Streamable HTTP, stateless, with the SDK v2 (`@modelcontextprotocol/server`, adapted to Express with `@modelcontextprotocol/node`). Decisions and alternatives: `docs/adr/0002-mcp-transport-and-auth.md`.
+- It is not `@Public()`: the global `AuthGuard` checks the bearer token first. The controller passes the user to `createHullOpsMcpServer(user)`, which builds a server per request.
+- One file per tool in `tools/` (`register<Name>Tool(server, user)`). Tools call the existing services, never Prisma directly, and filter with `visibleVesselsWhere` like the resolvers. Set `annotations.readOnlyHint` on tools that don't write.
+- Test tools in `test/mcp.e2e-spec.ts` with the official MCP client (`@modelcontextprotocol/client`) against `app.listen(0)`, not supertest.
+- Connecting Claude Code for a manual check: `apps/api/README.md` → MCP server.
+
 ## Web (`apps/web/`)
 
 - Pages are Server Components that call the API on the server via `src/lib/server/dal.ts` (`requireUser()`, `apiAsUser()`); the token stays in an httpOnly cookie and never reaches the browser.

@@ -1,6 +1,6 @@
 # HullOps API
 
-The backend of [HullOps](../../README.md): a NestJS app that serves a GraphQL API and stores data in PostgreSQL through Prisma 7.
+The backend of [HullOps](../../README.md): a NestJS app that serves a GraphQL API (and an [MCP endpoint](#mcp-server) for AI assistants) and stores data in PostgreSQL through Prisma 7.
 
 ## Setup
 
@@ -66,6 +66,7 @@ apps/api/
 │   ├── common/                small helpers shared by features (weeks as Mondays)
 │   ├── auth/                  login, JWT guard, @Public/@Roles/@CurrentUser
 │   ├── health/                GET /health
+│   ├── mcp/                   MCP server on /mcp; one file per tool in tools/
 │   ├── orders/                orders feature; business rules in order-rules.ts
 │   ├── staffing/              weekly staffing requests and the crew plan
 │   ├── users/                 user management; who sees which email (user-rules.ts)
@@ -131,7 +132,7 @@ Defined in [`prisma/schema.prisma`](prisma/schema.prisma):
 
 ## Authentication
 
-Every endpoint requires login, except the `login` mutation and `GET /health`.
+Every endpoint requires login, except the `login` mutation and `GET /health`. That includes the [MCP endpoint](#mcp-server).
 
 1. Log in. The demo users from the seed all have the password `hullops-dev`:
 
@@ -299,6 +300,30 @@ Example validation error:
 
 The mapping lives in [`src/graphql/format-graphql-error.ts`](src/graphql/format-graphql-error.ts).
 
+## MCP server
+
+`/mcp` lets an AI assistant such as Claude Code or Claude Desktop work with HullOps through the [Model Context Protocol](https://modelcontextprotocol.io). The choices behind it (Streamable HTTP inside this app, bearer tokens, no OAuth for now) are in [ADR 0002](../../docs/adr/0002-mcp-transport-and-auth.md).
+
+- **Same rights as the app.** `/mcp` sits behind the global `AuthGuard`, so a request without a valid token gets a 401 before any MCP code runs. Every request gets a fresh, stateless `McpServer` built for that user ([`mcp-server.ts`](src/mcp/mcp-server.ts)), and tools apply the same rules as the resolvers by calling the same services, never Prisma directly.
+- **One file per tool** in [`src/mcp/tools/`](src/mcp/tools), registered in `createHullOpsMcpServer`. The tool's `description` is what the assistant reads to decide when to use it, so write it for that reader.
+- **Tools so far:** `ping`, which answers `pong: <name> (<role>)` to check the connection and the login.
+
+### Connect Claude Code
+
+Until personal access tokens exist (#41), the token is a normal login token, which expires after `JWT_EXPIRES_IN_HOURS`. With the API running (`pnpm start:dev`):
+
+```bash
+export HULLOPS_TOKEN=$(curl -s localhost:4000/graphql -H 'Content-Type: application/json' \
+  -d '{"query":"mutation{login(input:{email:\"lena.hoffmann@hullops.example\",password:\"hullops-dev\"}){accessToken}}"}' \
+  | jq -r .data.login.accessToken)
+[ -n "$HULLOPS_TOKEN" ] || echo "Login failed: the token is empty"
+
+claude mcp add --transport http --scope local hullops http://localhost:4000/mcp \
+  --header "Authorization: Bearer $HULLOPS_TOKEN"
+```
+
+`claude mcp get hullops` should show **Connected**. In a new session (or after `/mcp` → Reconnect), ask "ping hullops". When the token expires, the server shows a 401: run `claude mcp remove hullops -s local` and the steps above again. The token is stored in your own `~/.claude.json`, never in the repository.
+
 ## Testing
 
 - **Unit tests** (`src/**/*.spec.ts`) mock Prisma and need no database.
@@ -306,6 +331,7 @@ The mapping lives in [`src/graphql/format-graphql-error.ts`](src/graphql/format-
   - The test database has the name from `DATABASE_URL` plus `_test`. With the default `.env`, that's `hullops_test` on the same server. If the name already ends in `_test`, as in CI, it's used as is.
   - Before the tests run, [`test/global-setup.ts`](test/global-setup.ts) creates that database if it's missing and applies all migrations. `pnpm test:e2e` needs no manual setup, only a running Postgres.
   - The suites still delete the data they create, so runs don't affect each other.
+- **MCP tests** ([`test/mcp.e2e-spec.ts`](test/mcp.e2e-spec.ts)) use the official MCP client over real HTTP against a listening app, the same code Claude Code uses.
 - **Browser tests** live in the web app ([`apps/web/e2e/`](../web/e2e/)) and run this API against a third database, `hullops_e2e`. [`test/prepare-browser-db.ts`](test/prepare-browser-db.ts) creates and migrates it and resets it to the demo seed before every run. It refuses any database whose name doesn't end in `_e2e`, because the reset deletes everything that isn't seed data.
 
 ## Notes on the setup
